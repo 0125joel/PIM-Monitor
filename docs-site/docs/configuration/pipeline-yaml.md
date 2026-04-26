@@ -39,30 +39,31 @@ steps:
 
 Replace `pim-monitor-service-connection` with the name of your Workload Identity Federation service connection (created during [installation](../getting-started/installation.md)).
 
-## Environment variables
+## Variables
+
+### Internal pipeline variables
 
 ```yaml
 variables:
-  NOTIFICATION_EMAIL: $(NOTIFICATION_EMAIL)
-  NOTIFICATION_MAIL_FROM: $(NOTIFICATION_MAIL_FROM)
-  NOTIFICATION_WEBHOOK_URL: $(NOTIFICATION_WEBHOOK_URL)
-  NOTIFICATION_MIN_SEVERITY: $(NOTIFICATION_MIN_SEVERITY)
+  MSGRAPH_VERSION: "2.35.1"
 ```
 
-These reference pipeline variables set in the Azure DevOps UI. Leave them unset to disable notifications.
+`MSGRAPH_VERSION` is the only variable defined in the YAML. It pins the Microsoft.Graph module version used by the caching step and is not meant to be changed via the UI.
 
-### Setting variables in Azure DevOps
+### User-configurable variables
 
-1. Go to **Pipelines** > **PIM Monitor**
-2. Click **Edit** > **Variables** (top right)
-3. Add your variables:
+User-configurable variables are set in the Azure DevOps **Variables** panel, not in the YAML. Setting them in the YAML would shadow the UI values and make them impossible to change without editing the file.
 
-| Name | Example value |
-|---|---|
-| `NOTIFICATION_EMAIL` | `security-team@contoso.com` |
-| `NOTIFICATION_MAIL_FROM` | `pim-monitor@contoso.com` |
-| `NOTIFICATION_WEBHOOK_URL` | `https://outlook.webhook.office.com/webhookb2/...` |
-| `NOTIFICATION_MIN_SEVERITY` | `Medium` |
+Go to **Pipelines** > **PIM Monitor** > **Edit** > **Variables** and add whichever you need:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `NOTIFICATION_EMAIL` | _(unset)_ | Email recipient |
+| `NOTIFICATION_MAIL_FROM` | _(unset)_ | Sender mailbox (requires `Mail.Send`) |
+| `NOTIFICATION_WEBHOOK_URL` | _(unset)_ | Teams, Slack, Discord, or custom webhook |
+| `NOTIFICATION_MIN_SEVERITY` | `Medium` | Minimum severity to notify on |
+| `EXPIRING_WINDOW_DAYS` | `14` | Days ahead to flag expiring assignments |
+| `REPORT_ARTIFACT` | _(unset)_ | Set to `true` to publish an HTML report artifact |
 
 All are optional. See [Notifications](./notifications.md) for details.
 
@@ -80,14 +81,36 @@ Clones the repo and sets up git credentials for pushing. Required.
 
 ### 2. Install Microsoft.Graph module
 
+The module install uses three steps: path detection, cache restore, and a conditional install that is skipped on a cache hit.
+
 ```yaml
 - task: PowerShell@2
+  name: cacheVars
   inputs:
     script: |
-      Install-Module -Name Microsoft.Graph -Force -SkipPublisherCheck
+      $p = $env:PSModulePath.Split([IO.Path]::PathSeparator) |
+           Where-Object { $_ -match 'home|user' } |
+           Select-Object -First 1
+      "##vso[task.setvariable variable=psUserModulePath]$p" | Write-Host
+  displayName: "Detect user module path"
+
+- task: Cache@2
+  inputs:
+    key: '"MSGraph" | "$(MSGRAPH_VERSION)" | "$(Agent.OS)"'
+    path: "$(psUserModulePath)"
+    cacheHitVar: MODULES_CACHE_HIT
+  displayName: "Restore Microsoft.Graph module cache"
+
+- task: PowerShell@2
+  condition: ne(variables['MODULES_CACHE_HIT'], 'true')
+  inputs:
+    script: |
+      Install-Module -Name Microsoft.Graph -RequiredVersion "$(MSGRAPH_VERSION)" `
+        -Scope CurrentUser -Force -SkipPublisherCheck -Repository PSGallery
+  displayName: "Install Microsoft.Graph module"
 ```
 
-Optional but recommended. The scripts also work with `Invoke-RestMethod` directly.
+The cache key includes the module version and agent OS, so a version bump in `MSGRAPH_VERSION` automatically invalidates the cache.
 
 ### 3. Run the scan
 

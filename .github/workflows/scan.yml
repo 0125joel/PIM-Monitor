@@ -5,20 +5,40 @@ on:
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
+concurrency:
+  group: pim-monitor-scan
+  cancel-in-progress: false
+
 permissions:
   id-token: write
   contents: write
+
+env:
+  MSGRAPH_VERSION: "2.35.1"
 
 jobs:
   scan:
     runs-on: ubuntu-latest
     environment: production
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Restore Microsoft.Graph module cache
+        id: cache-modules
+        uses: actions/cache@v4
         with:
-          fetch-depth: 0
+          path: ~/.local/share/powershell/Modules
+          key: MSGraph-${{ env.MSGRAPH_VERSION }}-${{ runner.os }}
+
+      - name: Install Microsoft.Graph module
+        if: steps.cache-modules.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          Install-Module -Name Microsoft.Graph -RequiredVersion "${{ env.MSGRAPH_VERSION }}" `
+            -Scope CurrentUser -Force -SkipPublisherCheck -Repository PSGallery
 
       - name: Authenticate to Azure
         uses: azure/login@v2
@@ -26,40 +46,41 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+      - name: Configure git
+        run: |
+          git config user.name "PIM Monitor"
+          git config user.email "pim-monitor@noreply.github.com"
 
       - name: Run PIM Monitor scan
         shell: pwsh
-        run: . (Join-Path $PWD "src/Scan-PimState.ps1")
+        run: ./src/Scan-PimState.ps1
         env:
           NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
           NOTIFICATION_MAIL_FROM: ${{ secrets.NOTIFICATION_MAIL_FROM }}
           NOTIFICATION_WEBHOOK_URL: ${{ secrets.NOTIFICATION_WEBHOOK_URL }}
-          NOTIFICATION_MIN_SEVERITY: ${{ vars.NOTIFICATION_MIN_SEVERITY || 'Medium' }}
-          EXPIRING_WINDOW_DAYS: ${{ vars.EXPIRING_WINDOW_DAYS || '14' }}
-          REPORT_ARTIFACT: ${{ vars.REPORT_ARTIFACT || 'false' }}
-          # GitHub environment variables for commit diff URLs
+          NOTIFICATION_MIN_SEVERITY: ${{ vars.NOTIFICATION_MIN_SEVERITY }}
+          EXPIRING_WINDOW_DAYS: ${{ vars.EXPIRING_WINDOW_DAYS }}
+          REPORT_ARTIFACT: ${{ vars.REPORT_ARTIFACT }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_REPOSITORY: ${{ github.repository }}
 
-      - name: Configure git
-        run: |
-          git config --local user.email "pim-monitor@github"
-          git config --local user.name "PIM Monitor"
-
-      - name: Commit and push changes
+      - name: Commit and push inventory changes
         run: |
           git add inventory/ expected-changes.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No inventory changes to commit"
           else
             git commit -m "scan: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            git push origin HEAD:${{ github.ref_name }}
+            git push
           fi
 
       - name: Upload scan report
-        if: vars.REPORT_ARTIFACT == 'true' && failure() == false
+        if: vars.REPORT_ARTIFACT == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: pim-monitor-report
           path: scan-report.html
+          if-no-files-found: ignore
           retention-days: 7

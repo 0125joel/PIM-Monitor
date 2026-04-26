@@ -78,8 +78,10 @@ This allows the workflow to commit inventory changes back to the repository.
 
 The workflow file `.github/workflows/scan.yml` is already in the repository. Confirm two things before the first run:
 
-- The trigger schedule matches your requirement (default: every 6 hours)
+- The trigger schedule matches your requirement (default: every 6 hours, `cron: '0 */6 * * *'`)
 - The `environment: production` line matches your GitHub environment name, or remove it if you are not using GitHub environments
+
+The `MSGRAPH_VERSION` variable in the workflow pins the Microsoft.Graph module version used for scanning. Update it when you want to upgrade the module.
 
 ## Step 5: First run
 
@@ -153,7 +155,7 @@ The scan completed but wrote nothing to git.
 
 ### Module installation is slow
 
-`Install-Module Microsoft.Graph` takes 1-2 minutes on the first run. This is expected. Subsequent runs reuse the runner cache if configured.
+`Install-Module Microsoft.Graph` takes 1-2 minutes on the first run. This is expected. Subsequent runs restore the module from the runner cache and skip the install step entirely.
 
 ---
 

@@ -11,33 +11,48 @@ pool:
   vmImage: "ubuntu-latest"
 
 variables:
-  # Feature flags with meaningful defaults. Set in ADO → Pipeline → Variables.
-  # NOTIFICATION_EMAIL, NOTIFICATION_MAIL_FROM, NOTIFICATION_WEBHOOK_URL, and
-  # REPORT_ARTIFACT must NOT be defined here: YAML variables shadow UI variables
-  # of the same name, so a YAML default would always override the UI value.
-  NOTIFICATION_MIN_SEVERITY: "Medium"
+  MSGRAPH_VERSION: "2.35.1"
 
 steps:
-  # Checkout repo with git history (needed for commit and push)
   - checkout: self
     persistCredentials: true
     displayName: "Checkout repository"
 
-  # Install required PowerShell modules
   - task: PowerShell@2
+    name: cacheVars
     inputs:
       targetType: inline
       pwsh: true
       script: |
-        Write-Host "Installing Microsoft.Graph PowerShell SDK..."
-        Install-Module -Name Microsoft.Graph -Force -SkipPublisherCheck -AllowClobber
+        $p = $env:PSModulePath.Split([IO.Path]::PathSeparator) |
+             Where-Object { $_ -match 'home|user' } |
+             Select-Object -First 1
+        "##vso[task.setvariable variable=psUserModulePath]$p" | Write-Host
+        Write-Host "User module path: $p"
+    displayName: "Detect user module path"
+
+  - task: Cache@2
+    inputs:
+      key: '"MSGraph" | "$(MSGRAPH_VERSION)" | "$(Agent.OS)"'
+      path: "$(psUserModulePath)"
+      cacheHitVar: MODULES_CACHE_HIT
+    displayName: "Restore Microsoft.Graph module cache"
+
+  - task: PowerShell@2
+    condition: ne(variables['MODULES_CACHE_HIT'], 'true')
+    inputs:
+      targetType: inline
+      pwsh: true
+      script: |
+        Write-Host "Installing Microsoft.Graph $(MSGRAPH_VERSION)..."
+        Install-Module -Name Microsoft.Graph -RequiredVersion "$(MSGRAPH_VERSION)" `
+          -Scope CurrentUser -Force -SkipPublisherCheck -Repository PSGallery
         Write-Host "Module installed successfully"
     displayName: "Install Microsoft.Graph module"
 
-  # Run the PIM state scan
   - task: AzurePowerShell@5
     inputs:
-      azureSubscription: "pim-monitor-service-connection"  # Must be configured in Azure DevOps
+      azureSubscription: "pim-monitor-service-connection"
       ScriptType: "FilePath"
       ScriptPath: "$(Build.SourcesDirectory)/src/Scan-PimState.ps1"
       azurePowerShellVersion: "LatestVersion"
@@ -51,14 +66,12 @@ steps:
       REPORT_ARTIFACT: $(REPORT_ARTIFACT)
       EXPIRING_WINDOW_DAYS: $(EXPIRING_WINDOW_DAYS)
 
-  # Configure git for commit (in case the scan modified files)
   - script: |
       git config user.name "PIM Monitor"
       git config user.email "pim-monitor@pipeline"
     displayName: "Configure git user"
     condition: always()
 
-  # Commit and push changes if inventory files changed
   - script: |
       cd $(Build.SourcesDirectory)
       git add inventory/ expected-changes.json 2>/dev/null || true
@@ -74,11 +87,9 @@ steps:
     displayName: "Commit and push inventory changes"
     condition: always()
 
-  # Publish HTML report artifact (only when REPORT_ARTIFACT=true and scan produced changes)
-  - task: PublishBuildArtifacts@1
+  - task: PublishPipelineArtifact@1
     inputs:
-      PathtoPublish: "$(Build.ArtifactStagingDirectory)"
-      ArtifactName: "scan-report"
-      publishLocation: Container
+      targetPath: "$(Build.ArtifactStagingDirectory)"
+      artifact: "scan-report"
     displayName: "Publish HTML scan report"
     condition: eq(variables['REPORT_ARTIFACT'], 'true')
