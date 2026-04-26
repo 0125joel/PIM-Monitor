@@ -67,8 +67,6 @@ Start here depending on what you need:
 - **Reference**: [Inventory structure](./docs-site/docs/reference/inventory-structure.md), [Graph API endpoints](./docs-site/docs/reference/graph-endpoints.md), [Diff engine](./docs-site/docs/reference/diff-engine.md), [Activation events](./docs-site/docs/reference/activation-events.md)
 - **Customization**: [Expected changes](./docs-site/docs/customize/expected-changes.md), [Severity rules](./docs-site/docs/customize/severity-rules.md), [Notifications](./docs-site/docs/customize/notifications.md), [Diff engine](./docs-site/docs/customize/diff-engine.md)
 
-Or read the full architecture: [Architecture & Planning](./docs/architecture.md)
-
 Stuck during setup? Check the [Troubleshooting section in Prerequisites](./docs-site/docs/getting-started/prerequisites.md#troubleshooting) or the [FAQ](./docs-site/docs/getting-started/faq.md).
 
 ## Architecture overview

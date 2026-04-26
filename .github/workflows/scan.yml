@@ -29,15 +29,7 @@ jobs:
 
       - name: Run PIM Monitor scan
         shell: pwsh
-        run: |
-          Install-Module Microsoft.Graph -Force -Scope CurrentUser
-          $token = (Get-AzAccessToken -ResourceTypeName MSGraph).Token
-          . (Join-Path -Path $PWD -ChildPath "src/helpers.ps1")
-          . (Join-Path -Path $PWD -ChildPath "src/graphEndpoints.ps1")
-          . (Join-Path -Path $PWD -ChildPath "src/diff.ps1")
-          . (Join-Path -Path $PWD -ChildPath "src/git.ps1")
-          . (Join-Path -Path $PWD -ChildPath "src/notifications.ps1")
-          . (Join-Path -Path $PWD -ChildPath "src/Scan-PimState.ps1")
+        run: . (Join-Path $PWD "src/Scan-PimState.ps1")
         env:
           NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
           NOTIFICATION_MAIL_FROM: ${{ secrets.NOTIFICATION_MAIL_FROM }}
