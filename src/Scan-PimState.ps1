@@ -549,7 +549,8 @@ try {
         $allAssignmentsByEntity[$slug] = $groupAssignmentsByEntity[$slug]
     }
 
-    $windowDays = if ($env:EXPIRING_WINDOW_DAYS) { [int]$env:EXPIRING_WINDOW_DAYS } else { 14 }
+    $parsed = 0
+    $windowDays = if ([int]::TryParse($env:EXPIRING_WINDOW_DAYS, [ref]$parsed)) { $parsed } else { 14 }
     $expiringChanges = @(Find-ExpiringAssignments -Assignments $allAssignmentsByEntity -WindowDays $windowDays)
 
     if ($expiringChanges.Count -gt 0) {
@@ -683,7 +684,7 @@ if ($env:REPORT_ARTIFACT -eq 'true') {
 # ============================================================================
 
 if ($changesBySeverity.Total -gt 0) {
-    $minSeverity = if ($env:NOTIFICATION_MIN_SEVERITY) { $env:NOTIFICATION_MIN_SEVERITY } else { 'Medium' }
+    $minSeverity = if ($env:NOTIFICATION_MIN_SEVERITY -and $env:NOTIFICATION_MIN_SEVERITY -notmatch '^\$\(') { $env:NOTIFICATION_MIN_SEVERITY } else { 'Medium' }
     $commitSha = if ($publishResult -and $publishResult.committed) { $publishResult.commitSha } else { $null }
 
     # ADO passes unresolved macro references as literal $(VAR_NAME) strings when a
