@@ -228,15 +228,24 @@ inventory/
 ├── administrative-units/      (lookup: resolve directoryScopeId → displayName)
 │   └── {slug}/
 │       └── definition.json
-└── activation-events/         (monthly archives of PIM audit log events)
-    └── YYYY-MM.json
+├── activation-events/         (monthly archives of PIM audit log events)
+│   └── YYYY-MM.json
+└── archive/                   (removed entities, preserved for audit history)
+    ├── directory-roles/
+    │   └── {slug}_{YYYY-MM-DD}/
+    ├── pim-groups/
+    │   └── {slug}_{YYYY-MM-DD}/
+    ├── authentication-contexts/
+    │   └── {slug}_{YYYY-MM-DD}/
+    └── administrative-units/
+        └── {slug}_{YYYY-MM-DD}/
 ```
 
 ### Lifecycle of inventory folders
 
 - **Created** when an entity is first seen (folder + all applicable files).
 - **Updated** per file when only that file's data changes. A policy change touches only `policy.json`.
-- **Deleted** (entire folder) when `Get-RemovedEntities` detects a slug present on disk but absent from the current API fetch.
+- **Archived** when `Get-RemovedEntities` detects a slug present on disk but absent from the current API fetch. The folder is moved to `inventory/archive/{workload}/{slug}_{date}` via `Move-ToArchive`. The files are preserved for audit history — nothing is deleted.
 
 ### Slug derivation
 

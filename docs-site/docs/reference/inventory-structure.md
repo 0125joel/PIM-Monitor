@@ -13,7 +13,9 @@ inventory/
 ├── directory-roles/
 ├── pim-groups/
 ├── authentication-contexts/
-└── administrative-units/
+├── administrative-units/
+├── activation-events/
+└── archive/
 ```
 
 Each entity gets its own subfolder using a slugified name. For example: `inventory/directory-roles/global-administrator/`.
@@ -238,6 +240,28 @@ inventory/administrative-units/{slug}/
 ```
 
 Resolves `directoryScopeId` in assignments scoped to an AU instead of the full tenant.
+
+## Archive
+
+When a role or group disappears from PIM (removed, offboarded, or renamed to a new slug), its inventory folder is not deleted. It is moved to `inventory/archive/{workload}/{slug}_{date}`:
+
+```
+inventory/archive/
+├── directory-roles/
+│   └── old-role-name_2026-04-26/
+│       ├── definition.json
+│       ├── policy.json
+│       └── assignments.json
+└── pim-groups/
+    └── disbanded-group_2026-03-01/
+        ├── definition.json
+        ├── policy.json
+        └── assignments.json
+```
+
+The date suffix is the UTC date of the scan that detected the removal. The full contents of the folder are preserved, so the last known state of the entity remains in git history and on disk.
+
+The removal is also recorded as a `High` severity change entry and included in notifications.
 
 ## Deterministic serialization
 
