@@ -1,0 +1,73 @@
+name: PIM Monitor Scan
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Authenticate to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Run PIM Monitor scan
+        shell: pwsh
+        run: |
+          Install-Module Microsoft.Graph -Force -Scope CurrentUser
+          $token = (Get-AzAccessToken -ResourceTypeName MSGraph).Token
+          . (Join-Path -Path $PWD -ChildPath "src/helpers.ps1")
+          . (Join-Path -Path $PWD -ChildPath "src/graphEndpoints.ps1")
+          . (Join-Path -Path $PWD -ChildPath "src/diff.ps1")
+          . (Join-Path -Path $PWD -ChildPath "src/git.ps1")
+          . (Join-Path -Path $PWD -ChildPath "src/notifications.ps1")
+          . (Join-Path -Path $PWD -ChildPath "src/Scan-PimState.ps1")
+        env:
+          NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+          NOTIFICATION_MAIL_FROM: ${{ secrets.NOTIFICATION_MAIL_FROM }}
+          NOTIFICATION_WEBHOOK_URL: ${{ secrets.NOTIFICATION_WEBHOOK_URL }}
+          NOTIFICATION_MIN_SEVERITY: ${{ vars.NOTIFICATION_MIN_SEVERITY || 'Medium' }}
+          EXPIRING_WINDOW_DAYS: ${{ vars.EXPIRING_WINDOW_DAYS || '14' }}
+          REPORT_ARTIFACT: ${{ vars.REPORT_ARTIFACT || 'false' }}
+          # GitHub environment variables for commit diff URLs
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Configure git
+        run: |
+          git config --local user.email "pim-monitor@github"
+          git config --local user.name "PIM Monitor"
+
+      - name: Commit and push changes
+        run: |
+          git add inventory/ expected-changes.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No inventory changes to commit"
+          else
+            git commit -m "scan: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
+
+      - name: Upload scan report
+        if: vars.REPORT_ARTIFACT == 'true' && failure() == false
+        uses: actions/upload-artifact@v4
+        with:
+          name: pim-monitor-report
+          path: scan-report.html
+          retention-days: 7

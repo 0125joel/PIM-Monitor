@@ -1,0 +1,524 @@
+/* ============================================================
+   Theme tokens are defined on .heroPage itself (light defaults)
+   and overridden via [data-theme='dark'] .heroPage (dark values).
+   Children reference them with var(--hp-*). Because the variables
+   are declared on a DOM ancestor and consumed by descendants,
+   the cascade is purely DOM-based — no global-file dependency.
+   ============================================================ */
+
+.heroPage {
+  /* Light mode tokens */
+  --hp-bg:              #f5f5f5;
+  --hp-panel:           #ffffff;
+  --hp-panel-alt:       #f9f9f9;
+  --hp-border:          #e5e5e5;
+  --hp-border-mid:      #d4d4d4;
+  --hp-border-sub:      #c4c4c4;
+  --hp-text-1:          #171717;
+  --hp-text-2:          #525252;
+  --hp-text-3:          #a3a3a3;
+  --hp-text-ghost:      #d4d4d4;
+  --hp-diff-bg:         #f8f8f8;
+  --hp-diff-empty:      #eeeeee;
+  --hp-add-bg:          rgba(34, 197, 94, 0.10);
+  --hp-del-bg:          rgba(239, 68, 68, 0.10);
+  --hp-add-fg:          #166534;
+  --hp-del-fg:          #991b1b;
+  --hp-nh-bg:           rgba(239, 68, 68, 0.06);
+  --hp-nm-bg:           rgba(217, 119, 6,  0.06);
+  --hp-code-bg:         rgba(217, 119, 6,  0.10);
+  --hp-code-fg:         #b45309;
+  --hp-dot-bg:          #ffffff;
+  --hp-now-grad:        linear-gradient(180deg, #fef3c7 0%, #f5f5f5 100%);
+
+  min-height: calc(100vh - var(--ifm-navbar-height));
+  display: flex;
+  align-items: center;
+  background: var(--hp-bg);
+  overflow: hidden;
+}
+
+[data-theme='dark'] .heroPage {
+  --hp-bg:              #0a0a0a;
+  --hp-panel:           #0a0a0a;
+  --hp-panel-alt:       #0f0f0f;
+  --hp-border:          #1a1a1a;
+  --hp-border-mid:      #262626;
+  --hp-border-sub:      #404040;
+  --hp-text-1:          #e5e5e5;
+  --hp-text-2:          #737373;
+  --hp-text-3:          #525252;
+  --hp-text-ghost:      #2a2a2a;
+  --hp-diff-bg:         #000000;
+  --hp-diff-empty:      #060606;
+  --hp-add-bg:          rgba(34, 197, 94, 0.07);
+  --hp-del-bg:          rgba(239, 68, 68, 0.07);
+  --hp-add-fg:          #86efac;
+  --hp-del-fg:          #fca5a5;
+  --hp-nh-bg:           rgba(239, 68, 68, 0.04);
+  --hp-nm-bg:           rgba(217, 119, 6,  0.04);
+  --hp-code-bg:         rgba(217, 119, 6,  0.10);
+  --hp-code-fg:         #fcd34d;
+  --hp-dot-bg:          #0a0a0a;
+  --hp-now-grad:        linear-gradient(180deg, #1a0f05 0%, #0a0a0a 100%);
+}
+
+/* Layout */
+
+.heroInner {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 48px;
+  align-items: stretch;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 80px 64px;
+}
+
+.heroLeft {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  min-width: 0;
+}
+
+.heroRight {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.heroText { min-width: 0; }
+
+/* Hero copy */
+
+.heroEyebrow {
+  font-family: var(--pm-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--hp-text-3);
+  margin: 0 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.heroEyebrow::before {
+  content: '';
+  width: 18px;
+  height: 1px;
+  background: var(--hp-border-mid);
+  display: block;
+  flex-shrink: 0;
+}
+
+.heroTitle {
+  font-family: var(--pm-font-mono);
+  font-size: 48px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  margin: 0 0 20px;
+  color: var(--hp-text-1);
+}
+
+.heroAccent { color: #d97706; }
+
+.heroSub {
+  font-family: var(--pm-font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--hp-text-2);
+  margin: 0 0 32px;
+}
+
+.heroActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 4px;
+  font-family: var(--pm-font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  background: #d97706;
+  color: #0a0a0a;
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.btnPrimary:hover {
+  background: #f59e0b;
+  color: #0a0a0a;
+  text-decoration: none;
+}
+
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 4px;
+  font-family: var(--pm-font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--hp-text-1);
+  border: 1px solid var(--hp-border-mid);
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+.btnSecondary:hover {
+  border-color: var(--hp-border-sub);
+  color: var(--hp-text-1);
+  text-decoration: none;
+}
+
+.heroTag {
+  font-family: var(--pm-font-mono);
+  font-size: 11px;
+  color: var(--hp-text-3);
+  letter-spacing: 0.1em;
+  margin-left: 4px;
+}
+
+/* ── Notification card ── */
+
+.notif {
+  background: var(--hp-panel);
+  border: 1px solid var(--hp-border);
+  font-family: var(--pm-font-mono);
+}
+
+.notifHdr {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--hp-border);
+}
+
+.notifBrand {
+  font-size: 14px;
+  font-weight: 600;
+  color: #d97706;
+  letter-spacing: -0.01em;
+}
+
+.notifSub {
+  font-size: 10px;
+  color: var(--hp-text-3);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.notifBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  background: var(--hp-panel-alt);
+  border-bottom: 1px solid var(--hp-border);
+  flex-wrap: wrap;
+}
+
+.notifBarItem {
+  font-family: var(--pm-font-sans);
+  font-size: 12px;
+  color: var(--hp-text-2);
+}
+.notifBarItem strong {
+  color: var(--hp-text-1);
+  font-weight: 600;
+}
+
+.notifHigh { color: #ef4444; font-weight: 600; }
+.notifMed  { color: #d97706; font-weight: 600; }
+
+.notifTs {
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  color: var(--hp-text-ghost);
+  margin-left: auto;
+}
+
+.notifChanges {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--hp-border);
+}
+
+.notifChange {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px;
+  background: var(--hp-panel);
+  border-left: 2px solid transparent;
+}
+
+.notifChangeHigh {
+  border-left-color: #ef4444;
+  background: var(--hp-nh-bg);
+}
+
+.notifChangeMed {
+  border-left-color: #d97706;
+  background: var(--hp-nm-bg);
+}
+
+.notifChip {
+  font-size: 10px;
+  color: var(--hp-text-3);
+  letter-spacing: 0.04em;
+}
+
+.notifChipBr { color: var(--hp-border-sub); }
+.notifChipGl    { color: #ef4444; font-weight: 700; }
+.notifChipGlMed { color: #d97706; font-weight: 700; }
+
+.notifChangeTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--hp-text-1);
+  letter-spacing: -0.005em;
+}
+
+.notifChangeDesc {
+  font-family: var(--pm-font-sans);
+  font-size: 11px;
+  color: var(--hp-text-2);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sigAdd {
+  font-family: var(--pm-font-mono);
+  font-weight: 700;
+  color: #22c55e;
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+}
+
+.sigMod {
+  font-family: var(--pm-font-mono);
+  font-weight: 700;
+  color: #d97706;
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+}
+
+.notifFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-top: 1px solid var(--hp-border);
+}
+
+.notifViewDiff {
+  font-size: 10px;
+  color: #d97706;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.notifFooterLabel {
+  font-size: 10px;
+  color: var(--hp-text-ghost);
+  letter-spacing: 0.06em;
+}
+
+/* ── Git log ── */
+
+.gitLog {
+  position: relative;
+  padding: 14px 0 14px 32px;
+  background: var(--hp-panel);
+  border: 1px solid var(--hp-border);
+}
+
+.gitLog::before {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 22px;
+  bottom: 22px;
+  width: 2px;
+  background: var(--hp-border-mid);
+}
+
+.commit {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 7px 14px 7px 0;
+}
+
+.commit::before {
+  content: '';
+  position: absolute;
+  left: -19px;
+  top: 11px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--hp-dot-bg);
+  border: 2px solid var(--hp-border-mid);
+  box-sizing: border-box;
+}
+
+.commitNow { background: var(--hp-now-grad); }
+.commitNow::before { border-color: #d97706; background: #d97706; }
+.commitMed::before { border-color: #d97706; }
+.commitLow::before { border-color: #22c55e; }
+
+.sha {
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  color: var(--hp-text-3);
+  flex-shrink: 0;
+  width: 52px;
+}
+
+.msg {
+  font-family: var(--pm-font-sans);
+  font-size: 11px;
+  color: var(--hp-text-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.msg code {
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  color: var(--hp-code-fg);
+  background: var(--hp-code-bg);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.msgMuted { color: var(--hp-text-3); }
+
+.time {
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  color: var(--hp-text-3);
+  flex-shrink: 0;
+}
+
+/* ── Diff viewer ── */
+
+.diff {
+  font-family: var(--pm-font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  background: var(--hp-diff-bg);
+  border: 1px solid var(--hp-border);
+  overflow: hidden;
+}
+
+.diffHdr {
+  padding: 8px 14px;
+  background: var(--hp-panel-alt);
+  border-bottom: 1px solid var(--hp-border);
+  font-size: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--hp-text-2);
+}
+
+.diffPath { color: var(--hp-text-1); }
+.diffStats { display: flex; gap: 6px; }
+.diffDel { color: #ef4444; }
+.diffAdd { color: #22c55e; }
+
+.diffBody {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.diffSide { border-right: 1px solid var(--hp-border); }
+.diffSide:last-child { border-right: none; }
+
+.diffSideHdr {
+  padding: 4px 12px;
+  background: var(--hp-panel-alt);
+  border-bottom: 1px solid var(--hp-border);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--hp-text-3);
+  display: flex;
+  justify-content: space-between;
+}
+
+.diffSha { color: var(--hp-text-2); letter-spacing: 0; }
+
+.diffHunk {
+  padding: 3px 12px;
+  font-size: 10px;
+  color: var(--hp-text-3);
+  background: var(--hp-panel-alt);
+  border-bottom: 1px solid var(--hp-border);
+}
+
+.ln {
+  display: flex;
+  padding: 0 12px;
+  min-height: 20px;
+  align-items: center;
+}
+
+.lineNo {
+  width: 22px;
+  color: var(--hp-border-sub);
+  flex-shrink: 0;
+  font-size: 10px;
+  text-align: right;
+  padding-right: 8px;
+  user-select: none;
+}
+
+.code {
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--hp-text-2);
+  font-size: 10px;
+}
+
+.lnAdd { background: var(--hp-add-bg); }
+.lnAdd .code { color: var(--hp-add-fg); }
+
+.lnDel { background: var(--hp-del-bg); }
+.lnDel .code { color: var(--hp-del-fg); }
+
+.lnEmpty { background: var(--hp-diff-empty); }
+.lnEmpty .lineNo { color: var(--hp-border); }
+
+/* Responsive */
+
+@media (max-width: 996px) {
+  .heroInner {
+    grid-template-columns: 1fr;
+    padding: 48px 32px;
+    gap: 40px;
+  }
+}

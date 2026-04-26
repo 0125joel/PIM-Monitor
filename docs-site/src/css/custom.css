@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --ifm-color-primary: #d97706;
+  --ifm-color-primary-dark: #b45309;
+  --ifm-color-primary-darker: #92400e;
+  --ifm-color-primary-darkest: #78350f;
+  --ifm-color-primary-light: #f59e0b;
+  --ifm-color-primary-lighter: #fcd34d;
+  --ifm-color-primary-lightest: #fef3c7;
+
+  --ifm-font-family-base: 'Inter', -apple-system, system-ui, sans-serif;
+  --ifm-font-family-monospace: 'JetBrains Mono', 'Courier New', monospace;
+  --ifm-font-size-base: 15px;
+  --ifm-line-height-base: 1.6;
+
+  --ifm-h1-font-size: 2.5rem;
+  --ifm-h2-font-size: 2rem;
+  --ifm-h3-font-size: 1.5rem;
+
+  --doc-sidebar-width: 280px;
+  --ifm-navbar-height: 56px;
+
+  --pm-font-mono: 'JetBrains Mono', monospace;
+  --pm-font-sans: 'Inter', sans-serif;
+  --pm-amber: #d97706;
+  --pm-amber-light: #fcd34d;
+
+  /* Homepage theme tokens — light mode defaults */
+  --pm-hero-bg: #f5f5f5;
+  --pm-panel-bg: #ffffff;
+  --pm-panel-bg-alt: #f9f9f9;
+  --pm-panel-bg-deep: #f0f0f0;
+  --pm-border: #e5e5e5;
+  --pm-border-mid: #d4d4d4;
+  --pm-border-subtle: #c4c4c4;
+  --pm-text-1: #171717;
+  --pm-text-2: #525252;
+  --pm-text-3: #a3a3a3;
+  --pm-text-faint: #d4d4d4;
+  --pm-diff-bg: #f8f8f8;
+  --pm-diff-empty-bg: #eeeeee;
+  --pm-diff-add-bg: rgba(34, 197, 94, 0.10);
+  --pm-diff-del-bg: rgba(239, 68, 68, 0.10);
+  --pm-diff-add-fg: #166534;
+  --pm-diff-del-fg: #991b1b;
+  --pm-notif-high-bg: rgba(239, 68, 68, 0.06);
+  --pm-notif-med-bg: rgba(217, 119, 6, 0.06);
+  --pm-code-bg: rgba(217, 119, 6, 0.10);
+  --pm-commit-now-bg: linear-gradient(180deg, #fef3c7 0%, #f5f5f5 100%);
+}
+
+[data-theme='dark'] {
+  --ifm-background-color: #0a0a0a;
+  --ifm-background-surface-color: #141414;
+  --ifm-color-emphasis-300: #262626;
+  --ifm-color-emphasis-600: #525252;
+  --ifm-color-emphasis-700: #737373;
+  --ifm-color-emphasis-900: #e5e5e5;
+  --ifm-navbar-background-color: #0a0a0a;
+  --ifm-footer-background-color: #141414;
+  --ifm-toc-border-color: #1a1a1a;
+  --ifm-hr-border-color: #1a1a1a;
+
+  /* Homepage theme tokens — dark mode overrides */
+  --pm-hero-bg: #0a0a0a;
+  --pm-panel-bg: #0a0a0a;
+  --pm-panel-bg-alt: #0f0f0f;
+  --pm-panel-bg-deep: #000000;
+  --pm-border: #1a1a1a;
+  --pm-border-mid: #262626;
+  --pm-border-subtle: #404040;
+  --pm-text-1: #e5e5e5;
+  --pm-text-2: #737373;
+  --pm-text-3: #525252;
+  --pm-text-faint: #2a2a2a;
+  --pm-diff-bg: #000000;
+  --pm-diff-empty-bg: #060606;
+  --pm-diff-add-bg: rgba(34, 197, 94, 0.07);
+  --pm-diff-del-bg: rgba(239, 68, 68, 0.07);
+  --pm-diff-add-fg: #86efac;
+  --pm-diff-del-fg: #fca5a5;
+  --pm-notif-high-bg: rgba(239, 68, 68, 0.04);
+  --pm-notif-med-bg: rgba(217, 119, 6, 0.04);
+  --pm-code-bg: rgba(217, 119, 6, 0.10);
+  --pm-commit-now-bg: linear-gradient(180deg, #1a0f05 0%, #0a0a0a 100%);
+}
+
+[data-theme='light'] {
+  --ifm-background-color: #f5f5f5;
+  --ifm-background-surface-color: #ffffff;
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-footer-background-color: #e5e5e5;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--pm-font-mono);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.navbar {
+  border-bottom: 1px solid #1a1a1a;
+  box-shadow: none;
+}
+
+.navbar__logo {
+  height: 28px;
+  width: auto;
+}
+
+.navbar__brand:hover {
+  opacity: 0.8;
+}
+
+[data-theme='dark'] .menu {
+  background: #0a0a0a;
+}
+
+[data-theme='dark'] .menu__link--active {
+  background: rgba(217, 119, 6, 0.08);
+  color: var(--pm-amber);
+}
+
+pre {
+  border-radius: 4px;
+  border: 1px solid #1a1a1a;
+  font-size: 0.8125rem;
+}
+
+code {
+  font-family: var(--pm-font-mono);
+  font-size: 0.8125rem;
+}
+
+[data-theme='dark'] :not(pre) > code {
+  background: rgba(217, 119, 6, 0.08);
+  color: #fcd34d;
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+
+.alert {
+  border-radius: 3px;
+  border-width: 0 0 0 2px;
+}
+
+table {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+}
+
+table th {
+  font-family: var(--pm-font-mono);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+[data-theme='dark'] table tr {
+  border-bottom-color: #1a1a1a;
+}
+
+[data-theme='dark'] table thead tr {
+  border-bottom-color: #262626;
+}
+
+.footer {
+  border-top: 1px solid #1a1a1a;
+}
+
+.footer__title {
+  font-family: var(--pm-font-mono);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #525252;
+}

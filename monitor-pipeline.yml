@@ -1,0 +1,84 @@
+trigger: none
+
+schedules:
+  - cron: "0 */6 * * *"
+    displayName: "PIM Change Scan (4x daily)"
+    branches:
+      include: [main]
+    always: true
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  # Feature flags with meaningful defaults. Set in ADO → Pipeline → Variables.
+  # NOTIFICATION_EMAIL, NOTIFICATION_MAIL_FROM, NOTIFICATION_WEBHOOK_URL, and
+  # REPORT_ARTIFACT must NOT be defined here: YAML variables shadow UI variables
+  # of the same name, so a YAML default would always override the UI value.
+  NOTIFICATION_MIN_SEVERITY: "Medium"
+
+steps:
+  # Checkout repo with git history (needed for commit and push)
+  - checkout: self
+    persistCredentials: true
+    displayName: "Checkout repository"
+
+  # Install required PowerShell modules
+  - task: PowerShell@2
+    inputs:
+      targetType: inline
+      pwsh: true
+      script: |
+        Write-Host "Installing Microsoft.Graph PowerShell SDK..."
+        Install-Module -Name Microsoft.Graph -Force -SkipPublisherCheck -AllowClobber
+        Write-Host "Module installed successfully"
+    displayName: "Install Microsoft.Graph module"
+
+  # Run the PIM state scan
+  - task: AzurePowerShell@5
+    inputs:
+      azureSubscription: "pim-monitor-service-connection"  # Must be configured in Azure DevOps
+      ScriptType: "FilePath"
+      ScriptPath: "$(Build.SourcesDirectory)/src/Scan-PimState.ps1"
+      azurePowerShellVersion: "LatestVersion"
+      pwsh: true
+    displayName: "Run PIM change scan"
+    env:
+      NOTIFICATION_EMAIL: $(NOTIFICATION_EMAIL)
+      NOTIFICATION_MAIL_FROM: $(NOTIFICATION_MAIL_FROM)
+      NOTIFICATION_WEBHOOK_URL: $(NOTIFICATION_WEBHOOK_URL)
+      NOTIFICATION_MIN_SEVERITY: $(NOTIFICATION_MIN_SEVERITY)
+      REPORT_ARTIFACT: $(REPORT_ARTIFACT)
+      EXPIRING_WINDOW_DAYS: $(EXPIRING_WINDOW_DAYS)
+
+  # Configure git for commit (in case the scan modified files)
+  - script: |
+      git config user.name "PIM Monitor"
+      git config user.email "pim-monitor@pipeline"
+    displayName: "Configure git user"
+    condition: always()
+
+  # Commit and push changes if inventory files changed
+  - script: |
+      cd $(Build.SourcesDirectory)
+      git add inventory/ expected-changes.json 2>/dev/null || true
+
+      if git diff --cached --quiet; then
+        echo "##[section] No changes detected in inventory/"
+      else
+        TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        git commit -m "scan: $TIMESTAMP"
+        git push origin HEAD:main
+        echo "##[section] Inventory changes published"
+      fi
+    displayName: "Commit and push inventory changes"
+    condition: always()
+
+  # Publish HTML report artifact (only when REPORT_ARTIFACT=true and scan produced changes)
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: "$(Build.ArtifactStagingDirectory)"
+      ArtifactName: "scan-report"
+      publishLocation: Container
+    displayName: "Publish HTML scan report"
+    condition: eq(variables['REPORT_ARTIFACT'], 'true')

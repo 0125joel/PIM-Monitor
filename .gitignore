@@ -1,0 +1,28 @@
+# Docusaurus build artifacts & caches (regeneratable with npm install/build)
+docs-site/node_modules/
+docs-site/build/
+docs-site/.docusaurus/
+docs-site/.cache-loader/
+docs-site/package-lock.json
+
+# OS metadata
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# IDE & editor configs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Design working directory (internal, development only)
+docs/Design/
+
+# Environment variables (if used)
+.env.local
+.env.*.local
+
