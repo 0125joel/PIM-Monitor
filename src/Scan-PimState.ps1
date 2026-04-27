@@ -26,9 +26,7 @@
 
 param()
 
-# ============================================================================
 # Initialization
-# ============================================================================
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -57,6 +55,9 @@ if (-not (Test-Path $inventoryRoot)) {
 # Accumulator for all detected changes across all workloads
 $allChanges = @()
 
+# Accumulator for non-fatal component failures
+$scanErrors = [System.Collections.Generic.List[hashtable]]::new()
+
 # Load expected changes (if file exists)
 $expectedChangesPath = Join-Path -Path (Get-Location) -ChildPath "expected-changes.json"
 $expectations = @()
@@ -71,9 +72,7 @@ if (Test-Path $expectedChangesPath) {
     }
 }
 
-# ============================================================================
 # Authentication
-# ============================================================================
 
 Write-StepLog "Acquiring Graph API access token"
 
@@ -95,9 +94,7 @@ $tenantDisplayName = try {
     $orgResponse.PSObject.Properties['value']?.Value[0].PSObject.Properties['displayName']?.Value
 } catch { $null }
 
-# ============================================================================
 # Lookups — Authentication Contexts
-# ============================================================================
 
 Write-StepLog "Fetching authentication contexts"
 
@@ -131,13 +128,11 @@ try {
     foreach ($r in $removedAuthContexts) { Move-ToArchive -FolderPath $r.folderPath -InventoryRoot $inventoryRoot }
 }
 catch {
-    Write-Error "Authentication contexts scan failed: $_"
-    throw
+    Write-Warning "Authentication contexts scan failed: $_"
+    $scanErrors.Add(@{ Component = 'Authentication Contexts'; Error = $_.ToString() })
 }
 
-# ============================================================================
 # Lookups — Administrative Units
-# ============================================================================
 
 Write-StepLog "Fetching administrative units"
 
@@ -171,13 +166,11 @@ try {
     foreach ($r in $removedAdminUnits) { Move-ToArchive -FolderPath $r.folderPath -InventoryRoot $inventoryRoot }
 }
 catch {
-    Write-Error "Administrative units scan failed: $_"
-    throw
+    Write-Warning "Administrative units scan failed: $_"
+    $scanErrors.Add(@{ Component = 'Administrative Units'; Error = $_.ToString() })
 }
 
-# ============================================================================
 # Activation Events (Monthly Archive)
-# ============================================================================
 
 Write-StepLog "Fetching PIM activation events"
 
@@ -254,16 +247,16 @@ catch {
         Write-Warning "Activation events skipped: AuditLog.Read.All permission not granted on App Registration."
     }
     else {
-        Write-Error "Activation events fetch failed: $_"
-        throw
+        Write-Warning "Activation events fetch failed: $_"
+        $scanErrors.Add(@{ Component = 'Activation Events'; Error = $_.ToString() })
     }
 }
 
-# ============================================================================
 # Directory Roles
-# ============================================================================
 
 Write-StepLog "Fetching Directory Roles"
+
+$roleResults = @()   # initialised here so Expiring Assignments can safely iterate if Directory Roles fails
 
 try {
     $roleDefinitions = @(Get-AllGraphItems -Uri $script:GraphEndpoints.RoleDefinitions -AccessToken $token)
@@ -433,15 +426,15 @@ try {
     Write-StepLog "Directory Roles scan complete"
 }
 catch {
-    Write-Error "Directory Roles scan failed: $_"
-    throw
+    Write-Warning "Directory Roles scan failed: $_"
+    $scanErrors.Add(@{ Component = 'Directory Roles'; Error = $_.ToString() })
 }
 
-# ============================================================================
 # PIM Groups
-# ============================================================================
 
 Write-StepLog "Fetching PIM Groups"
+
+$groupAssignmentsByEntity = @{}   # initialised here so Expiring Assignments can safely iterate if PIM Groups fails
 
 try {
     # Discover PIM-onboarded groups via the resources endpoint.
@@ -527,13 +520,11 @@ try {
     Write-StepLog "PIM Groups scan complete"
 }
 catch {
-    Write-Error "PIM Groups scan failed: $_"
-    throw
+    Write-Warning "PIM Groups scan failed: $_"
+    $scanErrors.Add(@{ Component = 'PIM Groups'; Error = $_.ToString() })
 }
 
-# ============================================================================
 # Expiring Assignments Detection
-# ============================================================================
 
 Write-StepLog "Checking for expiring assignments"
 
@@ -562,13 +553,11 @@ try {
     }
 }
 catch {
-    Write-Error "Expiring assignments check failed: $_"
-    throw
+    Write-Warning "Expiring assignments check failed: $_"
+    $scanErrors.Add(@{ Component = 'Expiring Assignments'; Error = $_.ToString() })
 }
 
-# ============================================================================
 # Filter Expected Changes
-# ============================================================================
 
 if ($expectations.Count -gt 0) {
     Write-StepLog "Filtering expected changes"
@@ -623,9 +612,7 @@ if ($expectations.Count -gt 0) {
     }
 }
 
-# ============================================================================
 # Summarize Changes
-# ============================================================================
 
 $changesBySeverity = Group-ChangesBySeverity -Changes $allChanges
 
@@ -643,9 +630,7 @@ if ($changesBySeverity.High.Count -gt 0) {
     }
 }
 
-# ============================================================================
 # Publish Inventory Changes
-# ============================================================================
 
 $publishResult = $null
 if ($changesBySeverity.Total -gt 0) {
@@ -653,9 +638,7 @@ if ($changesBySeverity.Total -gt 0) {
     $publishResult = Publish-InventoryChanges
 }
 
-# ============================================================================
 # HTML Report Artifact (optional — enabled by REPORT_ARTIFACT=true)
-# ============================================================================
 
 if ($env:REPORT_ARTIFACT -eq 'true') {
     $stagingDir = $env:BUILD_ARTIFACTSTAGINGDIRECTORY
@@ -679,9 +662,7 @@ if ($env:REPORT_ARTIFACT -eq 'true') {
     }
 }
 
-# ============================================================================
 # Notifications (after commit so we have SHA for diff links)
-# ============================================================================
 
 if ($changesBySeverity.Total -gt 0) {
     $minSeverity = if ($env:NOTIFICATION_MIN_SEVERITY -and $env:NOTIFICATION_MIN_SEVERITY -notmatch '^\$\(') { $env:NOTIFICATION_MIN_SEVERITY } else { 'Medium' }
@@ -717,8 +698,26 @@ else {
     Write-StepLog "No changes detected — skipping notifications"
 }
 
-# ============================================================================
+# Scan Error Notification (independent from change notifications)
+
+if ($scanErrors.Count -gt 0) {
+    Write-StepLog "Sending scan-error notification ($($scanErrors.Count) component(s) failed)"
+
+    $notifEmail   = if ($env:NOTIFICATION_EMAIL       -and $env:NOTIFICATION_EMAIL       -notmatch '^\$\(') { $env:NOTIFICATION_EMAIL       } else { $null }
+    $notifFrom    = if ($env:NOTIFICATION_MAIL_FROM   -and $env:NOTIFICATION_MAIL_FROM   -notmatch '^\$\(') { $env:NOTIFICATION_MAIL_FROM   } else { $null }
+    $notifWebhook = if ($env:NOTIFICATION_WEBHOOK_URL -and $env:NOTIFICATION_WEBHOOK_URL -notmatch '^\$\(') { $env:NOTIFICATION_WEBHOOK_URL } else { $null }
+
+    Send-ScanErrorNotification `
+        -ScanErrors  $scanErrors.ToArray() `
+        -AccessToken $token `
+        -ToAddress   $notifEmail `
+        -FromAddress $notifFrom `
+        -WebhookUrl  $notifWebhook
+}
+else {
+    Write-StepLog "No component errors — skipping scan-error notification"
+}
+
 # Completion
-# ============================================================================
 
 Write-StepLog "PIM Monitor scan complete"

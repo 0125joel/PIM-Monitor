@@ -1,6 +1,4 @@
-import type {SidebarsConfig} from '@docusaurus/types';
-
-const sidebars: SidebarsConfig = {
+const sidebars = {
   docsSidebar: [
     {
       type: 'doc',
@@ -50,11 +48,48 @@ const sidebars: SidebarsConfig = {
       id: 'customize/index',
       label: 'Overview',
     },
-    'customize/expected-changes',
-    'customize/severity-rules',
-    'customize/pipeline',
-    'customize/diff-engine',
-    'customize/notifications',
+    {
+      type: 'category',
+      label: 'Foundations',
+      items: [
+        'customize/environment-variables',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Pipeline & Scheduling',
+      items: [
+        'customize/pipeline',
+        'customize/github-actions',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Notifications',
+      items: [
+        'customize/notifications',
+        'customize/email-notifications',
+        'customize/webhook-channels',
+        'customize/scan-errors',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Reporting & Analysis',
+      items: [
+        'customize/reporting',
+        'customize/expiring-assignments',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Detection & Classification',
+      items: [
+        'customize/severity-rules',
+        'customize/diff-engine',
+        'customize/expected-changes',
+      ],
+    },
     {
       type: 'doc',
       id: 'contributing',

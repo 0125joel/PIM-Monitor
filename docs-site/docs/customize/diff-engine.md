@@ -4,6 +4,46 @@ sidebar_position: 4
 
 # Diff engine
 
+## Filter fields from diff output
+
+`$script:DiffIgnoreProperties` in `src/diff.ps1` controls which API fields are hidden in the diff preview — in emails, webhooks, and the HTML scan report. Fields in this list are skipped when rendering what changed; they do not affect change detection itself.
+
+Edit the array in `src/diff.ps1`:
+
+```powershell
+$script:DiffIgnoreProperties = [System.Collections.Generic.HashSet[string]]::new(
+    [string[]]@(
+        '@odata.context', '@odata.type', '@odata.id',
+        'id', 'templateId', 'target',
+        'createdDateTime', 'modifiedDateTime', 'createdUsing',
+        'lastModifiedDateTime', 'lastModifiedBy'
+    ),
+    [System.StringComparer]::OrdinalIgnoreCase
+)
+```
+
+**Default fields and why they are filtered:**
+
+| Field | Reason |
+|---|---|
+| `@odata.context`, `@odata.type`, `@odata.id` | OData protocol metadata, never user-controlled |
+| `id`, `templateId` | API-assigned identifiers, not configuration |
+| `target` | Structural rule scope (`caller`/`level`) — identifies the rule, not its settings |
+| `createdDateTime`, `modifiedDateTime`, `createdUsing` | System-managed timestamps |
+| `lastModifiedDateTime`, `lastModifiedBy` | Audit trail fields, not configuration |
+
+**To hide an additional field** — add its name to the array:
+
+```powershell
+'id', 'templateId', 'target', 'myNoiseField',
+```
+
+**To make a field visible again** — remove it from the array. The field will then appear as a red/green diff line in notifications whenever it changes.
+
+:::note
+Field matching is case-insensitive. Adding `'displayName'` also silences `DisplayName`.
+:::
+
 ## Change object equality
 
 By default, `Test-ObjectEqual` serializes both objects to JSON and compares the strings. You can modify this to ignore certain fields or compare property-by-property.

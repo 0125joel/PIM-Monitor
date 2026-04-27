@@ -22,9 +22,7 @@
 # System.Web provides HtmlEncode/HtmlAttributeEncode used in HTML formatting functions.
 Add-Type -AssemblyName System.Web
 
-# ============================================================================
 # Content Building
-# ============================================================================
 
 $script:SeverityRank = @{ High = 3; Medium = 2; Low = 1; Informational = 0 }
 
@@ -177,12 +175,10 @@ function Format-ChangeSummaryHtml {
             $monoBase     = "font-family:'Courier New','Lucida Console',monospace;font-size:11px;line-height:1.9;"
             $diffDivStyle = "padding:4px 14px 10px;border-top:1px solid #d4d4d4;"
 
-            # Fields to skip: API metadata + structural fields that never carry config signal
             $diffIgnore = [System.Collections.Generic.HashSet[string]]::new(
                 $script:DiffIgnoreProperties,
                 [System.StringComparer]::OrdinalIgnoreCase
             )
-            $diffIgnore.Add('target') | Out-Null
 
             # Format a field value for display: arrays as comma-joined, booleans/strings as-is
             $fmtVal = {
@@ -278,9 +274,9 @@ function Format-ChangeSummaryHtml {
             $detailsStyle = "border-left:3px solid $bc;background-color:$bg;border-radius:0 3px 3px 0;color:#1a1a1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;"
             $sumStyle     = "padding:10px 14px;cursor:pointer;display:block;list-style:none;line-height:1.5;color:#1a1a1a;"
 
-            $changeType = $change.PSObject.Properties['changeType']?.Value
-            $addTypes   = @('added', 'rule_added', 'policy_added', 'new_property')
-            $delTypes   = @('removed', 'rule_removed', 'policy_removed', 'removed_property')
+            $changeType = $change['changeType']
+            $addTypes   = @('added', 'created', 'rule_added', 'policy_added', 'new_property')
+            $delTypes   = @('removed', 'deleted', 'rule_removed', 'policy_removed', 'removed_property')
             $sigilChar  = if ($addTypes -contains $changeType) { '+' } elseif ($delTypes -contains $changeType) { '&#8722;' } else { 'M' }
             $sigilColor = if ($addTypes -contains $changeType) { '#16a34a' } elseif ($delTypes -contains $changeType) { '#dc2626' } else { '#d97706' }
             $sigilStyle = "font-weight:700;display:inline-block;width:1em;text-align:center;color:$sigilColor;"
@@ -426,7 +422,6 @@ function Format-ScanReportHtml {
         $script:DiffIgnoreProperties,
         [System.StringComparer]::OrdinalIgnoreCase
     )
-    $diffIgnore.Add('target') | Out-Null
 
     # Build change sections
     $sevClass = @{ High = 'high'; Medium = 'med'; Low = 'low'; Informational = 'inf' }
@@ -463,8 +458,8 @@ function Format-ScanReportHtml {
 
             # Sigil: git-porcelain style event marker (design 09)
             $changeType = $change['changeType']
-            $addTypes   = @('added', 'rule_added', 'policy_added', 'new_property')
-            $delTypes   = @('removed', 'rule_removed', 'policy_removed', 'removed_property')
+            $addTypes   = @('added', 'created', 'rule_added', 'policy_added', 'new_property')
+            $delTypes   = @('removed', 'deleted', 'rule_removed', 'policy_removed', 'removed_property')
             $sigilChar  = if ($addTypes -contains $changeType) { '+' } elseif ($delTypes -contains $changeType) { '&#8722;' } else { 'M' }
             $sigilCls   = if ($addTypes -contains $changeType) { 'add' } elseif ($delTypes -contains $changeType) { 'del' } else { 'mod' }
             $sigilHtml  = "<span class=`"evt-sig $sigilCls`">$sigilChar</span>"
@@ -715,9 +710,7 @@ function Export-ScanReport {
     Write-Host "  Scan report written to $OutputPath"
 }
 
-# ============================================================================
 # Email — Microsoft Graph sendMail
-# ============================================================================
 
 <#
 .SYNOPSIS
@@ -812,9 +805,7 @@ function Send-EmailNotification {
     }
 }
 
-# ============================================================================
 # Webhook — Teams / Slack / Discord / Generic
-# ============================================================================
 
 <#
 .SYNOPSIS
@@ -887,23 +878,22 @@ function Build-TeamsPayload {
             return $v | ConvertTo-Json -Depth 3 -Compress
         }
         $diffIgnoreWh = [System.Collections.Generic.HashSet[string]]::new($script:DiffIgnoreProperties, [System.StringComparer]::OrdinalIgnoreCase)
-        $diffIgnoreWh.Add('target') | Out-Null
 
         foreach ($change in ($bucket | Select-Object -First 15)) {
             $changeText = "• $($change.description)"
             $item = @{ type = 'TextBlock'; text = $changeText; wrap = $true; spacing = 'Small' }
 
             # Add portal link if change contains an entity ID we can link
-            if ($change.PSObject.Properties.Name -contains 'roleId') {
-                $roleId = $change.roleId
+            if ($change['roleId']) {
+                $roleId = $change['roleId']
                 $entraLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RoleDetailsMenuBlade/~/Description/roleDefinitionId/$roleId"
                 $item['selectAction'] = @{
                     type = 'Action.OpenUrl'
                     url  = $entraLink
                 }
             }
-            elseif ($change.PSObject.Properties.Name -contains 'groupId') {
-                $groupId = $change.groupId
+            elseif ($change['groupId']) {
+                $groupId = $change['groupId']
                 $entraLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/GroupDetailsMenuBlade/~/Overview/groupId/$groupId"
                 $item['selectAction'] = @{
                     type = 'Action.OpenUrl'
@@ -914,21 +904,26 @@ function Build-TeamsPayload {
             $severityItems += $item
 
             $diffLines = @()
+            $isScalarWh = { param($v) $v -is [string] -or $v -is [bool] -or $v -is [int] -or $v -is [long] -or $v -is [double] }
             if ($null -ne $change.old -and $null -ne $change.new) {
-                try {
-                    $oh = $change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                    $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                    $shown = 0
-                    foreach ($k in (@(@($oh.Keys) + @($nh.Keys)) | Sort-Object -Unique)) {
-                        if ($shown -ge 5) { break }
-                        if ($diffIgnoreWh.Contains($k)) { continue }
-                        $ov = if ($oh.ContainsKey($k)) { $oh[$k] } else { $null }
-                        $nv = if ($nh.ContainsKey($k)) { $nh[$k] } else { $null }
-                        if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
-                        $diffLines += "${k}: $(& $fmtValWh $ov) → $(& $fmtValWh $nv)"
-                        $shown++
-                    }
-                } catch {}
+                if ((& $isScalarWh $change.old) -and (& $isScalarWh $change.new)) {
+                    $diffLines += "value: $(& $fmtValWh $change.old) → $(& $fmtValWh $change.new)"
+                } else {
+                    try {
+                        $oh = $change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+                        $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+                        $shown = 0
+                        foreach ($k in (@(@($oh.Keys) + @($nh.Keys)) | Sort-Object -Unique)) {
+                            if ($shown -ge 5) { break }
+                            if ($diffIgnoreWh.Contains($k)) { continue }
+                            $ov = if ($oh.ContainsKey($k)) { $oh[$k] } else { $null }
+                            $nv = if ($nh.ContainsKey($k)) { $nh[$k] } else { $null }
+                            if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
+                            $diffLines += "${k}: $(& $fmtValWh $ov) → $(& $fmtValWh $nv)"
+                            $shown++
+                        }
+                    } catch {}
+                }
             } elseif ($null -ne $change.new) {
                 try {
                     $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
@@ -1044,27 +1039,31 @@ function Build-SlackPayload {
             return $v | ConvertTo-Json -Depth 3 -Compress
         }
         $diffIgnoreWh = [System.Collections.Generic.HashSet[string]]::new($script:DiffIgnoreProperties, [System.StringComparer]::OrdinalIgnoreCase)
-        $diffIgnoreWh.Add('target') | Out-Null
 
         $text = "*$severity ($($bucket.Count))*`n"
         foreach ($change in ($bucket | Select-Object -First 20)) {
             $text += "• $($change.description)`n"
             $diffLines = @()
+            $isScalarWh = { param($v) $v -is [string] -or $v -is [bool] -or $v -is [int] -or $v -is [long] -or $v -is [double] }
             if ($null -ne $change.old -and $null -ne $change.new) {
-                try {
-                    $oh = $change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                    $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                    $shown = 0
-                    foreach ($k in (@(@($oh.Keys) + @($nh.Keys)) | Sort-Object -Unique)) {
-                        if ($shown -ge 5) { break }
-                        if ($diffIgnoreWh.Contains($k)) { continue }
-                        $ov = if ($oh.ContainsKey($k)) { $oh[$k] } else { $null }
-                        $nv = if ($nh.ContainsKey($k)) { $nh[$k] } else { $null }
-                        if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
-                        $diffLines += "  ``${k}: $(& $fmtValWh $ov) → $(& $fmtValWh $nv)``"
-                        $shown++
-                    }
-                } catch {}
+                if ((& $isScalarWh $change.old) -and (& $isScalarWh $change.new)) {
+                    $diffLines += "  ``value: $(& $fmtValWh $change.old) → $(& $fmtValWh $change.new)``"
+                } else {
+                    try {
+                        $oh = $change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+                        $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+                        $shown = 0
+                        foreach ($k in (@(@($oh.Keys) + @($nh.Keys)) | Sort-Object -Unique)) {
+                            if ($shown -ge 5) { break }
+                            if ($diffIgnoreWh.Contains($k)) { continue }
+                            $ov = if ($oh.ContainsKey($k)) { $oh[$k] } else { $null }
+                            $nv = if ($nh.ContainsKey($k)) { $nh[$k] } else { $null }
+                            if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
+                            $diffLines += "  ``${k}: $(& $fmtValWh $ov) → $(& $fmtValWh $nv)``"
+                            $shown++
+                        }
+                    } catch {}
+                }
             } elseif ($null -ne $change.new) {
                 try {
                     $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
@@ -1153,27 +1152,31 @@ function Build-DiscordPayload {
             return $v | ConvertTo-Json -Depth 3 -Compress
         }
         $diffIgnoreWh = [System.Collections.Generic.HashSet[string]]::new($script:DiffIgnoreProperties, [System.StringComparer]::OrdinalIgnoreCase)
-        $diffIgnoreWh.Add('target') | Out-Null
 
         $value = ""
         foreach ($change in ($bucket | Select-Object -First 10)) {
             $value += "• $($change.description)`n"
             $diffLines = @()
+            $isScalarWh = { param($v) $v -is [string] -or $v -is [bool] -or $v -is [int] -or $v -is [long] -or $v -is [double] }
             if ($null -ne $change.old -and $null -ne $change.new) {
-                try {
-                    $oh = $change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                    $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                    $shown = 0
-                    foreach ($k in (@(@($oh.Keys) + @($nh.Keys)) | Sort-Object -Unique)) {
-                        if ($shown -ge 5) { break }
-                        if ($diffIgnoreWh.Contains($k)) { continue }
-                        $ov = if ($oh.ContainsKey($k)) { $oh[$k] } else { $null }
-                        $nv = if ($nh.ContainsKey($k)) { $nh[$k] } else { $null }
-                        if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
-                        $diffLines += "  ${k}: $(& $fmtValWh $ov) → $(& $fmtValWh $nv)"
-                        $shown++
-                    }
-                } catch {}
+                if ((& $isScalarWh $change.old) -and (& $isScalarWh $change.new)) {
+                    $diffLines += "  value: $(& $fmtValWh $change.old) → $(& $fmtValWh $change.new)"
+                } else {
+                    try {
+                        $oh = $change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+                        $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+                        $shown = 0
+                        foreach ($k in (@(@($oh.Keys) + @($nh.Keys)) | Sort-Object -Unique)) {
+                            if ($shown -ge 5) { break }
+                            if ($diffIgnoreWh.Contains($k)) { continue }
+                            $ov = if ($oh.ContainsKey($k)) { $oh[$k] } else { $null }
+                            $nv = if ($nh.ContainsKey($k)) { $nh[$k] } else { $null }
+                            if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
+                            $diffLines += "  ${k}: $(& $fmtValWh $ov) → $(& $fmtValWh $nv)"
+                            $shown++
+                        }
+                    } catch {}
+                }
             } elseif ($null -ne $change.new) {
                 try {
                     $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
@@ -1292,5 +1295,302 @@ function Send-WebhookNotification {
     }
     catch {
         Write-Warning "  Webhook send failed: $_"
+    }
+}
+
+# Scan Error Notification Functions
+
+function Build-ScanErrorTeamsPayload {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)] [array] $ScanErrors)
+
+    $title = '[PIM Monitor] Scan completed with errors'
+    $timestamp = Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ'
+
+    $body = @(
+        @{
+            type   = 'TextBlock'
+            size   = 'Large'
+            weight = 'Bolder'
+            text   = $title
+            color  = 'Attention'
+        }
+        @{
+            type    = 'TextBlock'
+            text    = "$($ScanErrors.Count) component(s) failed. Partial scan data may be incomplete."
+            wrap    = $true
+            isSubtle = $true
+        }
+        @{
+            type = 'TextBlock'
+            text = $timestamp
+            size = 'Small'
+            isSubtle = $true
+        }
+    )
+
+    foreach ($err in $ScanErrors) {
+        $truncatedError = if ($err.Error.Length -gt 200) {
+            $err.Error.Substring(0, 200) + '...'
+        } else {
+            $err.Error
+        }
+
+        $body += @{
+            type    = 'Container'
+            style   = 'attention'
+            spacing = 'Medium'
+            items   = @(
+                @{ type = 'TextBlock'; weight = 'Bolder'; text = $err.Component }
+                @{ type = 'TextBlock'; text = $truncatedError; wrap = $true; isSubtle = $true; fontType = 'Monospace'; size = 'Small'; spacing = 'None' }
+            )
+        }
+    }
+
+    $card = @{
+        '$schema' = 'http://adaptivecards.io/schemas/adaptive-card.json'
+        type      = 'AdaptiveCard'
+        version   = '1.5'
+        body      = $body
+    }
+
+    return @{
+        type = 'message'
+        attachments = @(
+            @{
+                contentType = 'application/vnd.microsoft.card.adaptive'
+                content     = $card
+            }
+        )
+    }
+}
+
+function Build-ScanErrorSlackPayload {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)] [array] $ScanErrors)
+
+    $timestamp = Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ'
+
+    $blocks = @(
+        @{
+            type = 'header'
+            text = @{ type = 'plain_text'; text = '[PIM Monitor] Scan completed with errors' }
+        }
+        @{
+            type = 'section'
+            text = @{
+                type = 'mrkdwn'
+                text = ":warning: *$($ScanErrors.Count) component(s) failed.* Partial scan data may be incomplete.`n_$timestamp_"
+            }
+        }
+        @{ type = 'divider' }
+    )
+
+    foreach ($err in $ScanErrors) {
+        $truncatedError = if ($err.Error.Length -gt 200) {
+            $err.Error.Substring(0, 200) + '...'
+        } else {
+            $err.Error
+        }
+
+        $blocks += @{
+            type = 'section'
+            text = @{
+                type = 'mrkdwn'
+                text = "*$($err.Component)*`n``$truncatedError``"
+            }
+        }
+    }
+
+    return @{ blocks = $blocks }
+}
+
+function Build-ScanErrorDiscordPayload {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)] [array] $ScanErrors)
+
+    $fields = @()
+    foreach ($err in $ScanErrors) {
+        $truncatedError = if ($err.Error.Length -gt 200) {
+            $err.Error.Substring(0, 200) + '...'
+        } else {
+            $err.Error
+        }
+        $fields += @{
+            name   = $err.Component
+            value  = $truncatedError
+            inline = $false
+        }
+    }
+
+    $embed = @{
+        title       = '[PIM Monitor] Scan completed with errors'
+        description = "$($ScanErrors.Count) component(s) failed. Partial scan data may be incomplete."
+        color       = 15548997
+        timestamp   = (Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ')
+        fields      = $fields
+    }
+
+    return @{ embeds = @($embed) }
+}
+
+function Format-ScanErrorHtml {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)] [array] $ScanErrors)
+
+    $timestamp = Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ'
+    $rows = @()
+
+    foreach ($err in $ScanErrors) {
+        $truncatedError = if ($err.Error.Length -gt 200) {
+            $err.Error.Substring(0, 200) + '...'
+        } else {
+            $err.Error
+        }
+        $compE  = [System.Web.HttpUtility]::HtmlEncode($err.Component)
+        $errE   = [System.Web.HttpUtility]::HtmlEncode($truncatedError)
+
+        $rows += "<tr><td style=`"padding:2px 32px;`">" +
+            "<details style=`"border-left:3px solid #ef4444;background-color:#fef2f2;border-radius:0 3px 3px 0;`">" +
+            "<summary style=`"padding:10px 14px;cursor:pointer;list-style:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;color:#1a1a1a;`">$compE</summary>" +
+            "<div style=`"padding:4px 14px 10px;border-top:1px solid #d4d4d4;font-family:'Courier New','Lucida Console',monospace;font-size:11px;color:#b91c1c;line-height:1.6;`">$errE</div>" +
+            "</details></td></tr>"
+    }
+    $rowsHtml = $rows -join ''
+
+    return @"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+</head>
+<body style="margin:0;padding:0;background-color:#fafafa;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fafafa;"><tr><td align="center" style="padding:24px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#ffffff;border:1px solid #e5e5e5;border-radius:4px;">
+<tr><td style="padding:28px 32px 20px;">
+  <div style="font-family:'Courier New','Lucida Console',monospace;font-size:20px;font-weight:600;letter-spacing:-0.01em;color:#ef4444;">pim/monitor</div>
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:11px;color:#a3a3a3;margin-top:4px;letter-spacing:0.12em;text-transform:uppercase;">scan errors</div>
+</td></tr>
+<tr><td style="padding:14px 32px;background-color:#fef2f2;border-top:1px solid #e5e5e5;border-bottom:1px solid #e5e5e5;">
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#b91c1c;font-weight:600;">$($ScanErrors.Count) component(s) failed — partial scan data may be incomplete.</div>
+  <div style="font-family:'Courier New','Lucida Console',monospace;font-size:10px;color:#a3a3a3;margin-top:8px;letter-spacing:0.06em;">$timestamp</div>
+</td></tr>
+$rowsHtml
+<tr><td style="padding:20px 32px 24px;border-top:1px solid #e5e5e5;">
+  <div style="font-family:'Courier New','Lucida Console',monospace;font-size:10px;color:#a3a3a3;letter-spacing:0.06em;">PIM Monitor · automated scan notification</div>
+</td></tr>
+</table>
+</td></tr></table>
+</body>
+</html>
+"@
+}
+
+<#
+.SYNOPSIS
+    Sends a scan-error notification listing which components failed.
+
+.DESCRIPTION
+    Called when one or more scan components caught a non-fatal exception.
+    Uses the same NOTIFICATION_EMAIL, NOTIFICATION_MAIL_FROM, and
+    NOTIFICATION_WEBHOOK_URL env vars as Send-EmailNotification /
+    Send-WebhookNotification, but delivers an entirely separate payload.
+
+.PARAMETER ScanErrors
+    Array of @{Component = string; Error = string} hashtables.
+
+.PARAMETER AccessToken
+    Graph API bearer token.
+
+.PARAMETER ToAddress
+    Recipient address. Null/empty skips email delivery.
+
+.PARAMETER FromAddress
+    Sender address. Null/empty skips email delivery.
+
+.PARAMETER WebhookUrl
+    Full webhook URL. Null/empty skips webhook delivery.
+#>
+function Send-ScanErrorNotification {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] [array]  $ScanErrors,
+        [Parameter(Mandatory)] [string] $AccessToken,
+        [string] $ToAddress,
+        [string] $FromAddress,
+        [string] $WebhookUrl
+    )
+
+    if ($ScanErrors.Count -eq 0) { return }
+
+    $componentList = ($ScanErrors | ForEach-Object { $_.Component }) -join ', '
+    Write-Host "  Scan errors in: $componentList"
+
+    # ---- Email ----
+    if ($ToAddress -and $FromAddress) {
+        $htmlBody = Format-ScanErrorHtml -ScanErrors $ScanErrors
+        $s        = if ($ScanErrors.Count -eq 1) { 'component' } else { 'components' }
+        $subject  = "[PIM Monitor] Scan completed with errors ($($ScanErrors.Count) $s failed)"
+
+        $payload = @{
+            message = @{
+                subject = $subject
+                body = @{
+                    contentType = 'HTML'
+                    content     = $htmlBody
+                }
+                toRecipients = @(
+                    @{ emailAddress = @{ address = $ToAddress } }
+                )
+            }
+            saveToSentItems = $false
+        }
+
+        $uri     = "https://graph.microsoft.com/v1.0/users/$FromAddress/sendMail"
+        $headers = @{
+            Authorization  = "Bearer $AccessToken"
+            'Content-Type' = 'application/json'
+        }
+
+        try {
+            Invoke-RestMethod -Uri $uri -Method Post -Headers $headers `
+                -Body ($payload | ConvertTo-Json -Depth 10) | Out-Null
+            Write-Host "  Scan-error email sent to $ToAddress"
+        }
+        catch {
+            Write-Warning "  Scan-error email send failed: $_"
+        }
+    }
+
+    # ---- Webhook ----
+    if ($WebhookUrl) {
+        $type = Get-WebhookType -Url $WebhookUrl
+
+        $payload = switch ($type) {
+            'Teams'   { Build-ScanErrorTeamsPayload   -ScanErrors $ScanErrors }
+            'Slack'   { Build-ScanErrorSlackPayload   -ScanErrors $ScanErrors }
+            'Discord' { Build-ScanErrorDiscordPayload -ScanErrors $ScanErrors }
+            default   {
+                @{
+                    text       = "[PIM Monitor] Scan completed with errors"
+                    scanErrors = @($ScanErrors | ForEach-Object {
+                        @{ component = $_.Component; error = $_.Error }
+                    })
+                }
+            }
+        }
+
+        try {
+            Invoke-RestMethod -Uri $WebhookUrl -Method Post `
+                -ContentType 'application/json' `
+                -Body ($payload | ConvertTo-Json -Depth 10) | Out-Null
+            Write-Host "  Scan-error webhook sent ($type)"
+        }
+        catch {
+            Write-Warning "  Scan-error webhook send failed: $_"
+        }
     }
 }

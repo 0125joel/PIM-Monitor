@@ -10,16 +10,12 @@
     Usage:  $uri = Get-RolePolicyUri -RoleId $roleId
 #>
 
-# ============================================================================
 # Base URLs
-# ============================================================================
 
 $script:GraphV1 = "https://graph.microsoft.com/v1.0"
 $script:GraphBeta = "https://graph.microsoft.com/beta"
 
-# ============================================================================
 # Collection Endpoints (fetch all items, no per-item filter)
-# ============================================================================
 
 $script:GraphEndpoints = @{
 
@@ -49,9 +45,7 @@ $script:GraphEndpoints = @{
     GroupResources = "$script:GraphBeta/identityGovernance/privilegedAccess/group/resources"
 }
 
-# ============================================================================
 # Per-Item URI Builders
-# ============================================================================
 
 <#
 .SYNOPSIS

@@ -51,16 +51,46 @@ $severity = switch ($category) {
 }
 ```
 
-## Change definition severity
+## Change definition property severity
 
-Edit the definition comparison block in `src/diff.ps1`:
+Definition properties are classified via `$script:PropertySeverity` in `src/diff.ps1`. Each entry maps a property name (prefix-matched) to a severity. Properties not in the map fall back to `$script:DefaultPropertySeverity`.
 
 ```powershell
-if (-not (Test-ObjectEqual -Left $oldData.rolePermissions -Right $newDataForFile.rolePermissions)) {
-    $severity = "High"
-} else {
-    $severity = "Low"  # change to "Medium" if you want metadata changes to stand out
+$script:PropertySeverity = [ordered]@{
+    # High — security-critical
+    "rolePermissions"        = "High"
+    "isPrivileged"           = "High"
+    "isEnabled"              = "High"
+    "isAssignableToRole"     = "High"   # PIM groups
+    "securityEnabled"        = "High"   # PIM groups
+    "membershipRule"         = "High"   # PIM groups: dynamic membership
+    "isAvailable"            = "High"   # auth contexts
+
+    # Medium — worth reviewing
+    "allowedPrincipalTypes"      = "Medium"
+    "inheritsPermissionsFrom"    = "Medium"
+    "assignmentMode"             = "Medium"
+    "membershipRuleProcessingState" = "Medium"
+    "visibility"                 = "Medium"
+    "expirationDateTime"         = "Medium"
+    "groupTypes"                 = "Medium"
+
+    # Informational — metadata, no action required
+    "displayName"            = "Informational"
+    "description"            = "Informational"
+    "version"                = "Informational"
+    "richDescription"        = "Informational"
+    "resourceScopes"         = "Informational"
+    # ... see src/diff.ps1 for full list
 }
+```
+
+To add a property, insert a line in the appropriate section. Prefix matching means `"onPremises" = "Informational"` covers `onPremisesSyncEnabled`, `onPremisesDomainName`, and all other `onPremises*` fields.
+
+To change the fallback for properties not in the map:
+
+```powershell
+$script:DefaultPropertySeverity = "Low"  # was "Medium"
 ```
 
 ## Reference

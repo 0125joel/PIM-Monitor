@@ -12,65 +12,71 @@
     lookup tables, not by writing new if/else branches.
 #>
 
-# ============================================================================
-# Severity Classification Rules
-# ============================================================================
-
-# Policy rule ID → severity when that rule changes.
-# Matched by prefix — "Enablement_EndUser" matches "Enablement_EndUser_Assignment".
-# Order matters: first match wins. More specific patterns go first.
 $script:PolicyRuleSeverity = [ordered]@{
-    # Activation requirements — security-critical
-    "Enablement_EndUser_Assignment"              = "High"     # MFA, justification, ticketing on activation
-    "Approval_EndUser_Assignment"                = "High"     # Approval requirement + approvers
-    "AuthenticationContext_EndUser_Assignment"    = "High"     # Conditional Access auth context
-
-    # Assignment duration/expiration — medium impact
-    "Expiration_EndUser_Assignment"              = "Medium"   # Max activation duration
-    "Expiration_Admin_Eligibility"               = "Medium"   # Eligible assignment max duration
-    "Expiration_Admin_Assignment"                = "Medium"   # Active assignment max duration
-    "Enablement_Admin_Assignment"                = "Medium"   # MFA, justification on direct assignment
-    "Enablement_Admin_Eligibility"               = "Medium"   # Requirements for creating eligible assignments
-
-    # Notifications — low impact
-    "Notification_"                              = "Low"      # All 9 notification rules (prefix match)
+    "Enablement_EndUser_Assignment"              = "High"
+    "Approval_EndUser_Assignment"                = "High"
+    "AuthenticationContext_EndUser_Assignment"    = "High"
+    "Expiration_EndUser_Assignment"              = "Medium"
+    "Expiration_Admin_Eligibility"               = "Medium"
+    "Expiration_Admin_Assignment"                = "Medium"
+    "Enablement_Admin_Assignment"                = "Medium"
+    "Enablement_Admin_Eligibility"               = "Medium"
+    "Notification_"                              = "Low"
 }
 
-# Default severity for rule IDs not matching any pattern above.
 $script:DefaultPolicyRuleSeverity = "Medium"
 
-# ============================================================================
-# Property-Level Diff — Configuration
-# ============================================================================
-
-# Fields to skip in flat-property diffs (system timestamps, OData metadata).
-# Extend this list to silence fields that change without carrying config signal.
 $script:DiffIgnoreProperties = [System.Collections.Generic.HashSet[string]]::new(
     [string[]]@(
         '@odata.context', '@odata.type', '@odata.id',
-        'id', 'templateId',
+        'id', 'templateId', 'target',
         'createdDateTime', 'modifiedDateTime', 'createdUsing',
         'lastModifiedDateTime', 'lastModifiedBy'
     ),
     [System.StringComparer]::OrdinalIgnoreCase
 )
 
-# Property name → severity when that property changes in a definition file.
-# Prefix-matched, same pattern as $script:PolicyRuleSeverity — extend freely.
-# Unknown/new properties fall back to $script:DefaultPropertySeverity (Informational),
-# so any field Microsoft adds to the API is automatically captured.
 $script:PropertySeverity = [ordered]@{
     "rolePermissions"        = "High"
     "allowedResourceActions" = "High"
     "isPrivileged"           = "High"
     "isEnabled"              = "High"
-    "allowedPrincipalTypes"  = "Medium"
+    "isAssignableToRole"     = "High"
+    "securityEnabled"        = "High"
+    "membershipRule"         = "High"
+    "isAvailable"            = "High"
+    "allowedPrincipalTypes"      = "Medium"
+    "inheritsPermissionsFrom"    = "Medium"
+    "assignmentMode"             = "Medium"
+    "membershipRuleProcessingState" = "Medium"
+    "visibility"                 = "Medium"
+    "expirationDateTime"         = "Medium"
+    "groupTypes"                 = "Medium"
     "displayName"            = "Informational"
     "description"            = "Informational"
     "version"                = "Informational"
+    "isBuiltIn"              = "Informational"
+    "richDescription"        = "Informational"
+    "resourceScopes"         = "Informational"
+    "categories"             = "Informational"
+    "mail"                   = "Informational"
+    "mailEnabled"            = "Informational"
+    "mailNickname"           = "Informational"
+    "proxyAddresses"         = "Informational"
+    "renewedDateTime"        = "Informational"
+    "resourceBehaviorOptions"    = "Informational"
+    "resourceProvisioningOptions" = "Informational"
+    "securityIdentifier"     = "Informational"
+    "onPremises"             = "Informational"  # prefix: all onPremises* fields
+    "preferredDataLocation"  = "Informational"
+    "preferredLanguage"      = "Informational"
+    "uniqueName"             = "Informational"
+    "theme"                  = "Informational"
+    "creationOptions"        = "Informational"
+    "infoCatalogs"           = "Informational"
 }
 
-$script:DefaultPropertySeverity  = "Informational"   # new/unknown API fields
+$script:DefaultPropertySeverity  = "Medium"   # new/unknown API fields — may require action
 $script:DefaultCategorySeverity  = "Medium"           # unknown assignment category types
 
 # Nested field paths to strip from assignment objects before diff and storage.
@@ -79,9 +85,7 @@ $script:DefaultCategorySeverity  = "Medium"           # unknown assignment categ
 # Paths use dot-notation; @(@(...)) flattens in PowerShell so we use strings instead.
 $script:AssignmentNoisePaths = @('scheduleInfo.startDateTime')
 
-# ============================================================================
 # Core Comparison Functions
-# ============================================================================
 
 <#
 .SYNOPSIS
@@ -157,9 +161,7 @@ function Read-PreviousInventoryFile {
     }
 }
 
-# ============================================================================
 # Policy Diff — Rule-Level Analysis
-# ============================================================================
 
 <#
 .SYNOPSIS
@@ -367,9 +369,7 @@ function Get-PropertySeverity {
     return $script:DefaultPropertySeverity
 }
 
-# ============================================================================
 # Assignment Diff — Entry-Level Analysis
-# ============================================================================
 
 <#
 .SYNOPSIS
@@ -435,9 +435,7 @@ function Remove-AssignmentNoise {
     return $normalized
 }
 
-# ============================================================================
 # Assignment Diff — Entry-Level Analysis
-# ============================================================================
 
 <#
 .SYNOPSIS
@@ -673,9 +671,7 @@ function Get-AssignmentKey {
     return "$principalId|/"
 }
 
-# ============================================================================
 # Property-Level Diff — Definition Files
-# ============================================================================
 
 <#
 .SYNOPSIS
@@ -801,9 +797,7 @@ function Compare-FlatProperties {
     return $changes
 }
 
-# ============================================================================
 # Main Diff Orchestrator
-# ============================================================================
 
 <#
 .SYNOPSIS
