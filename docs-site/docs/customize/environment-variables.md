@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: PIM Monitor environment variables reference. Complete list of configuration options for notifications, scheduling, reporting, severity, and Microsoft Graph settings.
 ---
 
 # Environment Variables Reference

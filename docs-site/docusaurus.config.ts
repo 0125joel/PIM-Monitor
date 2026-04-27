@@ -6,7 +6,7 @@ const config: Config = {
   tagline: 'Continuous monitoring of Microsoft Entra ID PIM state with git-based audit trail',
   favicon: 'img/favicon.svg',
 
-  url: 'https://pim-monitor.example.com',
+  url: 'https://pimmonitor.com',
   baseUrl: '/',
   organizationName: 'joel-prins',
   projectName: 'PIM-Monitor',
@@ -17,6 +17,17 @@ const config: Config = {
     defaultLocale: 'en',
     locales: ['en'],
   },
+
+  plugins: [
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      {
+        hashed: true,
+        docsRouteBasePath: '/docs',
+        highlightSearchTermsOnTargetPage: true,
+      },
+    ],
+  ],
 
   presets: [
     [
@@ -36,6 +47,56 @@ const config: Config = {
 
 
   themeConfig: {
+    metadata: [
+      {
+        name: 'description',
+        content: 'PIM Monitor: Continuous monitoring of Microsoft Entra ID PIM state with git-based audit trail. Track privileged identity management changes, detect unauthorized modifications, and maintain compliance.',
+      },
+      {
+        name: 'keywords',
+        content: 'PIM, Privileged Identity Management, Entra ID, Azure AD, monitoring, audit trail, security, compliance',
+      },
+      {
+        name: 'og:title',
+        content: 'PIM Monitor',
+      },
+      {
+        name: 'og:description',
+        content: 'Continuous monitoring of Microsoft Entra ID PIM state with git-based audit trail',
+      },
+      {
+        name: 'og:image',
+        content: 'https://pimmonitor.com/img/logo-dark-wordmark.png',
+      },
+      {
+        name: 'og:type',
+        content: 'website',
+      },
+      {
+        name: 'og:url',
+        content: 'https://pimmonitor.com',
+      },
+      {
+        name: 'twitter:card',
+        content: 'summary_large_image',
+      },
+      {
+        name: 'twitter:title',
+        content: 'PIM Monitor',
+      },
+      {
+        name: 'twitter:description',
+        content: 'Continuous monitoring of Microsoft Entra ID PIM state with git-based audit trail',
+      },
+      {
+        name: 'twitter:image',
+        content: 'https://pimmonitor.com/img/logo-dark-wordmark.png',
+      },
+      {
+        name: 'robots',
+        content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
+      },
+    ],
     image: 'img/logo-dark-wordmark.png',
     navbar: {
       logo: {

@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: PIM Monitor inventory structure reference. Learn how directory roles, PIM groups, authentication contexts, administrative units, and activation events are organized in JSON files.
 ---
 
 # Inventory Structure
@@ -243,7 +244,7 @@ Resolves `directoryScopeId` in assignments scoped to an AU instead of the full t
 
 ## Archive
 
-When a role or group disappears from PIM (removed, offboarded, or renamed to a new slug), its inventory folder is not deleted. It is moved to `inventory/archive/{workload}/{slug}_{date}`:
+When a role or group disappears from PIM — removed, offboarded, or renamed to a different slug — its inventory folder is not deleted. PIM Monitor moves it to `inventory/archive/{workload}/{slug}_{date}`:
 
 ```
 inventory/archive/
@@ -259,9 +260,27 @@ inventory/archive/
         └── assignments.json
 ```
 
-The date suffix is the UTC date of the scan that detected the removal. The full contents of the folder are preserved, so the last known state of the entity remains in git history and on disk.
+The date suffix is the UTC date of the scan that first detected the removal.
 
-The removal is also recorded as a `High` severity change entry and included in notifications.
+### What is preserved
+
+The full folder contents — definition, policy, and assignments — are moved as-is. This means:
+
+- The **last known state** of the entity is readable on disk without touching git history.
+- The **git history** of the original folder is preserved. `git log inventory/directory-roles/old-role-name/` still shows all changes the entity went through before it was removed.
+- **Notifications** fire for the removal: it is recorded as a `High` severity change entry and sent via email or webhook if configured.
+
+### Renamed roles
+
+If a role is renamed in Entra ID, its slug changes (slugs are derived from `displayName`). PIM Monitor sees this as a removal of the old slug and a creation of the new one. The old folder is archived; a new folder is created on the same scan run.
+
+### Browsing archived entities
+
+```bash
+ls inventory/archive/directory-roles/
+git log --oneline inventory/archive/directory-roles/old-role-name_2026-04-26/
+git show HEAD:inventory/archive/directory-roles/old-role-name_2026-04-26/assignments.json
+```
 
 ## Deterministic serialization
 

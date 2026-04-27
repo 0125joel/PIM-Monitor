@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: Deploy PIM Monitor on Azure DevOps. Configure service connections, set up the scheduled pipeline, create repository variables, and verify the initial scan.
 ---
 
 # Installation . Azure DevOps

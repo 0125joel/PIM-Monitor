@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: PIM Monitor continuously monitors Microsoft Entra ID PIM state with a git-based audit trail. Detect changes, maintain compliance, and track security modifications in your Privileged Identity Management configuration.
 ---
 
 # PIM Monitor

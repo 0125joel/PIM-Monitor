@@ -1,6 +1,7 @@
 ---
 sidebar_position: 1
 sidebar_label: Overview
+description: Complete customization guide for PIM Monitor. Configure schedules, notifications, severity rules, environment variables, reporting, and advanced diff engine behavior.
 ---
 
 # Customize PIM Monitor

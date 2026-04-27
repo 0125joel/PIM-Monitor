@@ -1,0 +1,20 @@
+# PIM Monitor Documentation
+User-agent: *
+Allow: /
+
+# Crawl delay to be respectful to server resources
+Crawl-delay: 1
+
+# Specific rules for search engine optimization
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Disallow sensitive paths if any
+# Disallow: /admin/
+# Disallow: /api/
+
+# Sitemap
+Sitemap: https://pimmonitor.com/sitemap.xml

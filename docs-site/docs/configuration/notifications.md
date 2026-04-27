@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: Configure PIM Monitor notifications for email and webhooks. Send alerts to Teams, Slack, Discord, or custom webhook endpoints when PIM changes are detected.
 ---
 
 # Notifications

@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: Configure severity rules for PIM Monitor. Customize how policy changes are classified as High, Medium, Low, or Informational based on rule IDs and assignment types.
 ---
 
 # Severity rules

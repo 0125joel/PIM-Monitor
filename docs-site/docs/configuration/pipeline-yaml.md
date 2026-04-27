@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: Configure the Azure DevOps pipeline YAML for PIM Monitor scheduling, including cron expressions, branch filters, environment variables, and trigger settings.
 ---
 
 # Pipeline YAML Configuration

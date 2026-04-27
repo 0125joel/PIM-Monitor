@@ -1,5 +1,6 @@
 ---
 sidebar_position: 10
+description: Scan error notifications for PIM Monitor. Configure partial-failure handling where component errors trigger separate notifications without failing the pipeline.
 ---
 
 # Scan Error Notifications

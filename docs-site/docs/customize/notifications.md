@@ -1,5 +1,6 @@
 ---
 sidebar_position: 5
+description: PIM Monitor notification channels overview. Configure email, webhooks, Teams, Slack, Discord, and scan error alerts for detection and monitoring.
 ---
 
 # Notifications Overview

@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: Prerequisites for deploying PIM Monitor including Azure DevOps setup, Entra ID permissions, app registration configuration, and Graph API scopes.
 ---
 
 # Prerequisites
