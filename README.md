@@ -22,6 +22,8 @@ Every scan detects what changed in your PIM policies, assignments, and groups. E
 
 ## Quick start
 
+Check out the [Documentation](https://pim-monitor.pages.dev/) for step by step guidance or see the following two options.
+
 ### Option 1: Azure DevOps Pipeline
 
 ```bash
@@ -29,7 +31,7 @@ Every scan detects what changed in your PIM policies, assignments, and groups. E
 git clone https://github.com/joel-prins/PIM-Monitor.git
 
 # 2. Set up an Entra ID app registration + WIF service connection
-# See: docs-site/docs/getting-started/installation.md
+# See: https://pim-monitor.pages.dev/docs/getting-started/prerequisites
 
 # 3. Create the pipeline in Azure DevOps
 # Point it to monitor-pipeline.yml
@@ -43,7 +45,7 @@ git clone https://github.com/joel-prins/PIM-Monitor.git
 
 ```bash
 # Same setup, but use .github/workflows/scan.yml
-# See: docs-site/docs/getting-started/installation-github.md
+# See: https://pim-monitor.pages.dev/docs/getting-started/installation-github
 ```
 
 ### What happens after
@@ -82,25 +84,6 @@ Azure DevOps Pipeline (scheduled every 15-30 min)
 
 Git repo = audit trail. Every commit is one scan result.
 ```
-
-## Features
-
-Phase 1: Core scanning and notifications
-- Parallel role fetching (4-5x faster)
-- Directory Roles and PIM Groups monitoring
-- Severity classification (High, Medium, Low, Informational)
-- Email notifications (Graph sendMail)
-- Webhook notifications (Teams Adaptive Card, Slack blocks, Discord embeds)
-- Diff links in notifications (jump to exact change in git)
-
-Phase 2: Change detection and management
-- Expiring assignment detection (flag assignments expiring within N days)
-- Expected change suppression (pre-register changes, auto-cleaned after scan)
-- Activation event archive (monthly audit logs from Graph)
-
-Phase 3: Future
-- Security alert monitoring
-- Digest mode (weekly summary emails)
 
 ## Requirements
 
