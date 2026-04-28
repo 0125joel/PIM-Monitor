@@ -4,6 +4,8 @@ sidebar_position: 4
 
 # Diff engine
 
+For a technical explanation of how the diff engine works internally, see [Reference: Diff Engine](../reference/diff-engine.md).
+
 ## Filter fields from diff output
 
 `$script:DiffIgnoreProperties` in `src/diff.ps1` controls which API fields are hidden in the diff preview — in emails, webhooks, and the HTML scan report. Fields in this list are skipped when rendering what changed; they do not affect change detection itself.

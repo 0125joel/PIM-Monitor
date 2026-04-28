@@ -23,16 +23,6 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Configuration',
-      items: [
-        'configuration/pipeline-yaml',
-        'configuration/notifications',
-        'configuration/severity-rules',
-        'configuration/alert-fatigue',
-      ],
-    },
-    {
-      type: 'category',
       label: 'Reference',
       items: [
         'reference/inventory-structure',
@@ -60,7 +50,6 @@ const sidebars = {
       label: 'Pipeline & Scheduling',
       items: [
         'customize/pipeline',
-        'customize/github-actions',
       ],
     },
     {
@@ -71,6 +60,7 @@ const sidebars = {
         'customize/email-notifications',
         'customize/webhook-channels',
         'customize/scan-errors',
+        'customize/alert-fatigue',
       ],
     },
     {

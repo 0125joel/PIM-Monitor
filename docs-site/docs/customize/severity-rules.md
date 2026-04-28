@@ -96,4 +96,4 @@ $script:DefaultPropertySeverity = "Low"  # was "Medium"
 
 ## Reference
 
-See [Severity rules](../configuration/severity-rules) in Configuration for the full default table and examples.
+For how the diff engine uses these rules internally, see [Reference: Diff Engine](../reference/diff-engine.md).

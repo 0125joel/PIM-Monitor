@@ -121,6 +121,38 @@ Replace `OWNER/REPO` with your repository path and `main` with your default bran
 
 If you use a GitHub environment, the subject must use the `environment:` form, not the `ref:` form.
 
+## Testing with `act` (optional)
+
+Test the workflow locally before pushing using [act](https://nektosact.com):
+
+```bash
+# Install (macOS)
+brew install act
+
+# Create a secrets file in the repo root (never commit this)
+cat > .secrets <<EOF
+AZURE_CLIENT_ID=<value>
+AZURE_TENANT_ID=<value>
+AZURE_SUBSCRIPTION_ID=<value>
+EOF
+
+# Run the scan workflow locally
+act -j scan --secret-file .secrets
+```
+
+OIDC token exchange does not work in `act`. For local scanning without OIDC, use the [interactive local test](./local-testing.md) instead.
+
+## GitHub Actions vs Azure DevOps
+
+| Feature | GitHub Actions | Azure DevOps |
+|---|---|---|
+| **Authentication** | OIDC (built-in) | WIF via AzurePowerShell@5 |
+| **Secrets** | Settings → Secrets | Pipeline → Variables |
+| **Schedule** | `on: schedule` | `schedules:` |
+| **Approval gates** | GitHub Environments | Pipeline checks |
+| **Module cache** | actions/cache@v4 | Built-in pipeline caching |
+| **Artifacts** | Built-in artifact storage | Artifact Storage |
+
 ## Troubleshooting
 
 ---
@@ -161,4 +193,4 @@ The scan completed but wrote nothing to git.
 
 ## Next
 
-[Pipeline YAML Configuration](../configuration/pipeline-yaml.md) - schedule, variables, and commit format.
+[Customize PIM Monitor](../customize/index.md) - schedule, notifications, severity rules, and more.

@@ -45,7 +45,7 @@ After creating the pipeline in step 3, go to **Pipelines** > **PIM Monitor** > *
 | `EXPIRING_WINDOW_DAYS` | `14` | `7` | Days ahead to flag expiring assignments |
 | `REPORT_ARTIFACT` | _(unset)_ | `true` | Upload HTML report as pipeline artifact |
 
-Leave all of these unset to run without notifications. The pipeline will still scan and commit inventory changes. See [Notifications](../configuration/notifications.md) for webhook URL formats and setup.
+Leave all of these unset to run without notifications. The pipeline will still scan and commit inventory changes. See [Notifications](../customize/notifications.md) for webhook URL formats and setup.
 
 ## Step 3: Create the pipeline in Azure DevOps
 
@@ -171,4 +171,4 @@ The build service identity does not have permission to write to the repo.
 
 ## Next
 
-[Pipeline YAML Configuration](../configuration/pipeline-yaml.md) - schedule, variables, and commit format.
+[Customize PIM Monitor](../customize/index.md) - schedule, notifications, severity rules, and more.

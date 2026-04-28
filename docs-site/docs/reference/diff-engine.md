@@ -147,28 +147,6 @@ Result:
 }
 ```
 
-## Customizing
-
-**Add a severity rule** - edit `src/diff.ps1:22-40`:
-
-```powershell
-$script:PolicyRuleSeverity = [ordered]@{
-    "MyCustomRule_"  = "High"
-    # ...
-}
-```
-
-**Change permanent assignment severity** - edit `src/diff.ps1:312-316`:
-
-```powershell
-$severity = switch ($category) {
-    "permanent" { "Medium" }  # was "High"
-    # ...
-}
-```
-
-**Customize object equality** - edit `src/diff.ps1:54-65`. By default, `Test-ObjectEqual` serializes to JSON and compares strings. You can add field exclusions or property-level comparisons.
-
 ## Performance
 
 All comparisons are O(n). No quadratic operations.
@@ -198,3 +176,7 @@ $changes | ForEach-Object { Write-Host $_.description }
 ```
 
 See `src/README.md` for end-to-end test examples.
+
+## Customizing
+
+To change diff behavior — severity rules, ignored fields, assignment keys, or object equality — see [Customize: Diff Engine](../customize/diff-engine.md).

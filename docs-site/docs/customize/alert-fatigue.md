@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 10
 ---
 
 # Reducing Alert Fatigue
@@ -23,7 +23,7 @@ The `NOTIFICATION_MIN_SEVERITY` pipeline variable controls which severity levels
 
 **Default:** `Medium`
 
-Set this in the Azure DevOps pipeline variable panel. Changes take effect on the next scan.
+Set this in the Azure DevOps pipeline variable panel or GitHub Actions variables. Changes take effect on the next scan.
 
 > [!TIP]
 > Start with the default (`Medium`) and only lower the threshold if you regularly miss changes you want to know about. Raising it to `High`-only is a useful starting point for high-noise environments.
@@ -55,7 +55,7 @@ Create `expected-changes.json` in the repository root before making the Entra ch
 
 The file is cleaned up automatically after each scan: consumed entries are removed, expired entries are removed, and the file is deleted when empty.
 
-For the full field reference, matching examples, and workflow, see [Expected Change Suppression](../customize/expected-changes).
+For the full field reference, matching examples, and workflow, see [Expected Change Suppression](./expected-changes.md).
 
 ---
 
@@ -82,8 +82,4 @@ Options:
 | Too many notifications for minor changes | Raise `NOTIFICATION_MIN_SEVERITY` to `High` or `Medium` |
 | Notification fired for a planned change | Add an entry to `expected-changes.json` before making the change |
 | Individual emails are hard to track | Switch to a webhook → Teams or Slack channel |
-| Want a digest without per-scan notifications | Enable `REPORT_ARTIFACT=true`; review the HTML artifact in ADO |
-
-## Next
-
-[Customize](../customize/index.md) - modify severity rules, diff logic, pipeline behavior, and notification payloads.
+| Want a digest without per-scan notifications | Enable `REPORT_ARTIFACT=true`; review the HTML artifact |
