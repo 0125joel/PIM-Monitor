@@ -72,7 +72,7 @@ This section covers **everything you can customize**, from schedules and notific
 | Topic | File/Variable | What you can change | Page |
 |---|---|---|---|
 | **All env variables** | Reference | Complete list of all configuration variables | [Environment Variables](./environment-variables) |
-| **GitHub Actions** | `.github/workflows/scan.yml` | Full setup for GitHub Actions workflow | [GitHub Actions Setup](./github-actions) |
+| **GitHub Actions** | `.github/workflows/scan.yml` | Full setup for GitHub Actions workflow | [GitHub Actions Setup](../getting-started/installation-github) |
 | **Azure DevOps** | `monitor-pipeline.yml` | Full setup for Azure DevOps pipeline | [Pipeline Configuration](./pipeline) |
 
 ## Quick Navigation by Task
@@ -87,7 +87,7 @@ This section covers **everything you can customize**, from schedules and notific
 - **...generate HTML reports** → [Reporting & Artifacts](./reporting)
 - **...get warnings for expiring assignments** → [Expiring Assignments](./expiring-assignments)
 - **...hide noise from diffs** → [Diff Engine](./diff-engine)
-- **...set up on GitHub Actions** → [GitHub Actions Setup](./github-actions)
+- **...set up on GitHub Actions** → [GitHub Actions Setup](../getting-started/installation-github)
 - **...find all environment variables** → [Environment Variables](./environment-variables)
 - **...handle component failures gracefully** → [Scan Error Notifications](./scan-errors)
 

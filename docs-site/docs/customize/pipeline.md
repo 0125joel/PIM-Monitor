@@ -293,7 +293,7 @@ Then configure two pipelines in Azure DevOps UI pointing to different files.
 ## Related Pages
 
 - [Environment Variables](./environment-variables.md) — REPORT_ARTIFACT, EXPIRING_WINDOW_DAYS
-- [GitHub Actions Setup](./github-actions.md) — Full GitHub Actions configuration
+- [GitHub Actions Setup](../getting-started/installation-github.md) — Full GitHub Actions configuration
 - [Expiring Assignments](./expiring-assignments.md) — EXPIRING_WINDOW_DAYS details
 - [Reporting](./reporting.md) — HTML report artifact details
 - [Notifications](./notifications.md) — Notification triggers and configuration

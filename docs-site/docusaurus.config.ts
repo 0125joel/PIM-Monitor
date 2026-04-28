@@ -140,8 +140,8 @@ const config: Config = {
               to: '/docs/getting-started/prerequisites',
             },
             {
-              label: 'Configuration',
-              to: '/docs/configuration/pipeline-yaml',
+              label: 'Customize',
+              to: '/docs/customize/',
             },
           ],
         },
