@@ -1,0 +1,24 @@
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'monitor-pipeline.yml'
+      - 'scan.yml'
+      - '.github/workflows/scan.yml'
+      - 'CHANGELOG.md'
+      - '.release-please-manifest.json'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

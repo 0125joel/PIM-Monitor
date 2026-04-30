@@ -48,11 +48,33 @@ Check [open issues](https://github.com/0125joel/PIM-Monitor/issues) on GitHub. I
 
 Docs live in `docs-site/docs/`. Fix typos, add examples, clarify steps. All PRs welcome.
 
+## Commit message conventions
+
+PIM Monitor uses [Conventional Commits](https://www.conventionalcommits.org/). The commit message determines whether a release is created and what version bump applies.
+
+**Format:** `<type>: <description>`
+
+| Type | Purpose | Version bump |
+|---|---|---|
+| `fix:` | Bug fixes | Patch (0.1.0 → 0.1.1) |
+| `feat:` | New features | Minor (0.1.0 → 0.2.0) |
+| `feat!:` or `BREAKING CHANGE:` | Breaking changes | Major (0.1.0 → 1.0.0) |
+| `docs:`, `chore:`, `test:` | Non-release changes | No release |
+
+**Examples:**
+- `fix: handle null assignments in diff` → patch release
+- `feat: add activation event detection` → minor release
+- `feat!: change inventory JSON schema` → major release
+- `docs: add webhook guide` → no release
+
+A release PR is automatically opened when you push a `feat:` or `fix:` commit touching `src/`, `monitor-pipeline.yml`, or `scan.yml`. Documentation-only changes do not trigger releases.
+
 ## Before you open a PR
 
 - Keep changes focused. One thing per PR.
 - If you are adding a new feature, open an issue first to discuss scope.
 - Test your changes locally before submitting.
+- Use conventional commit messages so releases are created correctly.
 
 ## Local setup
 

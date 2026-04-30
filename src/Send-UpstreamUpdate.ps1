@@ -1,21 +1,24 @@
-<#
-.SYNOPSIS
-    Sends an upstream-update notification via webhook and/or email.
-
-.DESCRIPTION
-    Called by monitor-pipeline.yml when upstream commits are available.
-    Reads NOTIFICATION_WEBHOOK_URL, NOTIFICATION_EMAIL, NOTIFICATION_MAIL_FROM,
-    and UPSTREAM_COMMITS_AHEAD from environment variables.
-    Uses Get-AzAccessToken (Az.Accounts) for the Graph sendMail call.
-#>
-
 #Requires -Version 7.0
 
 Add-Type -AssemblyName System.Web
 
-$ahead   = $env:UPSTREAM_COMMITS_AHEAD
-$repoUrl = "https://github.com/0125joel/PIM-Monitor"
-$textMsg = "PIM Monitor: $ahead new commit(s) available upstream. Review and update from $repoUrl"
+$latestVersion  = $env:UPSTREAM_LATEST_VERSION
+$currentVersion = $env:UPSTREAM_CURRENT_VERSION
+$repoUrl        = "https://github.com/0125joel/PIM-Monitor"
+$releaseUrl     = "$repoUrl/releases/tag/v$latestVersion"
+
+$releaseNotes = ""
+try {
+    $release = Invoke-RestMethod `
+        -Uri "https://api.github.com/repos/0125joel/PIM-Monitor/releases/latest" `
+        -Headers @{ Accept = "application/vnd.github+json"; "X-GitHub-Api-Version" = "2022-11-28" } `
+        -TimeoutSec 10
+    $releaseNotes = $release.PSObject.Properties['body']?.Value ?? ""
+} catch {
+    Write-Warning "Could not fetch release notes: $_"
+}
+
+$textMsg = "PIM Monitor $latestVersion is available (running $currentVersion). See $releaseUrl"
 
 if ($env:NOTIFICATION_WEBHOOK_URL -and $env:NOTIFICATION_WEBHOOK_URL -notmatch '^\$\(') {
     $webhookUrl = $env:NOTIFICATION_WEBHOOK_URL
@@ -36,6 +39,12 @@ if ($env:NOTIFICATION_EMAIL -and $env:NOTIFICATION_EMAIL -notmatch '^\$\(' -and
     $env:NOTIFICATION_MAIL_FROM -and $env:NOTIFICATION_MAIL_FROM -notmatch '^\$\(') {
 
     $timestamp = Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ'
+
+    $notesHtml = if ($releaseNotes) {
+        $escaped = [System.Web.HttpUtility]::HtmlEncode($releaseNotes)
+        "<tr><td style=`"padding:4px 32px 20px;`"><pre style=`"font-family:'Courier New','Lucida Console',monospace;font-size:11px;color:#525252;line-height:1.6;white-space:pre-wrap;margin:0;`">$escaped</pre></td></tr>"
+    } else { "" }
+
     $htmlBody = @"
 <!DOCTYPE html>
 <html lang="en">
@@ -54,12 +63,12 @@ if ($env:NOTIFICATION_EMAIL -and $env:NOTIFICATION_EMAIL -notmatch '^\$\(' -and
 </td></tr>
 <tr><td style="padding:20px 32px;">
   <div style="border:1px solid rgba(217,119,6,0.5);border-left-width:2px;border-radius:4px;padding:12px 14px;background:rgba(217,119,6,0.05);">
-    <div style="font-weight:600;font-size:13px;color:#fcd34d;font-family:'Courier New','Lucida Console',monospace;margin-bottom:4px;">$ahead commit(s) available</div>
-    <div style="font-size:12px;color:#fcd34d;line-height:1.5;">New commits are available on the upstream repository. Review and pull updates to keep your local copy current.</div>
+    <div style="font-weight:600;font-size:13px;color:#fcd34d;font-family:'Courier New','Lucida Console',monospace;margin-bottom:4px;">v$latestVersion available</div>
+    <div style="font-size:12px;color:#fcd34d;line-height:1.5;">A new version of PIM Monitor is available. You are running v$currentVersion. Review the release notes and update your deployment.</div>
   </div>
 </td></tr>
-<tr><td style="padding:8px 32px;">
-  <a href="$([System.Web.HttpUtility]::HtmlAttributeEncode($repoUrl))" style="display:inline-block;font-family:'Courier New','Lucida Console',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#d97706;text-decoration:none;border:1px solid #d97706;border-radius:3px;padding:6px 14px;">View on GitHub</a>
+$notesHtml<tr><td style="padding:8px 32px;">
+  <a href="$([System.Web.HttpUtility]::HtmlAttributeEncode($releaseUrl))" style="display:inline-block;font-family:'Courier New','Lucida Console',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#d97706;text-decoration:none;border:1px solid #d97706;border-radius:3px;padding:6px 14px;">View release on GitHub</a>
 </td></tr>
 <tr><td style="padding:14px 32px;background-color:#fafafa;border-top:1px solid #e5e5e5;">
   <div style="font-family:'Courier New','Lucida Console',monospace;font-size:10px;color:#a3a3a3;letter-spacing:0.06em;">$timestamp</div>
@@ -80,7 +89,7 @@ if ($env:NOTIFICATION_EMAIL -and $env:NOTIFICATION_EMAIL -notmatch '^\$\(' -and
 
     $body = @{
         message = @{
-            subject      = "PIM Monitor: $ahead upstream update(s) available"
+            subject      = "PIM Monitor $latestVersion available (running $currentVersion)"
             body         = @{ contentType = "HTML"; content = $htmlBody }
             toRecipients = @(@{ emailAddress = @{ address = $env:NOTIFICATION_EMAIL } })
         }

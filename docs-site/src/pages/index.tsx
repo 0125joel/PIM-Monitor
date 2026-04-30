@@ -1,6 +1,7 @@
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
+import { APP_VERSION } from '../constants';
 
 function NotificationCard() {
   return (
@@ -136,7 +137,7 @@ export default function Home(): JSX.Element {
                 >
                   View on GitHub
                 </a>
-                <span className={styles.heroTag}>v1.0 · MIT</span>
+                <span className={styles.heroTag}>v{APP_VERSION} · MIT</span>
               </div>
             </div>
             <GitLog />
