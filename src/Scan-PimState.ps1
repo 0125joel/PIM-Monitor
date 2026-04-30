@@ -36,7 +36,11 @@ $ErrorActionPreference = "Stop"
 . (Join-Path -Path $PSScriptRoot -ChildPath "graphEndpoints.ps1")
 . (Join-Path -Path $PSScriptRoot -ChildPath "diff.ps1")
 . (Join-Path -Path $PSScriptRoot -ChildPath "git.ps1")
-. (Join-Path -Path $PSScriptRoot -ChildPath "notifications.ps1")
+. (Join-Path -Path $PSScriptRoot -ChildPath "notifications-shared.ps1")
+. (Join-Path -Path $PSScriptRoot -ChildPath "notifications-email.ps1")
+. (Join-Path -Path $PSScriptRoot -ChildPath "notifications-webhook.ps1")
+. (Join-Path -Path $PSScriptRoot -ChildPath "notifications-html.ps1")
+. (Join-Path -Path $PSScriptRoot -ChildPath "notifications-error.ps1")
 
 function Write-StepLog {
     param([string] $Message)
@@ -90,7 +94,7 @@ if (-not $token) {
 }
 
 $tenantDisplayName = try {
-    $orgResponse = Invoke-RestMethod -Uri $script:GraphEndpoints.Organization -Headers @{ Authorization = "Bearer $token" } -Method Get
+    $orgResponse = Invoke-GraphRequest -Uri $script:GraphEndpoints.Organization -Headers @{ Authorization = "Bearer $token" }
     $orgResponse.PSObject.Properties['value']?.Value[0].PSObject.Properties['displayName']?.Value
 } catch { $null }
 
@@ -267,6 +271,7 @@ try {
     # Functions are not available inside -Parallel; serialize to string so it can cross the
     # runspace boundary via $using: (script block variables are not allowed with $using:).
     $slugFnStr = ${function:Get-InventorySlug}.ToString()
+    $invokeGraphFnStr = ${function:Invoke-GraphRequest}.ToString()
 
     # Pre-build all per-role URIs using the URI builder functions before entering -Parallel.
     # URI builder functions are also unavailable inside -Parallel, so this keeps all URI
@@ -280,20 +285,6 @@ try {
             active    = Get-RoleActiveAssignmentsUri     -RoleId $role.id
         }
     }
-
-    # Pre-build all per-role URIs using the URI builder functions before entering -Parallel.
-    # URI builder functions are also unavailable inside -Parallel, so this keeps all URI
-    # construction in one place (graphEndpoints.ps1) and eliminates inline duplication.
-    $roleUriMap = @{}
-    foreach ($role in $roleDefinitions) {
-        $roleUriMap[$role.id] = @{
-            policy    = Get-RolePolicyUri                -RoleId $role.id
-            permanent = Get-RolePermanentAssignmentsUri  -RoleId $role.id
-            eligible  = Get-RoleEligibleAssignmentsUri   -RoleId $role.id
-            active    = Get-RoleActiveAssignmentsUri     -RoleId $role.id
-        }
-    }
-
 
     # Parallel fetch per role (policies + assignments).
     # Pipe functions and endpoints via $using:, collect results for sequential write.
@@ -304,94 +295,92 @@ try {
 
         $slugName = & ([scriptblock]::Create($using:slugFnStr)) -Name $roleDisplayName
 
+        # Output may appear out of order in parallel blocks due to runspace interleaving
         Write-Host "  Processing: $roleDisplayName ($slugName)"
 
-        $uris    = ($using:roleUriMap)[$roleId]
-        $headers = @{ Authorization = "Bearer $($using:token)" }
+        try {
+            $uris    = ($using:roleUriMap)[$roleId]
+            $headers = @{ Authorization = "Bearer $($using:token)" }
 
-        $invokeWithRetry = {
-            param($uri)
-            $attempt = 0
-            while ($true) {
-                try {
-                    $result = Invoke-RestMethod -Uri $uri -Headers $headers -Method Get
-                    Start-Sleep -Milliseconds 500
-                    return $result
-                }
-                catch {
-                    $attempt++
-                    if ($attempt -ge 6) { throw }
-                    $isRetryable = ($_ -match '429') -or ($_ -match 'Too Many Requests') -or ($_ -match '5\d\d')
-                    if (-not $isRetryable) { throw }
-                    $retryAfter = $null
-                    try { $retryAfter = $_.Exception.Response.Headers.RetryAfter?.Delta?.TotalSeconds } catch {}
-                    $waitSecs = if ($retryAfter -and $retryAfter -gt 0) { [int]$retryAfter } else { [math]::Pow(2, $attempt + 1) }
-                    Write-Warning "  Graph throttled (attempt $attempt/5) — waiting ${waitSecs}s"
-                    Start-Sleep -Seconds $waitSecs
-                }
-            }
-        }
+            # Use serialized Invoke-GraphRequest function for consistent retry logic with jitter
+            $invokeGraphRequest = [scriptblock]::Create($using:invokeGraphFnStr)
 
-        $policyItems = @()
-        $currentUri = $uris.policy
-        while ($currentUri) {
-            $response = & $invokeWithRetry $currentUri
-            if ($response.value) { $policyItems += $response.value }
-            $currentUri = $response.PSObject.Properties['@odata.nextLink']?.Value
-        }
-        $policyAssignment = $policyItems | Select-Object -First 1
-
-        if (-not $policyAssignment) {
-            Write-Warning "    No policy assignment found for role: $roleDisplayName"
-        }
-
-        # Fetch assignments (permanent, eligible, active)
-        $permUri = $uris.permanent
-        $eligUri = $uris.eligible
-        $actUri  = $uris.active
-
-        $fetchAssignments = {
-            param($uri)
-            $items = @()
-            $currentUri = $uri
+            $policyItems = @()
+            $currentUri = $uris.policy
             while ($currentUri) {
-                $response = & $invokeWithRetry $currentUri
-                if ($response.value) { $items += $response.value }
+                $response = & $invokeGraphRequest -Uri $currentUri -Headers $headers
+                if ($response.value) { $policyItems += $response.value }
                 $currentUri = $response.PSObject.Properties['@odata.nextLink']?.Value
             }
-            return $items
+            $policyAssignment = $policyItems | Select-Object -First 1
+
+            if (-not $policyAssignment) {
+                Write-Warning "    No policy assignment found for role: $roleDisplayName"
+            }
+
+            # Fetch assignments (permanent, eligible, active)
+            $permUri = $uris.permanent
+            $eligUri = $uris.eligible
+            $actUri  = $uris.active
+
+            $fetchAssignments = {
+                param($uri)
+                $items = @()
+                $currentUri = $uri
+                while ($currentUri) {
+                    $response = & $invokeGraphRequest -Uri $currentUri -Headers $headers
+                    if ($response.value) { $items += $response.value }
+                    $currentUri = $response.PSObject.Properties['@odata.nextLink']?.Value
+                }
+                return $items
+            }
+
+            $permanent = (& $fetchAssignments $permUri) ?? @()
+            $eligible  = (& $fetchAssignments $eligUri) ?? @()
+            $active    = (& $fetchAssignments $actUri)  ?? @()
+
+            $assignments = @{
+                permanent = $permanent
+                eligible  = $eligible
+                active    = $active
+            }
+
+            Write-Host "    Permanent: $($permanent.Count) | Eligible: $($eligible.Count) | Active: $($active.Count)"
+
+            @{
+                definition       = $role
+                slug             = $slugName
+                policyAssignment = $policyAssignment
+                assignments      = $assignments
+                error            = $null
+            }
         }
-
-        $permanent = (& $fetchAssignments $permUri) ?? @()
-        $eligible  = (& $fetchAssignments $eligUri) ?? @()
-        $active    = (& $fetchAssignments $actUri)  ?? @()
-
-        $assignments = @{
-            permanent = $permanent
-            eligible  = $eligible
-            active    = $active
+        catch {
+            Write-Warning "    Failed to fetch data for role $roleDisplayName — $_"
+            @{
+                definition = $role
+                slug       = $slugName
+                error      = $_.ToString()
+            }
         }
-
-        Write-Host "    Permanent: $($permanent.Count) | Eligible: $($eligible.Count) | Active: $($active.Count)"
-
-        # Return result for sequential post-processing
-        @{
-            definition       = $role
-            slug             = $slugName
-            policyAssignment = $policyAssignment
-            assignments      = $assignments
-        }
-    } -ThrottleLimit 3)
+    } -ThrottleLimit 8)
 
     # Post-process sequentially: organize files, compute diffs, collect changes
     foreach ($result in $roleResults) {
+        # Always track slug to prevent false-positive archiving when a role fails transiently
         $roleSlugs += $result.slug
+
+        if ($result.error) {
+            $scanErrors.Add(@{ Component = "Directory Role: $($result.definition.displayName)"; Error = $result.error })
+            continue
+        }
 
         $folderPath = New-InventoryFolder -Workload "directory-roles" -Slug $result.slug
 
         # Normalize before diff and write: strips heartbeat fields (scheduleInfo.startDateTime)
         # that Microsoft updates every ~30 min without any user action.
         $cleanAssignments = Remove-AssignmentNoise -Assignments $result.assignments
+        $result.cleanAssignments = $cleanAssignments
 
         $newData = @{
             definition  = $result.definition
@@ -450,64 +439,75 @@ try {
     $groupHeaders = @{ Authorization = "Bearer $token" }
 
     foreach ($groupId in $groupIds) {
-        # Fetch group definition
-        $groupDef = Invoke-RestMethod -Uri (Get-GroupDefinitionUri -GroupId $groupId) `
-            -Headers $groupHeaders -Method Get
+        $groupDisplayName = $null
+        $slug = $null
+        try {
+            # Fetch group definition first so slug is available for archiving protection
+            $groupDef = Invoke-GraphRequest -Uri (Get-GroupDefinitionUri -GroupId $groupId) `
+                -Headers $groupHeaders
 
-        $groupDisplayName = $groupDef.displayName
-        $slug = Get-InventorySlug -Name $groupDisplayName
-        $groupSlugs += $slug
+            $groupDisplayName = $groupDef.displayName
+            $slug = Get-InventorySlug -Name $groupDisplayName
 
-        Write-Host "  Processing: $groupDisplayName ($slug)"
+            # Track slug immediately — prevents false-positive archiving if later fetches fail
+            $groupSlugs += $slug
 
-        $folderPath = New-InventoryFolder -Workload "pim-groups" -Slug $slug
+            Write-Host "  Processing: $groupDisplayName ($slug)"
 
-        # Fetch per-group eligible and active instances (filtered by groupId)
-        $groupEligible = @(Get-AllGraphItems -Uri (Get-GroupEligibleAssignmentsUri -GroupId $groupId) -AccessToken $token)
-        $groupActive   = @(Get-AllGraphItems -Uri (Get-GroupActiveAssignmentsUri   -GroupId $groupId) -AccessToken $token)
+            $folderPath = New-InventoryFolder -Workload "pim-groups" -Slug $slug
 
-        # Fetch policies for this group — returns both member and owner policy assignments
-        $policyItems = @(Get-AllGraphItems -Uri (Get-GroupPolicyUri -GroupId $groupId) -AccessToken $token)
+            # Fetch per-group eligible and active instances (filtered by groupId)
+            $groupEligible = @(Get-AllGraphItems -Uri (Get-GroupEligibleAssignmentsUri -GroupId $groupId) -AccessToken $token)
+            $groupActive   = @(Get-AllGraphItems -Uri (Get-GroupActiveAssignmentsUri   -GroupId $groupId) -AccessToken $token)
 
-        # Split into member/owner wrapper (roleDefinitionId = "member" or "owner")
-        $policyWrapper = @{}
-        foreach ($pa in $policyItems) {
-            $accessId = $pa.roleDefinitionId
-            if ($accessId -in @('member', 'owner')) {
-                $policyWrapper[$accessId] = $pa
+            # Fetch policies for this group — returns both member and owner policy assignments
+            $policyItems = @(Get-AllGraphItems -Uri (Get-GroupPolicyUri -GroupId $groupId) -AccessToken $token)
+
+            # Split into member/owner wrapper (roleDefinitionId = "member" or "owner")
+            $policyWrapper = @{}
+            foreach ($pa in $policyItems) {
+                $accessId = $pa.roleDefinitionId
+                if ($accessId -in @('member', 'owner')) {
+                    $policyWrapper[$accessId] = $pa
+                }
             }
+
+            $assignments = @{
+                eligible = $groupEligible
+                active   = $groupActive
+            }
+
+            Write-Host "    Eligible: $($groupEligible.Count) | Active: $($groupActive.Count) | Policies: $($policyWrapper.Count)"
+
+            $cleanAssignments = Remove-AssignmentNoise -Assignments $assignments
+            $groupAssignmentsByEntity[$slug] = $cleanAssignments
+
+            $newData = @{
+                definition  = $groupDef
+                assignments = $cleanAssignments
+            }
+            if ($policyWrapper.Count -gt 0) {
+                $newData.policy = $policyWrapper
+            }
+
+            $changes = Compare-InventoryFolder `
+                -FolderPath $folderPath `
+                -NewData $newData `
+                -EntityName $groupDisplayName
+
+            $allChanges += $changes
+
+            Save-InventoryFile -InputObject $groupDef -FolderPath $folderPath -FileName "definition.json"
+            if ($policyWrapper.Count -gt 0) {
+                Save-InventoryFile -InputObject $policyWrapper -FolderPath $folderPath -FileName "policy.json"
+            }
+            Save-InventoryFile -InputObject $cleanAssignments -FolderPath $folderPath -FileName "assignments.json"
         }
-
-        $assignments = @{
-            eligible = $groupEligible
-            active   = $groupActive
+        catch {
+            $componentName = if ($groupDisplayName) { "PIM Group: $groupDisplayName" } else { "PIM Group: $groupId" }
+            Write-Warning "  Failed to process $componentName — $_"
+            $scanErrors.Add(@{ Component = $componentName; Error = $_.ToString() })
         }
-
-        Write-Host "    Eligible: $($groupEligible.Count) | Active: $($groupActive.Count) | Policies: $($policyWrapper.Count)"
-
-        $cleanAssignments = Remove-AssignmentNoise -Assignments $assignments
-        $groupAssignmentsByEntity[$slug] = $cleanAssignments
-
-        $newData = @{
-            definition  = $groupDef
-            assignments = $cleanAssignments
-        }
-        if ($policyWrapper.Count -gt 0) {
-            $newData.policy = $policyWrapper
-        }
-
-        $changes = Compare-InventoryFolder `
-            -FolderPath $folderPath `
-            -NewData $newData `
-            -EntityName $groupDisplayName
-
-        $allChanges += $changes
-
-        Save-InventoryFile -InputObject $groupDef -FolderPath $folderPath -FileName "definition.json"
-        if ($policyWrapper.Count -gt 0) {
-            Save-InventoryFile -InputObject $policyWrapper -FolderPath $folderPath -FileName "policy.json"
-        }
-        Save-InventoryFile -InputObject $cleanAssignments -FolderPath $folderPath -FileName "assignments.json"
     }
 
     # Detect groups removed from PIM (folder exists but not in current resources list)
@@ -533,7 +533,7 @@ try {
     $allAssignmentsByEntity = @{}
 
     foreach ($result in $roleResults) {
-        $allAssignmentsByEntity[$result.slug] = $result.assignments
+        $allAssignmentsByEntity[$result.slug] = $result.cleanAssignments
     }
 
     foreach ($slug in $groupAssignmentsByEntity.Keys) {

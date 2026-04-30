@@ -31,7 +31,7 @@ function Publish-InventoryChanges {
         # Configure git (required for commits in pipelines)
         Write-Host "Configuring git user"
         git config user.name "PIM Monitor" | Out-Null
-        git config user.email "pim-monitor@pipeline" | Out-Null
+        git config user.email "pim-monitor@noreply.github.com" | Out-Null
 
         # Stage inventory changes
         Write-Host "Staging inventory/ folder"
@@ -69,17 +69,26 @@ function Publish-InventoryChanges {
             throw "Failed to retrieve commit SHA"
         }
 
+        # Determine target branch — ADO uses BUILD_SOURCEBRANCHNAME, GHA uses GITHUB_REF_NAME
+        $targetBranch = if ($env:BUILD_SOURCEBRANCHNAME) {
+            $env:BUILD_SOURCEBRANCHNAME
+        } elseif ($env:GITHUB_REF_NAME) {
+            $env:GITHUB_REF_NAME
+        } else {
+            'main'
+        }
+
         # Push to origin — retry once with rebase if remote has moved forward
-        Write-Host "Pushing to origin"
-        git push origin HEAD:main 2>&1 | Out-Null
+        Write-Host "Pushing to origin/$targetBranch"
+        git push origin "HEAD:$targetBranch" 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "  Push rejected — fetching origin/main and rebasing"
-            git fetch origin main 2>&1 | Out-Null
-            git rebase origin/main 2>&1 | Out-Null
+            Write-Host "  Push rejected — fetching origin/$targetBranch and rebasing"
+            git fetch origin $targetBranch 2>&1 | Out-Null
+            git rebase "origin/$targetBranch" 2>&1 | Out-Null
             if ($LASTEXITCODE -ne 0) {
                 throw "Rebase failed after fetch — manual intervention required"
             }
-            git push origin HEAD:main 2>&1 | Out-Null
+            git push origin "HEAD:$targetBranch" 2>&1 | Out-Null
             if ($LASTEXITCODE -ne 0) {
                 throw "Push failed after rebase"
             }

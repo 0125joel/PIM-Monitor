@@ -9,7 +9,7 @@ By default, severity is determined by rule ID prefix matching. You can change wh
 
 ## Change a policy rule's severity
 
-Edit `src/diff.ps1` lines 22-40:
+Edit `$script:PolicyRuleSeverity` in `src/diff.ps1`:
 
 ```powershell
 $script:PolicyRuleSeverity = [ordered]@{
@@ -34,7 +34,7 @@ No other code changes needed.
 
 ## Change the default for unknown rules
 
-Edit `src/diff.ps1` line 40:
+Edit `$script:DefaultPolicyRuleSeverity` in `src/diff.ps1`:
 
 ```powershell
 $script:DefaultPolicyRuleSeverity = "Low"  # was "Medium"
@@ -42,7 +42,7 @@ $script:DefaultPolicyRuleSeverity = "Low"  # was "Medium"
 
 ## Change assignment severity
 
-Edit the `Compare-Assignments` function in `src/diff.ps1` (lines 261-350):
+Edit the `Compare-Assignments` function in `src/diff.ps1`:
 
 ```powershell
 $severity = switch ($category) {

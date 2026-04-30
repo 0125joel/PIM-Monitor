@@ -133,7 +133,7 @@ For custom APIs, webhooks, or other platforms.
 
 ## How Auto-Detection Works
 
-The `Get-WebhookType` function (notifications.ps1) inspects the URL:
+The `Get-WebhookType` function (`src/notifications-webhook.ps1`) inspects the URL:
 
 ```powershell
 function Get-WebhookType {
@@ -166,7 +166,7 @@ elseif ($Url -match "my-custom-api\.com") {
 
 ### Teams Adaptive Card
 
-Edit `Build-TeamsPayload` in `src/notifications.ps1` (lines ~837–1000):
+Edit `Build-TeamsPayload` in `src/notifications-webhook.ps1`:
 
 ```powershell
 function Build-TeamsPayload {
@@ -202,7 +202,7 @@ function Build-TeamsPayload {
 
 ### Slack Blocks
 
-Edit `Build-SlackPayload` in `src/notifications.ps1` (lines ~1009–1117):
+Edit `Build-SlackPayload` in `src/notifications-webhook.ps1`:
 
 ```powershell
 function Build-SlackPayload {
@@ -228,7 +228,7 @@ function Build-SlackPayload {
 
 ### Discord Embeds
 
-Edit `Build-DiscordPayload` in `src/notifications.ps1` (lines ~1126–1236):
+Edit `Build-DiscordPayload` in `src/notifications-webhook.ps1`:
 
 ```powershell
 function Build-DiscordPayload {

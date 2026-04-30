@@ -11,6 +11,7 @@ Complete reference of all environment variables that PIM Monitor recognizes.
 
 | Variable | Type | Default | Valid values | Purpose |
 |----------|------|---------|--------------|---------|
+| `NOTIFY_UPSTREAM_UPDATE` | Variable | Enabled | `false` to disable | Send notification when GitHub has newer commits |
 | `NOTIFICATION_EMAIL` | Secret | Unset | Email address | Email recipient for notifications |
 | `NOTIFICATION_MAIL_FROM` | Secret | Unset | Service principal UPN | Sender mailbox |
 | `NOTIFICATION_WEBHOOK_URL` | Secret | Unset | HTTPS URL | Teams/Slack/Discord/Custom webhook |
@@ -18,6 +19,16 @@ Complete reference of all environment variables that PIM Monitor recognizes.
 | `EXPIRING_WINDOW_DAYS` | Variable | `14` | Integer (7, 14, 30, etc.) | Days ahead to flag expiring assignments |
 | `REPORT_ARTIFACT` | Variable | Unset | `true` | Generate HTML scan report artifact |
 | `MSGRAPH_VERSION` | Variable | `2.35.1` | Semantic version | Microsoft.Graph PowerShell module version |
+
+## Pipeline Control Variables
+
+### **NOTIFY_UPSTREAM_UPDATE**
+- **Where to set**: Azure DevOps → Pipelines → Variables
+- **What it does**: Controls whether a webhook/email notification is sent when the pipeline detects that the public GitHub repository has commits not yet present in your local copy. The pipeline log warning is always written regardless of this setting.
+- **Default**: Enabled (leave the variable unset)
+- **To disable**: Set `NOTIFY_UPSTREAM_UPDATE` = `false` in pipeline variables
+- **Applies to**: Azure DevOps pipeline only. GitHub Actions users run directly from GitHub and always have the latest version.
+- **See also**: [Pipeline Configuration](./pipeline.md)
 
 ## Notification Variables
 
@@ -42,7 +53,7 @@ Complete reference of all environment variables that PIM Monitor recognizes.
 - **Auto-detection**: URL pattern determines payload format:
   - `webhook.office.com` → Teams Adaptive Card
   - `hooks.slack.com` → Slack blocks
-  - `discord.com/webhooks` → Discord embed
+  - `discord.com/api/webhooks` → Discord embed
   - Other → Generic JSON
 - **See also**: [Webhook Channels](./webhook-channels.md)
 
@@ -68,7 +79,7 @@ Complete reference of all environment variables that PIM Monitor recognizes.
 - **What it does**: Sets the number of days ahead to flag expiring PIM assignments
 - **Default**: `14`
 - **Example values**: `7` (1 week), `14` (2 weeks), `30` (1 month)
-- **Behavior**: Assignments expiring within this window are flagged as `Informational` severity changes
+- **Behavior**: Assignments expiring within this window are flagged as `Medium` severity changes
 - **Notes**: Does not prevent expiring assignments; only provides early warning
 - **See also**: [Expiring Assignments](./expiring-assignments.md)
 
@@ -81,7 +92,7 @@ Complete reference of all environment variables that PIM Monitor recognizes.
   - Only published when changes are detected
   - Stored in `BUILD_ARTIFACTSTAGINGDIRECTORY` (Azure DevOps) or artifacts folder (GitHub Actions)
   - Report includes severity breakdown, detailed change listing, and diffs
-  - Cannot be disabled once enabled — no `false` value needed
+  - Cannot be disabled once enabled: no `false` value needed
 - **Requirements**: Azure DevOps artifact staging directory must be available
 - **See also**: [Reporting & Artifacts](./reporting.md)
 
@@ -105,13 +116,13 @@ Complete reference of all environment variables that PIM Monitor recognizes.
 These are automatically set by Azure DevOps or GitHub Actions. You do NOT set them manually.
 
 ### **Azure DevOps**
-- `BUILD_REPOSITORY_URI` — Repository URL (used to build diff links in notifications)
-- `BUILD_ARTIFACTSTAGINGDIRECTORY` — Where HTML reports are staged
+- `BUILD_REPOSITORY_URI`: Repository URL (used to build diff links in notifications)
+- `BUILD_ARTIFACTSTAGINGDIRECTORY`: Where HTML reports are staged
 
 ### **GitHub Actions**
-- `GITHUB_SERVER_URL` — GitHub base URL (https://github.com or Enterprise URL)
-- `GITHUB_REPOSITORY` — Repo in format OWNER/REPO
-- `GITHUB_REF_NAME` — Branch name
+- `GITHUB_SERVER_URL`: GitHub base URL (https://github.com or Enterprise URL)
+- `GITHUB_REPOSITORY`: Repo in format OWNER/REPO
+- `GITHUB_REF_NAME`: Branch name
 
 ## Setting Variables by Platform
 
@@ -175,8 +186,8 @@ Send-EmailNotification -ToAddress $email -FromAddress $fromAddress
 
 ## Related Pages
 
-- [Email Notifications](./email-notifications.md) — Email setup & configuration
-- [Webhook Channels](./webhook-channels.md) — Teams, Slack, Discord, custom webhooks
-- [Pipeline Configuration](./pipeline.md) — Schedule, commit format, inventory paths
-- [Expiring Assignments](./expiring-assignments.md) — Window configuration & behavior
-- [Reporting](./reporting.md) — HTML artifact generation
+- [Email Notifications](./email-notifications.md): Email setup & configuration
+- [Webhook Channels](./webhook-channels.md): Teams, Slack, Discord, custom webhooks
+- [Pipeline Configuration](./pipeline.md): Schedule, commit format, inventory paths
+- [Expiring Assignments](./expiring-assignments.md): Window configuration & behavior
+- [Reporting](./reporting.md): HTML artifact generation

@@ -118,7 +118,7 @@ NOTIFICATION_MIN_SEVERITY = High
 See [Email Notifications](./email-notifications.md) for detailed customization options.
 
 Quick summary:
-- Edit `Format-ChangeSummaryHtml` in `src/notifications.ps1` to change HTML layout
+- Edit `Format-ChangeSummaryHtml` in `src/notifications-email.ps1` to change HTML layout
 - Customize colors, sections, header, footer
 - Add custom logic (e.g., approval instructions, links)
 
@@ -127,7 +127,7 @@ Quick summary:
 See [Webhook Channels](./webhook-channels.md) for detailed customization options.
 
 Quick summary:
-- Edit `Build-TeamsPayload`, `Build-SlackPayload`, or `Build-DiscordPayload` in `src/notifications.ps1`
+- Edit `Build-TeamsPayload`, `Build-SlackPayload`, or `Build-DiscordPayload` in `src/notifications-webhook.ps1`
 - Reorder sections, change colors, add/remove fields
 - Add custom channels by creating new payload builder
 
@@ -150,8 +150,8 @@ Leave `NOTIFICATION_WEBHOOK_URL` unset (or set to empty string).
 ### Disable Scan Error Notifications
 
 Scan error notifications are always sent if scan errors occur. To disable:
-- Remove the scan error notification block from `Scan-PimState.ps1` (lines ~730-750)
-- Or set empty webhook/email (errors won't have destination)
+- Remove the scan error notification block from `Scan-PimState.ps1` (the `if ($scanErrors.Count -gt 0)` block near the end)
+- Or set empty webhook/email (errors won't have a destination)
 
 ## Troubleshooting
 

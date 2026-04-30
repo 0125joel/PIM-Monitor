@@ -81,11 +81,11 @@ Scan metadata:
 
 ## Customizing Email Format
 
-All email formatting is done in `src/notifications.ps1`.
+All email formatting is done in `src/notifications-email.ps1`.
 
 ### Edit the HTML Layout
 
-The main HTML formatter is `Format-ChangeSummaryHtml` (lines 131–278):
+The main HTML formatter is `Format-ChangeSummaryHtml`:
 
 ```powershell
 function Format-ChangeSummaryHtml {
@@ -142,7 +142,7 @@ Delete or rearrange parts of the HTML:
 
 ### Change the Subject Line
 
-Edit the subject construction in `Send-EmailNotification` (notifications.ps1, line ~750):
+Edit the subject construction in `Send-EmailNotification` (`src/notifications-email.ps1`):
 
 ```powershell
 $subject = "[PIM Monitor] $($changesBySeverity.High.Count) High, $($changesBySeverity.Medium.Count) Medium"

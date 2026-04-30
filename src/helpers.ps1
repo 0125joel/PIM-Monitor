@@ -121,25 +121,7 @@ function Get-AllGraphItems {
 
     $currentUri = $Uri
     while ($currentUri) {
-        $attempt = 0
-        $response = $null
-        while ($true) {
-            try {
-                $response = Invoke-RestMethod -Uri $currentUri -Headers $headers -Method Get
-                break
-            }
-            catch {
-                $attempt++
-                if ($attempt -ge 6) { throw }
-                $isRetryable = ($_ -match '429') -or ($_ -match 'Too Many Requests') -or ($_ -match '5\d\d')
-                if (-not $isRetryable) { throw }
-                $retryAfter = $null
-                try { $retryAfter = $_.Exception.Response.Headers.RetryAfter?.Delta?.TotalSeconds } catch {}
-                $waitSecs = if ($retryAfter -and $retryAfter -gt 0) { [int]$retryAfter } else { [math]::Pow(2, $attempt + 1) }
-                Write-Warning "Graph throttled on $currentUri (attempt $attempt/5) — waiting ${waitSecs}s"
-                Start-Sleep -Seconds $waitSecs
-            }
-        }
+        $response = Invoke-GraphRequest -Uri $currentUri -Headers $headers
 
         $pageItems = $response.PSObject.Properties['value']?.Value
         if ($pageItems) {
@@ -150,6 +132,60 @@ function Get-AllGraphItems {
     }
 
     return $allItems
+}
+
+<#
+.SYNOPSIS
+    Invokes a Graph API request with retry logic, jitter, and Retry-After support.
+
+.DESCRIPTION
+    Handles throttling (429) and server errors (5xx) with exponential backoff,
+    jitter (80-120% of base), and respects Retry-After headers.
+    Caps max wait time at 32 seconds.
+
+.PARAMETER Uri
+    The Graph API endpoint URI.
+
+.PARAMETER Headers
+    HTTP headers (typically includes Authorization bearer token).
+
+.PARAMETER MaxAttempts
+    Maximum retry attempts. Default: 6.
+
+.EXAMPLE
+    $result = Invoke-GraphRequest -Uri "/beta/roleManagement/directory/roleDefinitions" -Headers @{ Authorization = "Bearer $token" }
+#>
+function Invoke-GraphRequest {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string] $Uri,
+
+        [Parameter(Mandatory)]
+        [hashtable] $Headers,
+
+        [int] $MaxAttempts = 6
+    )
+
+    $attempt = 0
+    while ($true) {
+        try {
+            return Invoke-RestMethod -Uri $Uri -Headers $Headers -Method Get
+        }
+        catch {
+            $attempt++
+            if ($attempt -ge $MaxAttempts) { throw }
+            $isRetryable = ($_ -match '429') -or ($_ -match 'Too Many Requests') -or ($_ -match '5\d\d')
+            if (-not $isRetryable) { throw }
+            $retryAfter = $null
+            try { $retryAfter = $_.Exception.Response.Headers.RetryAfter?.Delta?.TotalSeconds } catch {}
+            $base = if ($retryAfter -and $retryAfter -gt 0) { [int]$retryAfter } else { [math]::Pow(2, $attempt + 1) }
+            $jitter = $base * (0.8 + (Get-Random -Minimum 0 -Maximum 40) / 100)
+            $waitSecs = [math]::Min([math]::Round($jitter), 32)
+            Write-Warning "Graph throttled on $Uri (attempt $attempt/$($MaxAttempts-1)) — waiting ${waitSecs}s"
+            Start-Sleep -Seconds $waitSecs
+        }
+    }
 }
 
 <#
@@ -172,8 +208,8 @@ function Get-InventorySlug {
         [string] $Name
     )
 
-    return $Name.ToLower() `
-        -replace '[^\w\s-]', '' `
+    return $Name.ToLowerInvariant() `
+        -replace '[^a-z0-9\s-]', '' `
         -replace '\s+', '-' `
         -replace '-+', '-' `
         -replace '^-|-$', ''
@@ -242,7 +278,7 @@ function Save-InventoryFile {
         [string] $FolderPath,
 
         [Parameter(Mandatory)]
-        [ValidatePattern("^(definition|policy|assignments|\d{4}-\d{2})\.json$")]
+        [ValidatePattern("^(definition|policy|assignments|pending-approvals|security-alerts|\d{4}-\d{2})\.json$")]
         [string] $FileName
     )
 

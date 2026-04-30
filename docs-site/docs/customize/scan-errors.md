@@ -17,30 +17,43 @@ When PIM Monitor scans your tenant, it fetches data from multiple sources:
 - Activation Events (audit log)
 - Expiring Assignments (detection)
 
-Normally, if any component fails, the entire pipeline fails. **Scan error notifications** let failed components trigger a **separate notification** instead, allowing the pipeline to continue and succeed.
+Normally, if any resource fails, the rest of the pipeline continues. **Scan error notifications** let failed components trigger a **separate notification**, allowing the pipeline to succeed while reporting exactly what went wrong.
 
 ### Example Scenario
 
-Your Directory Roles API call times out:
-- **Old behavior**: Entire pipeline fails, no inventory update
-- **New behavior**: 
-  - Directory Roles section skips gracefully
-  - Other components (PIM Groups, Admin Units, etc.) still run
-  - A separate "scan error" notification is sent listing Directory Roles failure
+One Directory Role API call fails after all retries are exhausted:
+- **What happens**:
+  - That specific role is skipped; all other roles still process normally
+  - A separate "scan error" notification is sent naming the exact role that failed
   - Pipeline succeeds (exit code 0)
-  - Partial inventory is committed
+  - Inventory is committed for all successfully fetched roles
+
+## Granularity
+
+Scan errors are reported at the finest possible level:
+
+| Workload | Granularity | Example component name |
+|---|---|---|
+| **Directory Roles** | Per role | `Directory Role: Global Administrator` |
+| **PIM Groups** | Per group | `PIM Group: Tier-0 Admins` |
+| **Authentication Contexts** | Whole workload | `Authentication Contexts` |
+| **Administrative Units** | Whole workload | `Administrative Units` |
+| **Activation Events** | Whole workload | `Activation Events` |
+| **Expiring Assignments** | Whole workload | `Expiring Assignments` |
+
+Directory Roles and PIM Groups use per-resource granularity because they are the highest-value workloads — a single failing role or group should not prevent the scan from processing and reporting on all others.
 
 ## When Scan Errors Occur
 
-Scan errors are triggered by non-fatal failures in these components:
+Scan errors are triggered by non-fatal failures. All Graph API calls use exponential backoff with up to 6 attempts before giving up (see Retry Behavior below), so transient throttling and network errors resolve automatically without triggering a scan error.
 
-| Component | Reason it might fail |
+| Component | Reason it might produce an error |
 |---|---|
 | **Authentication Contexts** | Graph API timeout, permission denied |
 | **Administrative Units** | Graph API error, malformed response |
 | **Activation Events** | AuditLog.Read.All permission missing (graceful), API error (error notification) |
-| **Directory Roles** | API timeout, throttling (429), 5xx server error |
-| **PIM Groups** | Group discovery endpoint down, assignment fetch fails |
+| **Directory Roles** | Persistent API failure for a specific role after 6 retry attempts |
+| **PIM Groups** | Group definition or assignment fetch fails after 6 retry attempts |
 | **Expiring Assignments** | Malformed assignment date, missing required fields |
 
 **NOT scan errors** (still cause pipeline failure):
@@ -51,21 +64,39 @@ Scan errors are triggered by non-fatal failures in these components:
 
 ### Flow
 
-1. **Component runs in try/catch block**
+1. **Each resource runs in its own try/catch block**
+
+   For per-resource workloads (Directory Roles, PIM Groups), each individual role or group has its own error boundary:
    ```powershell
+   # Inside the parallel block (Directory Roles)
    try {
-       # Fetch Directory Roles
+       # Fetch policy, assignments for this specific role
+       @{ definition = $role; ...; error = $null }
    }
    catch {
-       Write-Warning "Directory Roles scan failed: $_"
-       $scanErrors.Add(@{ Component = 'Directory Roles'; Error = $_.ToString() })
-       # Continue to next component — no throw
+       Write-Warning "Failed to fetch data for role $roleDisplayName — $_"
+       @{ definition = $role; slug = $slugName; error = $_.ToString() }
+   }
+   
+   # Post-processing loop
+   if ($result.error) {
+       $scanErrors.Add(@{ Component = "Directory Role: $($result.definition.displayName)"; Error = $result.error })
+       continue  # skip this role; all others continue normally
    }
    ```
 
-2. **Error recorded in $scanErrors accumulator**
-   - Stores Component name and error message (full exception)
-   - Component continues, next component runs
+   For other workloads (Auth Contexts, Admin Units, Activation Events), the whole section runs in a catch:
+   ```powershell
+   catch {
+       Write-Warning "Authentication contexts scan failed: $_"
+       $scanErrors.Add(@{ Component = 'Authentication Contexts'; Error = $_.ToString() })
+   }
+   ```
+
+2. **Error recorded in `$scanErrors` accumulator**
+   - Stores `Component` name and full error message
+   - For Directory Roles/PIM Groups: other resources in the same workload continue
+   - For other workloads: entire workload is skipped on failure
 
 3. **After all components complete**
    - If `$scanErrors.Count -gt 0`, scan error notification is sent
@@ -73,9 +104,9 @@ Scan errors are triggered by non-fatal failures in these components:
    - Pipeline exits with code **0** (success)
 
 4. **Partial inventory is committed**
-   - Whatever data was successfully collected is committed
-   - Inventory is still updated for successful components
-   - Failed components have no inventory update (or partial update)
+   - Successfully fetched data from other roles/groups/workloads is committed
+   - Failed resources have no inventory update for this run
+   - The next scheduled scan will retry failed resources automatically
 
 ### Notification Payloads
 
@@ -97,7 +128,7 @@ HTML body:
 2 component(s) failed — partial scan data may be incomplete.
 2026-04-27T18:42:15Z
 
-▶ Directory Roles
+▶ Directory Role: Global Administrator
   Error: The operation timed out. No response was received from the remote server.
 
 ▶ Activation Events
@@ -134,7 +165,7 @@ HTML body:
   "text": "[PIM Monitor] Scan completed with errors",
   "scanErrors": [
     {
-      "component": "Directory Roles",
+      "component": "Directory Role: Global Administrator",
       "error": "The operation timed out..."
     },
     {
@@ -149,14 +180,14 @@ HTML body:
 
 ### Change the Email Format
 
-Edit `Format-ScanErrorHtml` in `src/notifications.ps1`:
+Edit `Format-ScanErrorHtml` in `src/notifications-email.ps1`:
 
 ```powershell
 function Format-ScanErrorHtml {
     param([Parameter(Mandatory)] [array] $ScanErrors)
     
     # Customize HTML here
-    # $ScanErrors[i].Component = component name
+    # $ScanErrors[i].Component = component name (e.g. "Directory Role: Global Administrator")
     # $ScanErrors[i].Error = error message (full)
     
     return $htmlString
@@ -165,7 +196,7 @@ function Format-ScanErrorHtml {
 
 ### Change the Webhook Payload
 
-Edit the appropriate builder in `src/notifications.ps1`:
+Edit the appropriate builder in `src/notifications-webhook.ps1`:
 
 ```powershell
 function Build-ScanErrorTeamsPayload {
@@ -186,7 +217,7 @@ function Build-ScanErrorDiscordPayload {
 
 ### Add a New Webhook Channel for Scan Errors
 
-In `Send-ScanErrorNotification`, add a new switch case:
+In `Send-ScanErrorNotification` (`src/notifications-error.ps1`), add a new switch case:
 
 ```powershell
 $payload = switch ($type) {
@@ -241,9 +272,11 @@ Full error messages are always available in:
 
 ### Retry Behavior
 
-Scan error notifications do NOT trigger automatic retries. If a component fails:
+All Graph API calls use **exponential backoff with jitter** (up to 6 attempts, capped at 32 seconds per wait, respecting `Retry-After` headers). A scan error is only triggered when all retries are exhausted.
+
+Scan error notifications do NOT trigger automatic retries beyond that. If a resource still fails:
 - The notification alerts you to the issue
-- The next scheduled scan will attempt the failed component again
+- The next scheduled scan will retry the failed resource automatically
 - Manual re-run is possible via the pipeline UI
 
 ### Scan Success Despite Errors
@@ -286,13 +319,12 @@ The pipeline **succeeds** (exit code 0) even when scan errors occur. This is int
 
 ### Error: "429 Too Many Requests"
 
-**Cause**: Graph API throttling
+**Cause**: Graph API throttling that persisted beyond all retry attempts (typically requires sustained rate limiting)
 
 **Solutions**:
-1. Next scan retry will likely succeed
+1. Transient throttling is handled automatically via retry backoff — check if it resolved on the next run
 2. Reduce scanning frequency if you have many roles/groups
-3. Spread workloads across time
-4. Contact Microsoft if throttling is excessive
+3. Contact Microsoft if throttling is excessive (>6 consecutive 429 responses)
 
 ## Monitoring Scan Errors
 
@@ -319,9 +351,14 @@ Scan error notifications go to the same channels as regular change notifications
 Add custom logic to your notifications to escalate specific errors:
 
 ```powershell
-# Example: escalate Directory Roles failures to on-call
-if ($scanErrors | Where-Object Component -eq "Directory Roles") {
-    Send-OnCallAlert "Directory Roles scan failed"
+# Example: escalate a specific role failure to on-call
+if ($scanErrors | Where-Object { $_.Component -eq "Directory Role: Global Administrator" }) {
+    Send-OnCallAlert "Global Administrator role scan failed"
+}
+
+# Example: escalate any Directory Role failure
+if ($scanErrors | Where-Object { $_.Component -like "Directory Role:*" }) {
+    Send-OnCallAlert "One or more Directory Role scans failed"
 }
 ```
 

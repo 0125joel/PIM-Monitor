@@ -405,30 +405,22 @@ function Remove-AssignmentNoise {
         }
 
         $normalized[$category] = @($items | ForEach-Object {
-            # Deep copy via JSON round-trip so the original object is never mutated
-            $copy = $_ | ConvertTo-Json -Depth 20 -Compress | ConvertFrom-Json -AsHashtable
+            # Single JSON round-trip: to hashtable for mutation, back to PSCustomObject for PSObject.Properties
+            $copy = $_ | ConvertTo-Json -Depth 20 -Compress | ConvertFrom-Json
 
             foreach ($dotPath in $script:AssignmentNoisePaths) {
                 $pathParts = $dotPath -split '\.'
                 $node = $copy
                 for ($i = 0; $i -lt ($pathParts.Count - 1); $i++) {
-                    if ($node -is [System.Collections.IDictionary] -and $node.ContainsKey($pathParts[$i])) {
-                        $node = $node[$pathParts[$i]]
-                    }
-                    else {
-                        $node = $null
-                        break
-                    }
+                    $node = $node.PSObject.Properties[$pathParts[$i]]?.Value
+                    if ($null -eq $node) { break }
                 }
-                if ($null -ne $node -and $node -is [System.Collections.IDictionary]) {
-                    $node.Remove($pathParts[-1]) | Out-Null
+                if ($null -ne $node) {
+                    $node.PSObject.Properties.Remove($pathParts[-1]) | Out-Null
                 }
             }
 
-            # Convert back to PSCustomObject: hashtable keys do not appear in
-            # PSObject.Properties, which breaks Get-AssignmentKey and the
-            # severity check in Compare-Assignments.
-            $copy | ConvertTo-Json -Depth 20 -Compress | ConvertFrom-Json
+            $copy
         })
     }
 

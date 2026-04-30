@@ -18,6 +18,21 @@ steps:
     persistCredentials: true
     displayName: "Checkout repository"
 
+  - script: |
+      git remote add upstream https://github.com/0125joel/PIM-Monitor.git
+      git fetch upstream main --quiet 2>/dev/null
+      AHEAD=$(git rev-list HEAD..upstream/main --count 2>/dev/null || echo 0)
+      git remote remove upstream
+      if [ "$AHEAD" -gt 0 ]; then
+        echo "##[warning]PIM Monitor: $AHEAD upstream commit(s) available on GitHub (https://github.com/0125joel/PIM-Monitor). Review and update your local copy."
+        echo "##vso[task.setvariable variable=UPSTREAM_COMMITS_AHEAD]$AHEAD"
+        echo "##vso[task.setvariable variable=UPSTREAM_UPDATE_AVAILABLE]true"
+      else
+        echo "##vso[task.setvariable variable=UPSTREAM_UPDATE_AVAILABLE]false"
+      fi
+    displayName: "Check for upstream updates on GitHub"
+    continueOnError: true
+
   - task: PowerShell@2
     name: cacheVars
     inputs:
@@ -66,30 +81,24 @@ steps:
       REPORT_ARTIFACT: $(REPORT_ARTIFACT)
       EXPIRING_WINDOW_DAYS: $(EXPIRING_WINDOW_DAYS)
 
-  - script: |
-      git config user.name "PIM Monitor"
-      git config user.email "pim-monitor@pipeline"
-    displayName: "Configure git user"
-    condition: always()
-
-  - script: |
-      cd $(Build.SourcesDirectory)
-      git add inventory/ expected-changes.json 2>/dev/null || true
-
-      if git diff --cached --quiet; then
-        echo "##[section] No changes detected in inventory/"
-      else
-        TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-        git commit -m "scan: $TIMESTAMP"
-        git push origin HEAD:main
-        echo "##[section] Inventory changes published"
-      fi
-    displayName: "Commit and push inventory changes"
-    condition: always()
-
   - task: PublishPipelineArtifact@1
     inputs:
       targetPath: "$(Build.ArtifactStagingDirectory)"
       artifact: "scan-report"
     displayName: "Publish HTML scan report"
     condition: eq(variables['REPORT_ARTIFACT'], 'true')
+
+  - task: AzurePowerShell@5
+    displayName: "Notify upstream update available"
+    condition: and(always(), eq(variables['UPSTREAM_UPDATE_AVAILABLE'], 'true'), ne(variables['NOTIFY_UPSTREAM_UPDATE'], 'false'))
+    inputs:
+      azureSubscription: "pim-monitor-service-connection"
+      ScriptType: "FilePath"
+      ScriptPath: "$(Build.SourcesDirectory)/src/Send-UpstreamUpdate.ps1"
+      azurePowerShellVersion: "LatestVersion"
+      pwsh: true
+    env:
+      NOTIFICATION_EMAIL: $(NOTIFICATION_EMAIL)
+      NOTIFICATION_MAIL_FROM: $(NOTIFICATION_MAIL_FROM)
+      NOTIFICATION_WEBHOOK_URL: $(NOTIFICATION_WEBHOOK_URL)
+      UPSTREAM_COMMITS_AHEAD: $(UPSTREAM_COMMITS_AHEAD)

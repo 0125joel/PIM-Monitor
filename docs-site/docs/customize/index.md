@@ -17,6 +17,7 @@ This section covers **everything you can customize**, from schedules and notific
 | Topic | File/Variable | What you can change | Page |
 |---|---|---|---|
 | **Schedule** | `monitor-pipeline.yml` / `.github/workflows/scan.yml` | How often scans run (cron pattern) | [Pipeline Configuration](./pipeline) |
+| **Upstream update check** | `NOTIFY_UPSTREAM_UPDATE` | Notify when GitHub has newer commits (AzDO only) | [Pipeline Configuration](./pipeline) |
 | **Manual triggers** | YAML | Allow on-demand scans via UI | [Pipeline Configuration](./pipeline) |
 | **Commit message** | YAML git step | Format of git commits | [Pipeline Configuration](./pipeline) |
 | **Git author** | `src/git.ps1` | Commit author name/email | [Pipeline Configuration](./pipeline) |
@@ -28,9 +29,9 @@ This section covers **everything you can customize**, from schedules and notific
 | Topic | File/Variable | What you can change | Page |
 |---|---|---|---|
 | **Email setup** | `NOTIFICATION_EMAIL`, `NOTIFICATION_MAIL_FROM` | Enable email notifications | [Email Notifications](./email-notifications) |
-| **Email format** | `src/notifications.ps1` | HTML layout, colors, sections | [Email Notifications](./email-notifications) |
+| **Email format** | `src/notifications-email.ps1` | HTML layout, colors, sections | [Email Notifications](./email-notifications) |
 | **Webhook URL** | `NOTIFICATION_WEBHOOK_URL` | Add Teams, Slack, Discord, or custom webhooks | [Webhook Channels](./webhook-channels) |
-| **Webhook payload** | `src/notifications.ps1` | Customize Teams/Slack/Discord format | [Webhook Channels](./webhook-channels) |
+| **Webhook payload** | `src/notifications-webhook.ps1` | Customize Teams/Slack/Discord format | [Webhook Channels](./webhook-channels) |
 | **Severity threshold** | `NOTIFICATION_MIN_SEVERITY` | Which changes trigger notifications | [Notifications Overview](./notifications) |
 | **Error notifications** | New feature | Send notifications when components fail | [Scan Error Notifications](./scan-errors) |
 
@@ -39,7 +40,7 @@ This section covers **everything you can customize**, from schedules and notific
 | Topic | File/Variable | What you can change | Page |
 |---|---|---|---|
 | **HTML report** | `REPORT_ARTIFACT` | Enable/disable scan report generation | [Reporting & Artifacts](./reporting) |
-| **Report format** | `src/notifications.ps1` | HTML layout, colors, metadata | [Reporting & Artifacts](./reporting) |
+| **Report format** | `src/notifications-html.ps1` | HTML layout, colors, metadata | [Reporting & Artifacts](./reporting) |
 | **Report branding** | `Format-ScanReportHtml` | Custom title, logo, colors | [Reporting & Artifacts](./reporting) |
 
 ### 🚨 Change Classification & Detection
@@ -95,16 +96,16 @@ This section covers **everything you can customize**, from schedules and notific
 
 ### ⭐ Basic (Variables only)
 
-No code editing — just set environment variables in your pipeline:
+No code editing: just set environment variables in your pipeline:
 
-- `NOTIFICATION_EMAIL` / `NOTIFICATION_MAIL_FROM` — Email setup
-- `NOTIFICATION_WEBHOOK_URL` — Webhook setup
-- `NOTIFICATION_MIN_SEVERITY` — Severity threshold
-- `EXPIRING_WINDOW_DAYS` — Expiring assignment window
-- `REPORT_ARTIFACT` — Enable HTML reports
+- `NOTIFICATION_EMAIL` / `NOTIFICATION_MAIL_FROM`: Email setup
+- `NOTIFICATION_WEBHOOK_URL`: Webhook setup
+- `NOTIFICATION_MIN_SEVERITY`: Severity threshold
+- `EXPIRING_WINDOW_DAYS`: Expiring assignment window
+- `REPORT_ARTIFACT`: Enable HTML reports
 
 **Time to customize**: 5 minutes  
-**Risk**: None — variables are scoped to your pipeline
+**Risk**: None: variables are scoped to your pipeline
 
 ### ⭐⭐ Intermediate (YAML & JSON)
 
@@ -116,8 +117,8 @@ Edit pipeline configuration and expected changes:
 - Change inventory storage path
 - Enable manual triggers
 
-**Time to customize**: 15–30 minutes  
-**Risk**: Low — changes are in separate files, easy to revert
+**Time to customize**: 15 to 30 minutes  
+**Risk**: Low: changes are in separate files, easy to revert
 
 ### ⭐⭐⭐ Advanced (PowerShell code)
 
@@ -129,8 +130,8 @@ Edit notification payloads, severity rules, and diff logic:
 - Modify diff comparison logic
 - Change diff output formatting
 
-**Time to customize**: 1–2 hours  
-**Risk**: Medium — requires PowerShell/JSON knowledge, test thoroughly
+**Time to customize**: 1 to 2 hours  
+**Risk**: Medium: requires PowerShell/JSON knowledge, test thoroughly
 
 ## Contributing
 

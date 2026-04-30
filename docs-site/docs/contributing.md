@@ -23,14 +23,14 @@ Keep it short: what it does, what to edit, and a code snippet.
 
 PIM Monitor detects the webhook type from the URL. To add a new channel:
 
-1. Add a payload builder in `src/notifications.ps1`:
+1. Add a payload builder in `src/notifications-webhook.ps1`:
    ```powershell
    function Build-MyChannelPayload {
        param($ChangesBySeverity)
        # return your payload hashtable
    }
    ```
-2. Add URL detection in `Send-WebhookNotification`
+2. Add URL detection in `Get-WebhookType` and a case in `Send-WebhookNotification`
 3. Open a PR with a customization page documenting the new channel
 
 ### Improve the diff engine
@@ -42,7 +42,7 @@ The diff engine lives in `src/diff.ps1`. Useful contributions:
 
 ### Fix a bug
 
-Check [open issues](https://github.com/joel-prins/PIM-Monitor/issues) on GitHub. Issues labeled `good first issue` are a good starting point.
+Check [open issues](https://github.com/0125joel/PIM-Monitor/issues) on GitHub. Issues labeled `good first issue` are a good starting point.
 
 ### Improve the docs
 
@@ -57,7 +57,7 @@ Docs live in `docs-site/docs/`. Fix typos, add examples, clarify steps. All PRs 
 ## Local setup
 
 ```bash
-git clone https://github.com/joel-prins/PIM-Monitor.git
+git clone https://github.com/0125joel/PIM-Monitor.git
 cd PIM-Monitor/docs-site
 npm install
 npm start
@@ -67,4 +67,4 @@ The docs site runs at `http://localhost:3000`.
 
 ## Questions
 
-Open an issue on [GitHub](https://github.com/joel-prins/PIM-Monitor/issues) or reach out via [LinkedIn](https://www.linkedin.com/in/jo%C3%ABl-prins-4b4655aa/).
+Open an issue on [GitHub](https://github.com/0125joel/PIM-Monitor/issues) or reach out via [LinkedIn](https://www.linkedin.com/in/jo%C3%ABl-prins-4b4655aa/).

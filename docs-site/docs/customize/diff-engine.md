@@ -48,18 +48,17 @@ Field matching is case-insensitive. Adding `'displayName'` also silences `Displa
 
 ## Change object equality
 
-By default, `Test-ObjectEqual` serializes both objects to JSON and compares the strings. You can modify this to ignore certain fields or compare property-by-property.
-
-Edit `src/diff.ps1` lines 54-65:
+By default, `Test-ObjectEqual` in `src/diff.ps1` normalizes both objects to deterministic JSON and compares the strings. You can modify it to exclude fields before comparing:
 
 ```powershell
 function Test-ObjectEqual {
     param($Left, $Right)
-    # Default: full JSON comparison
-    # To ignore a field, remove it before comparing:
-    $l = $Left | Select-Object -ExcludeProperty lastModifiedDateTime
-    $r = $Right | Select-Object -ExcludeProperty lastModifiedDateTime
-    return (ConvertTo-Json $l -Depth 10 -Compress) -eq (ConvertTo-Json $r -Depth 10 -Compress)
+    # Example: strip a field before comparing
+    $l = $Left  | ConvertTo-Json -Depth 20 -Compress | ConvertFrom-Json
+    $r = $Right | ConvertTo-Json -Depth 20 -Compress | ConvertFrom-Json
+    $l.PSObject.Properties.Remove('lastModifiedDateTime')
+    $r.PSObject.Properties.Remove('lastModifiedDateTime')
+    return (ConvertTo-DeterministicJson $l) -eq (ConvertTo-DeterministicJson $r)
 }
 ```
 

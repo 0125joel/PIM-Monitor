@@ -48,11 +48,6 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
-      - name: Configure git
-        run: |
-          git config user.name "PIM Monitor"
-          git config user.email "pim-monitor@noreply.github.com"
-
       - name: Run PIM Monitor scan
         shell: pwsh
         run: ./src/Scan-PimState.ps1
@@ -65,16 +60,6 @@ jobs:
           REPORT_ARTIFACT: ${{ vars.REPORT_ARTIFACT }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-
-      - name: Commit and push inventory changes
-        run: |
-          git add inventory/ expected-changes.json 2>/dev/null || true
-          if git diff --cached --quiet; then
-            echo "No inventory changes to commit"
-          else
-            git commit -m "scan: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            git push
-          fi
 
       - name: Upload scan report
         if: vars.REPORT_ARTIFACT == 'true'

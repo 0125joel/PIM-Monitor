@@ -47,10 +47,10 @@ Set `EXPIRING_WINDOW_DAYS` in your pipeline variables:
 
 For each PIM assignment (Directory Roles and PIM Groups):
 
-1. **Check if assignment has expiration date** — Permanent assignments are skipped
+1. **Check if assignment has expiration date** — Assignments without an end date are skipped
 2. **Compare expiration against today + window** — If expiring within window, flag it
-3. **Classify as Informational severity** — Expiring assignments are low-priority alerts
-4. **Include in scan report** — Listed separately from other changes
+3. **Classify as Medium severity** — Expiring assignments warrant review before they lapse
+4. **Include in scan report** — Listed under Medium changes
 
 ### Types of Assignments Checked
 
@@ -64,34 +64,31 @@ For each PIM assignment (Directory Roles and PIM Groups):
 
 ### What Gets Reported
 
-Expiring assignments appear in the scan report as `Informational` severity changes:
+Expiring assignments appear in the scan report as `Medium` severity changes:
 
 ```
-Informational (3)
+Medium (3)
 ▼ Directory Roles > Global Administrator > assignments
-  - Principal: [User] expires in 13 days
-  - Principal: [Group] expires in 8 days
+  - Assignment expiring in 13 days (eligible): Jane Doe
+  - Assignment expiring in 8 days (active): John Smith
 ▼ PIM Groups > Tier-0-Admins > assignments
-  - Member: [User] expires in 5 days
+  - Assignment expiring in 5 days (eligible): Alice Chen
 ```
 
 ## Notification Behavior
 
 ### Included in Notifications?
 
-Expiring assignments are included in notifications **only if** `NOTIFICATION_MIN_SEVERITY` includes `Informational`:
+Expiring assignments are classified as `Medium` severity, so they are included at the default threshold:
 
 | Setting | Include expiring? | Example output |
 |---------|---|---|
 | `High` | ❌ No | Only critical changes |
-| `Medium` | ❌ No | Security + config (default) |
-| `Low` | ❌ No | All changes except metadata |
-| `Informational` | ✅ Yes | All changes including expiring |
+| `Medium` | ✅ Yes (default) | Security + config changes, including expiring |
+| `Low` | ✅ Yes | All changes except metadata |
+| `Informational` | ✅ Yes | All changes including metadata |
 
-**To receive expiring assignment alerts**, set:
-```
-NOTIFICATION_MIN_SEVERITY = Informational
-```
+Expiring assignment notifications are **on by default** — no threshold change needed.
 
 ### Separate Reports
 
@@ -149,23 +146,28 @@ Set up a schedule to review expiring assignments:
 
 ### Change Assignment Severity
 
-Edit `src/diff.ps1` to change expiring assignments from `Informational` to a different severity:
+Edit the `Find-ExpiringAssignments` function in `src/diff.ps1` to change expiring assignments from `Medium` to a different severity:
 
-**Current** (line ~1054):
+**Current**:
 ```powershell
-$severity = "Informational"  # Expiring assignments
+$changes += @{
+    severity = "Medium"
+    ...
+}
 ```
 
 **Change to**:
 ```powershell
-$severity = "Low"  # Or "Medium" / "High"
+$changes += @{
+    severity = "Low"  # Or "High" / "Informational"
+    ...
+}
 ```
 
 ### Change Detection Window in Code
 
-The window is controlled by the `EXPIRING_WINDOW_DAYS` variable at runtime. To hardcode a default:
+The window is controlled by the `EXPIRING_WINDOW_DAYS` variable at runtime. To hardcode a different default, edit `src/Scan-PimState.ps1`:
 
-Edit `src/Scan-PimState.ps1` (line ~560):
 ```powershell
 $windowDays = if ([int]::TryParse($env:EXPIRING_WINDOW_DAYS, [ref]$parsed)) { 
     $parsed 
@@ -178,7 +180,7 @@ $windowDays = if ([int]::TryParse($env:EXPIRING_WINDOW_DAYS, [ref]$parsed)) {
 
 To skip assignments from certain roles or groups:
 
-Edit `Find-ExpiringAssignments` in `src/diff.ps1` (lines ~1033–1094):
+Edit `Find-ExpiringAssignments` in `src/diff.ps1`:
 
 ```powershell
 function Find-ExpiringAssignments {
@@ -212,7 +214,7 @@ function Find-ExpiringAssignments {
 ### Expiring assignments not in notifications
 
 **Check**:
-1. Is `NOTIFICATION_MIN_SEVERITY` set to `Informational`? (required for expiring to be notified)
+1. Is `NOTIFICATION_MIN_SEVERITY` set to `Medium` or lower? (expiring assignments are `Medium` severity)
 2. Check notifications are enabled (`NOTIFICATION_EMAIL` or `NOTIFICATION_WEBHOOK_URL` set)
 3. Review `inventory/` files to confirm expiring assignments exist
 

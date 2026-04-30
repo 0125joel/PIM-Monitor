@@ -11,6 +11,7 @@ Configure scan schedule, commit behavior, inventory storage, module versions, an
 | Setting | File | Default | Purpose |
 |---------|------|---------|---------|
 | Schedule (cron) | `monitor-pipeline.yml` / `.github/workflows/scan.yml` | `0 */6 * * *` | How often scan runs |
+| Upstream update check | `NOTIFY_UPSTREAM_UPDATE` | Enabled | Notify when GitHub has new commits |
 | Inventory path | `src/Scan-PimState.ps1` | `./inventory/` | Where state is stored |
 | Commit message | `monitor-pipeline.yml` / `.github/workflows/scan.yml` | ISO 8601 timestamp | Git commit format |
 | Git author | `src/git.ps1` | "PIM Monitor" | Author name |
@@ -57,6 +58,30 @@ on:
 - Graph API throttling (429 errors on frequent requests)
 - Noise reduction (PIM changes rarely occur every minute)
 - Cost efficiency (fewer pipeline runs = lower compute costs)
+
+### Check for upstream updates on GitHub
+
+At the start of each run, the Azure DevOps pipeline checks whether the public GitHub repository has commits that are not yet in your local copy. If it does, a warning is written to the pipeline log. If notification channels are configured, a notification is also sent via webhook and/or email.
+
+This check runs before the scan so the warning appears early in the run log. The notification is sent at the very end of the pipeline (after artifact publishing), using the same channels configured for PIM change notifications.
+
+**What it checks**: commits on `main` in `https://github.com/0125joel/PIM-Monitor` that are not present in your AzDO repo's current HEAD.
+
+**Pipeline log output** (when updates are available):
+```
+##[warning] PIM Monitor: 3 upstream commit(s) available on GitHub. Review and update your local copy.
+```
+
+**Disabling the notification**: set `NOTIFY_UPSTREAM_UPDATE` to `false` in your pipeline variables:
+
+1. **Pipelines** → **PIM Monitor** → **Edit** → **Variables**
+2. Add: `NOTIFY_UPSTREAM_UPDATE` = `false`
+
+The upstream check step itself still runs and logs to the pipeline; only the webhook/email notification is suppressed.
+
+:::note
+This feature applies to the Azure DevOps pipeline only. GitHub Actions users run directly from the GitHub repository and always have the latest version.
+:::
 
 ### Allow manual triggers
 
@@ -106,11 +131,11 @@ Any format works as long as it's unique enough to identify scans in `git log`.
 
 ### Customize git commit author
 
-Edit `src/git.ps1` (lines ~33-34):
+Edit `src/git.ps1`:
 
 ```powershell
 git config user.name "PIM Monitor"
-git config user.email "pim-monitor@pipeline"
+git config user.email "pim-monitor@noreply.github.com"
 ```
 
 Change to:
@@ -292,8 +317,8 @@ Then configure two pipelines in Azure DevOps UI pointing to different files.
 
 ## Related Pages
 
-- [Environment Variables](./environment-variables.md) — REPORT_ARTIFACT, EXPIRING_WINDOW_DAYS
-- [GitHub Actions Setup](../getting-started/installation-github.md) — Full GitHub Actions configuration
-- [Expiring Assignments](./expiring-assignments.md) — EXPIRING_WINDOW_DAYS details
-- [Reporting](./reporting.md) — HTML report artifact details
-- [Notifications](./notifications.md) — Notification triggers and configuration
+- [Environment Variables](./environment-variables.md): REPORT_ARTIFACT, EXPIRING_WINDOW_DAYS
+- [GitHub Actions Setup](../getting-started/installation-github.md): Full GitHub Actions configuration
+- [Expiring Assignments](./expiring-assignments.md): EXPIRING_WINDOW_DAYS details
+- [Reporting](./reporting.md): HTML report artifact details
+- [Notifications](./notifications.md): Notification triggers and configuration
