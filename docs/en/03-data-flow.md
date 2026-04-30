@@ -253,9 +253,13 @@ The `NOTIFICATION_MIN_SEVERITY` variable controls which severity levels are incl
 
 ## 12. Error Handling
 
-Each major section in `Scan-PimState.ps1` is wrapped in `try/catch`. A failure in one section (e.g., PIM Groups API error) does not prevent other sections from completing. The exception is re-thrown after logging, which fails the pipeline step. This is intentional: a partial scan that silently succeeds is worse than a visible pipeline failure.
+Each major component section in `Scan-PimState.ps1` is wrapped in `try/catch`. If a component fails, the exception is logged as a warning and recorded in a `$scanErrors` accumulator (`List[hashtable]` with `Component` and `Error` fields). The remaining components continue to run, and the pipeline exits with code 0.
 
-`$ErrorActionPreference = "Stop"` is set at the top of the orchestrator. All non-terminating errors become terminating. This prevents silent failures from Graph API calls returning error objects instead of throwing.
+The one exception is the initial token acquisition block (~line 89). If `Get-AzAccessToken` fails, the script throws immediately — there is no meaningful scan to continue without a valid token.
+
+After all components have run (and after regular change notifications are dispatched), `Send-ScanErrorNotification` is called if `$scanErrors.Count -gt 0`. This sends a separate email and/or webhook message listing each failed component and a truncated error message (~200 characters). It uses the same `NOTIFICATION_EMAIL`, `NOTIFICATION_MAIL_FROM`, and `NOTIFICATION_WEBHOOK_URL` env vars as the regular change notification, but the payload is completely independent and does not involve `$ChangesBySeverity`.
+
+`$ErrorActionPreference = "Stop"` is set at the top of the orchestrator. All non-terminating errors become terminating within each section. This prevents Graph API calls from silently returning error objects. The per-component `try/catch` blocks ensure those terminating errors are captured rather than propagating to the top-level pipeline.
 
 ---
 

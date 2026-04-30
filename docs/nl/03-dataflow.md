@@ -197,9 +197,13 @@ ADO-pipelinevariabelen die niet zijn ingesteld in de gebruikersinterface worden 
 
 ## 12. Foutafhandeling
 
-Elke hoofdsectie in `Scan-PimState.ps1` is omgeven door `try/catch`. Een fout in één sectie voorkomt niet dat andere secties worden voltooid. De uitzondering wordt opnieuw gegenereerd na logging, waardoor de pipelinestap mislukt. Dit is opzettelijk: een gedeeltelijke scan die stilzwijgend slaagt is slechter dan een zichtbare pipelinefout.
+Elke grote componentsectie in `Scan-PimState.ps1` is omgeven door `try/catch`. Als een component mislukt, wordt de uitzondering als waarschuwing geregistreerd en opgeslagen in een `$scanErrors`-accumulator (`List[hashtable]` met de velden `Component` en `Error`). De overige componenten worden nog steeds uitgevoerd en de pipeline sluit af met exitcode 0.
 
-`$ErrorActionPreference = "Stop"` is ingesteld bovenaan de orchestrator. Alle niet-terminerende fouten worden terminerend. Dit voorkomt stille fouten.
+De uitzondering hierop is het ophalen van het initiële token (~regel 89). Als `Get-AzAccessToken` mislukt, gooit het script onmiddellijk een fout — zonder een geldig token is een zinvolle scan niet mogelijk.
+
+Nadat alle componenten zijn uitgevoerd (en nadat de gewone wijzigingsnotificaties zijn verzonden), wordt `Send-ScanErrorNotification` aangeroepen als `$scanErrors.Count -gt 0`. Dit verstuurt een afzonderlijk e-mail- en/of webhookbericht met de mislukte componenten en een afgekapte foutmelding (~200 tekens). Er worden dezelfde omgevingsvariabelen gebruikt als bij de gewone wijzigingsnotificatie (`NOTIFICATION_EMAIL`, `NOTIFICATION_MAIL_FROM`, `NOTIFICATION_WEBHOOK_URL`), maar de payload is volledig onafhankelijk en maakt geen gebruik van `$ChangesBySeverity`.
+
+`$ErrorActionPreference = "Stop"` is ingesteld bovenaan de orchestrator. Alle niet-terminerende fouten worden terminerend binnen elke sectie. Dit voorkomt dat Graph API-aanroepen stilzwijgend foutobjecten teruggeven. De `try/catch`-blokken per component zorgen ervoor dat die fouten worden opgevangen in plaats van door te propageren naar het pipelineniveau.
 
 ---
 

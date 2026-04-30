@@ -66,19 +66,12 @@ That's it. You have an audit trail in git.
 
 ## Documentation
 
-Start here depending on what you need:
-
-- **Getting started**: [Prerequisites](./docs-site/docs/getting-started/prerequisites.md) (includes troubleshooting), [Installation for Azure DevOps](./docs-site/docs/getting-started/installation.md), [Installation for GitHub Actions](./docs-site/docs/getting-started/installation-github.md), [Local testing](./docs-site/docs/getting-started/local-testing.md), [FAQ](./docs-site/docs/getting-started/faq.md)
-- **Configuration**: [Pipeline YAML](./docs-site/docs/configuration/pipeline-yaml.md), [Notifications](./docs-site/docs/configuration/notifications.md), [Severity rules](./docs-site/docs/configuration/severity-rules.md)
-- **Reference**: [Inventory structure](./docs-site/docs/reference/inventory-structure.md), [Graph API endpoints](./docs-site/docs/reference/graph-endpoints.md), [Diff engine](./docs-site/docs/reference/diff-engine.md), [Activation events](./docs-site/docs/reference/activation-events.md)
-- **Customization**: [Expected changes](./docs-site/docs/customize/expected-changes.md), [Severity rules](./docs-site/docs/customize/severity-rules.md), [Notifications](./docs-site/docs/customize/notifications.md), [Diff engine](./docs-site/docs/customize/diff-engine.md)
-
-Stuck during setup? Check the [Troubleshooting section in Prerequisites](./docs-site/docs/getting-started/prerequisites.md#troubleshooting) or the [FAQ](./docs-site/docs/getting-started/faq.md).
+Full documentation is available at [pimmonitor.com](https://pimmonitor.com).
 
 ## Architecture overview
 
 ```
-Azure DevOps Pipeline (scheduled every 15-30 min)
+Azure DevOps Pipeline (scheduled every 6 hours)
   ├── Fetch current PIM state from Graph API
   ├── Compare against inventory/ files (previous state)
   ├── Detect and classify changes by severity

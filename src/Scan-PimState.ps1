@@ -533,6 +533,7 @@ try {
     $allAssignmentsByEntity = @{}
 
     foreach ($result in $roleResults) {
+        if ($result.error) { continue }
         $allAssignmentsByEntity[$result.slug] = $result.cleanAssignments
     }
 
