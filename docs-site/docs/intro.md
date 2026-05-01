@@ -7,7 +7,7 @@ description: PIM Monitor continuously monitors Microsoft Entra ID PIM state with
 
 **Continuous monitoring of Microsoft Entra ID PIM state with a git-based audit trail.**
 
-> **Version:** 0.2.0 — [Release notes](https://github.com/0125joel/PIM-Monitor/releases) <!-- x-release-please-version -->
+> **Version:** 0.2.1 — [Release notes](https://github.com/0125joel/PIM-Monitor/releases) <!-- x-release-please-version -->
 
 PIM Monitor is a scheduled Azure DevOps pipeline. It scans your Entra ID Privileged Identity Management configuration, detects changes, and commits inventory JSON files to git. Every change becomes a commit. Your audit trail is version history.
 

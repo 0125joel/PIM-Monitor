@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/0125joel/PIM-Monitor/compare/v0.2.0...v0.2.1) (2026-05-01)
+
+
+### Bug Fixes
+
+* adjust throttle limits and retry logic in Invoke-GraphRequest function ([467daae](https://github.com/0125joel/PIM-Monitor/commit/467daae0881d58ecc916624673d65cb5d4966b5a))
+
 ## [0.2.0](https://github.com/0125joel/PIM-Monitor/compare/v0.1.0...v0.2.0) (2026-04-30)
 
 
