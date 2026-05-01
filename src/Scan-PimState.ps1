@@ -363,7 +363,7 @@ try {
                 error      = $_.ToString()
             }
         }
-    } -ThrottleLimit 8)
+    } -ThrottleLimit 5)
 
     # Post-process sequentially: organize files, compute diffs, collect changes
     foreach ($result in $roleResults) {

@@ -164,7 +164,7 @@ function Invoke-GraphRequest {
         [Parameter(Mandatory)]
         [hashtable] $Headers,
 
-        [int] $MaxAttempts = 6
+        [int] $MaxAttempts = 10
     )
 
     $attempt = 0
@@ -178,10 +178,17 @@ function Invoke-GraphRequest {
             $isRetryable = ($_ -match '429') -or ($_ -match 'Too Many Requests') -or ($_ -match '5\d\d')
             if (-not $isRetryable) { throw }
             $retryAfter = $null
-            try { $retryAfter = $_.Exception.Response.Headers.RetryAfter?.Delta?.TotalSeconds } catch {}
-            $base = if ($retryAfter -and $retryAfter -gt 0) { [int]$retryAfter } else { [math]::Pow(2, $attempt + 1) }
+            try {
+                $ra = $_.Exception.Response.Headers.GetValues('Retry-After') | Select-Object -First 1
+                if ($ra -and $ra -match '^\d+$') { $retryAfter = [int]$ra }
+            } catch {}
+            if (-not $retryAfter -or $retryAfter -le 0) {
+                try { $retryAfter = [int]$_.Exception.Response.Headers.RetryAfter?.Delta?.TotalSeconds } catch {}
+            }
+            $base = if ($retryAfter -and $retryAfter -gt 0) { $retryAfter } else { [math]::Pow(2, $attempt + 1) }
             $jitter = $base * (0.8 + (Get-Random -Minimum 0 -Maximum 40) / 100)
-            $waitSecs = [math]::Min([math]::Round($jitter), 32)
+            # Minimum 5s floor to prevent burning retries on short Retry-After values under sustained throttling
+            $waitSecs = [math]::Max(5, [math]::Min([math]::Round($jitter), 60))
             Write-Warning "Graph throttled on $Uri (attempt $attempt/$($MaxAttempts-1)) — waiting ${waitSecs}s"
             Start-Sleep -Seconds $waitSecs
         }
