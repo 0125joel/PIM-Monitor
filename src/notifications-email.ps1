@@ -32,7 +32,7 @@
     Skip sending if no changes meet this threshold (default Medium).
 #>
 function Send-EmailNotification {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)] $ChangesBySeverity,
         [Parameter(Mandatory)] [string] $ToAddress,
@@ -44,12 +44,16 @@ function Send-EmailNotification {
         [hashtable] $AuthContextLookup = @{}
     )
 
-    # Count changes meeting threshold
+    # Coverage violations always count as Medium regardless of MinSeverity
     $relevantCount = 0
     foreach ($sev in @('High', 'Medium', 'Low', 'Informational')) {
         if ($script:SeverityRank[$sev] -ge $script:SeverityRank[$MinSeverity]) {
             $relevantCount += $ChangesBySeverity.$sev.Count
         }
+    }
+    $covCount = if ($ChangesBySeverity['Coverage']) { $ChangesBySeverity.Coverage.Count } else { 0 }
+    if ($script:SeverityRank['Medium'] -ge $script:SeverityRank[$MinSeverity]) {
+        $relevantCount += $covCount
     }
 
     if ($relevantCount -eq 0) {
@@ -65,6 +69,7 @@ function Send-EmailNotification {
     if ($ChangesBySeverity.Medium.Count -gt 0)        { $sevParts += "$($ChangesBySeverity.Medium.Count) Medium" }
     if ($ChangesBySeverity.Low.Count -gt 0)           { $sevParts += "$($ChangesBySeverity.Low.Count) Low" }
     if ($ChangesBySeverity.Informational.Count -gt 0) { $sevParts += "$($ChangesBySeverity.Informational.Count) Info" }
+    if ($covCount -gt 0)                              { $sevParts += "$covCount Classification" }
     $s       = if ($relevantCount -eq 1) { 'change' } else { 'changes' }
     $subject = if ($sevParts.Count -eq 1) {
         "[PIM Monitor] $($sevParts[0]) ${s}"
@@ -92,9 +97,11 @@ function Send-EmailNotification {
         'Content-Type' = 'application/json'
     }
 
+    if (-not $PSCmdlet.ShouldProcess($ToAddress, 'Send email notification')) { return }
+
     try {
-        Invoke-RestMethod -Uri $uri -Method Post -Headers $headers `
-            -Body ($payload | ConvertTo-Json -Depth 10) | Out-Null
+        $sendBody = $payload | ConvertTo-Json -Depth 10
+        Invoke-WithRetry -ScriptBlock { Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body $sendBody }.GetNewClosure() -OperationName "sendMail to $ToAddress" | Out-Null
         Write-Host "  Email sent to $ToAddress"
     }
     catch {
@@ -102,13 +109,6 @@ function Send-EmailNotification {
     }
 }
 
-<#
-.SYNOPSIS
-    Formats scan error email body as HTML.
-
-.PARAMETER ScanErrors
-    Array of @{Component = string; Error = string} hashtables.
-#>
 function Format-ScanErrorHtml {
     [CmdletBinding()]
     param([Parameter(Mandatory)] [array] $ScanErrors)

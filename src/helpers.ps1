@@ -1,33 +1,23 @@
-<#
-.SYNOPSIS
-    Helper functions for PIM Monitor pipeline.
-
-.DESCRIPTION
-    Provides utilities for Graph API calls, deterministic JSON serialization,
-    and inventory management.
-#>
-
-
-<#
-.SYNOPSIS
-    Converts an object to JSON with deterministic key ordering and sorted arrays.
-
-.DESCRIPTION
-    Produces byte-identical JSON output for semantically identical Graph API responses,
-    regardless of property order returned by the API. Strips @odata.* metadata.
-    Requires PowerShell 7.x (uses -Depth on ConvertTo-Json).
-
-.PARAMETER InputObject
-    The object to serialize (typically from Invoke-MgGraphRequest).
-
-.PARAMETER Depth
-    Maximum nesting depth for JSON serialization. Default: 20.
-
-.EXAMPLE
-    $role = Invoke-MgGraphRequest -Uri "/beta/roleManagement/directory/roleDefinitions/$id"
-    ConvertTo-DeterministicJson -InputObject $role | Set-Content -Path "definition.json"
-#>
 function ConvertTo-DeterministicJson {
+    <#
+    .SYNOPSIS
+        Converts an object to JSON with alphabetically sorted keys and sorted arrays.
+
+    .DESCRIPTION
+        Normalizes the input before serialization: hashtable and PSObject keys are sorted
+        alphabetically, @odata.* metadata properties are stripped, and arrays of objects
+        with an 'id' field are sorted by id. This ensures inventory files produce identical
+        output across runs regardless of Graph API property ordering.
+
+    .PARAMETER InputObject
+        The object to serialize. Accepts pipeline input. Null is allowed.
+
+    .PARAMETER Depth
+        JSON serialization depth. Defaults to 20.
+
+    .EXAMPLE
+        $roleDefinition | ConvertTo-DeterministicJson | Set-Content definition.json
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory, ValueFromPipeline)]
@@ -40,10 +30,8 @@ function ConvertTo-DeterministicJson {
 
     process {
         function Normalize ([object] $obj) {
-            # Null passthrough
             if ($null -eq $obj) { return $null }
 
-            # Arrays: normalize each element, then sort by 'id' (objects) or value (primitives)
             if ($obj -is [System.Collections.IList]) {
                 [array] $items = @($obj | ForEach-Object { Normalize $_ })
                 if ($items.Count -gt 1) {
@@ -57,7 +45,6 @@ function ConvertTo-DeterministicJson {
                 return , $items
             }
 
-            # Objects (PSObject or hashtable): sort keys alphabetically, strip @odata.*
             if ($obj -is [System.Collections.IDictionary]) {
                 $sorted = [ordered]@{}
                 $obj.GetEnumerator() |
@@ -67,10 +54,8 @@ function ConvertTo-DeterministicJson {
                 return $sorted
             }
 
-            # PSCustomObject from ConvertFrom-Json / Invoke-RestMethod.
-            # Exclude string and ValueType (bool, int, etc.) — they are technically [psobject]
-            # in PowerShell but must be treated as primitives. Using .Count on PSObject.Properties
-            # can fail under Set-StrictMode -Version Latest for certain object types.
+            # [string] and [System.ValueType] are technically [psobject] in PowerShell but must
+            # be treated as primitives — the PSObject branch would incorrectly enumerate their members.
             if (($obj -is [psobject]) -and -not ($obj -is [string]) -and -not ($obj -is [System.ValueType])) {
                 $sorted = [ordered]@{}
                 $obj.PSObject.Properties |
@@ -80,7 +65,6 @@ function ConvertTo-DeterministicJson {
                 return $sorted
             }
 
-            # Primitives (string, int, bool, datetime, enum): pass through
             return $obj
         }
 
@@ -89,24 +73,24 @@ function ConvertTo-DeterministicJson {
     }
 }
 
-<#
-.SYNOPSIS
-    Fetches all items from a paginated Graph API endpoint.
-
-.DESCRIPTION
-    Handles automatic pagination by following @odata.nextLink.
-    Returns all items as an array.
-
-.PARAMETER Uri
-    The Graph API endpoint URI.
-
-.PARAMETER AccessToken
-    Access token for authentication.
-
-.EXAMPLE
-    $roles = Get-AllGraphItems -Uri "/beta/roleManagement/directory/roleDefinitions" -AccessToken $token
-#>
 function Get-AllGraphItems {
+    <#
+    .SYNOPSIS
+        Fetches all pages from a paginated Microsoft Graph endpoint.
+
+    .DESCRIPTION
+        Follows @odata.nextLink pagination until all items are collected.
+        Returns a flat array of all items from the 'value' property of each page.
+
+    .PARAMETER Uri
+        The initial Graph API URI to fetch.
+
+    .PARAMETER AccessToken
+        Bearer token for the Authorization header.
+
+    .EXAMPLE
+        $groups = Get-AllGraphItems -Uri $script:GraphEndpoints.GroupResources -AccessToken $token
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -134,28 +118,89 @@ function Get-AllGraphItems {
     return $allItems
 }
 
-<#
-.SYNOPSIS
-    Invokes a Graph API request with retry logic, jitter, and Retry-After support.
+function Invoke-WithRetry {
+    <#
+    .SYNOPSIS
+        Retries a scriptblock on transient HTTP errors (429 and 5xx) with exponential backoff.
 
-.DESCRIPTION
-    Handles throttling (429) and server errors (5xx) with exponential backoff,
-    jitter (80-120% of base), and respects Retry-After headers.
-    Caps max wait time at 32 seconds.
+    .DESCRIPTION
+        Calls the scriptblock and, if it throws a 429 (Too Many Requests) or 5xx error,
+        waits and retries with jittered exponential backoff. Respects the Retry-After header
+        when present. Non-retryable errors are re-thrown immediately.
 
-.PARAMETER Uri
-    The Graph API endpoint URI.
+    .PARAMETER ScriptBlock
+        The operation to execute. Should be a closure capturing any required variables.
 
-.PARAMETER Headers
-    HTTP headers (typically includes Authorization bearer token).
+    .PARAMETER OperationName
+        Human-readable label used in warning messages.
 
-.PARAMETER MaxAttempts
-    Maximum retry attempts. Default: 6.
+    .PARAMETER MaxAttempts
+        Maximum number of attempts before giving up. Defaults to 10.
 
-.EXAMPLE
-    $result = Invoke-GraphRequest -Uri "/beta/roleManagement/directory/roleDefinitions" -Headers @{ Authorization = "Bearer $token" }
-#>
+    .EXAMPLE
+        Invoke-WithRetry -ScriptBlock { Invoke-RestMethod -Uri $uri -Headers $headers }.GetNewClosure() -OperationName "sendMail"
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [scriptblock] $ScriptBlock,
+
+        [string] $OperationName = 'operation',
+
+        [int] $MaxAttempts = 10
+    )
+
+    $attempt = 0
+    while ($true) {
+        try {
+            return & $ScriptBlock
+        }
+        catch {
+            $attempt++
+            if ($attempt -ge $MaxAttempts) { throw }
+            $isRetryable = ($_ -match '429') -or ($_ -match 'Too Many Requests') -or ($_ -match '5\d\d')
+            if (-not $isRetryable) { throw }
+
+            $retryAfter = $null
+            try {
+                $ra = $_.Exception.Response.Headers.GetValues('Retry-After') | Select-Object -First 1
+                if ($ra -and $ra -match '^\d+$') { $retryAfter = [int]$ra }
+            } catch {}
+            if (-not $retryAfter -or $retryAfter -le 0) {
+                try { $retryAfter = [int]$_.Exception.Response.Headers.RetryAfter?.Delta?.TotalSeconds } catch {}
+            }
+
+            $base     = if ($retryAfter -and $retryAfter -gt 0) { $retryAfter } else { [math]::Pow(2, $attempt + 1) }
+            $jitter   = $base * (0.8 + (Get-Random -Minimum 0 -Maximum 40) / 100)
+            $waitSecs = [math]::Max(5, [math]::Min([math]::Round($jitter), 60))
+            Write-Warning "Throttled on $OperationName (attempt $attempt/$($MaxAttempts-1)) — waiting ${waitSecs}s"
+            Start-Sleep -Seconds $waitSecs
+        }
+    }
+}
+
 function Invoke-GraphRequest {
+    <#
+    .SYNOPSIS
+        Makes a GET request to the Microsoft Graph API with retry support.
+
+    .DESCRIPTION
+        Wraps Invoke-RestMethod with Invoke-WithRetry for automatic handling of
+        429 throttling and 5xx server errors. GET-only; use Invoke-WithRetry
+        directly for POST/PATCH/DELETE calls.
+
+    .PARAMETER Uri
+        The Graph API endpoint URI.
+
+    .PARAMETER Headers
+        Request headers. Must include Authorization with a Bearer token.
+
+    .PARAMETER MaxAttempts
+        Maximum retry attempts. Defaults to 10.
+
+    .EXAMPLE
+        $org = Invoke-GraphRequest -Uri $script:GraphEndpoints.Organization -Headers @{ Authorization = "Bearer $token" }
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -167,48 +212,26 @@ function Invoke-GraphRequest {
         [int] $MaxAttempts = 10
     )
 
-    $attempt = 0
-    while ($true) {
-        try {
-            return Invoke-RestMethod -Uri $Uri -Headers $Headers -Method Get
-        }
-        catch {
-            $attempt++
-            if ($attempt -ge $MaxAttempts) { throw }
-            $isRetryable = ($_ -match '429') -or ($_ -match 'Too Many Requests') -or ($_ -match '5\d\d')
-            if (-not $isRetryable) { throw }
-            $retryAfter = $null
-            try {
-                $ra = $_.Exception.Response.Headers.GetValues('Retry-After') | Select-Object -First 1
-                if ($ra -and $ra -match '^\d+$') { $retryAfter = [int]$ra }
-            } catch {}
-            if (-not $retryAfter -or $retryAfter -le 0) {
-                try { $retryAfter = [int]$_.Exception.Response.Headers.RetryAfter?.Delta?.TotalSeconds } catch {}
-            }
-            $base = if ($retryAfter -and $retryAfter -gt 0) { $retryAfter } else { [math]::Pow(2, $attempt + 1) }
-            $jitter = $base * (0.8 + (Get-Random -Minimum 0 -Maximum 40) / 100)
-            # Minimum 5s floor to prevent burning retries on short Retry-After values under sustained throttling
-            $waitSecs = [math]::Max(5, [math]::Min([math]::Round($jitter), 60))
-            Write-Warning "Graph throttled on $Uri (attempt $attempt/$($MaxAttempts-1)) — waiting ${waitSecs}s"
-            Start-Sleep -Seconds $waitSecs
-        }
-    }
+    $action = { Invoke-RestMethod -Uri $Uri -Headers $Headers -Method Get }.GetNewClosure()
+    Invoke-WithRetry -ScriptBlock $action -OperationName $Uri -MaxAttempts $MaxAttempts
 }
 
-<#
-.SYNOPSIS
-    Gets the slug (URL-friendly name) for a role or group.
-
-.DESCRIPTION
-    Converts displayName to kebab-case for use in inventory folder names.
-
-.PARAMETER Name
-    The display name to slugify.
-
-.EXAMPLE
-    Get-InventorySlug -Name "Global Administrator"  # Returns "global-administrator"
-#>
 function Get-InventorySlug {
+    <#
+    .SYNOPSIS
+        Converts a display name to a lowercase URL-safe slug.
+
+    .DESCRIPTION
+        Lowercases the name, removes non-alphanumeric characters (except hyphens),
+        collapses whitespace to hyphens, and strips leading/trailing hyphens.
+
+    .PARAMETER Name
+        The display name to slugify (e.g., "Global Administrator").
+
+    .EXAMPLE
+        Get-InventorySlug -Name "Global Administrator"
+        # Returns: global-administrator
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -222,25 +245,21 @@ function Get-InventorySlug {
         -replace '^-|-$', ''
 }
 
-<#
-.SYNOPSIS
-    Ensures inventory folder structure exists.
-
-.DESCRIPTION
-    Creates folder at inventory/{workload}/{slug} if it doesn't exist.
-
-.PARAMETER Workload
-    The workload type: "directory-roles", "pim-groups", "authentication-contexts",
-    or "administrative-units".
-
-.PARAMETER Slug
-    The entity slug (kebab-case identifier).
-
-.EXAMPLE
-    New-InventoryFolder -Workload "directory-roles" -Slug "global-administrator"
-#>
 function New-InventoryFolder {
-    [CmdletBinding()]
+    <#
+    .SYNOPSIS
+        Creates an inventory folder for a given workload and slug if it does not exist.
+
+    .PARAMETER Workload
+        The inventory workload category (e.g., "directory-roles", "pim-groups").
+
+    .PARAMETER Slug
+        The slug identifying the role or group within the workload.
+
+    .EXAMPLE
+        $path = New-InventoryFolder -Workload "directory-roles" -Slug "global-administrator"
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
         [ValidateSet("directory-roles", "pim-groups", "authentication-contexts", "administrative-units", "activation-events")]
@@ -253,30 +272,37 @@ function New-InventoryFolder {
     $folderPath = Join-Path -Path (Get-Location) -ChildPath "inventory" -AdditionalChildPath $Workload, $Slug
 
     if (-not (Test-Path $folderPath)) {
-        New-Item -ItemType Directory -Path $folderPath -Force | Out-Null
+        if ($PSCmdlet.ShouldProcess($folderPath, 'Create inventory folder')) {
+            New-Item -ItemType Directory -Path $folderPath -Force | Out-Null
+        }
     }
 
     return $folderPath
 }
 
-<#
-.SYNOPSIS
-    Writes a JSON file to inventory with deterministic formatting.
-
-.PARAMETER InputObject
-    The object to serialize.
-
-.PARAMETER FolderPath
-    The inventory folder path.
-
-.PARAMETER FileName
-    The file name (e.g., "definition.json", "policy.json").
-
-.EXAMPLE
-    Save-InventoryFile -InputObject $roleDefinition -FolderPath $folder -FileName "definition.json"
-#>
 function Save-InventoryFile {
-    [CmdletBinding()]
+    <#
+    .SYNOPSIS
+        Serializes an object to deterministic JSON and writes it to an inventory file.
+
+    .DESCRIPTION
+        All inventory files must pass through ConvertTo-DeterministicJson to guarantee
+        identical output across pipeline runs. The FileName parameter is validated against
+        the allowed inventory file names to prevent accidental writes to arbitrary paths.
+
+    .PARAMETER InputObject
+        The object to serialize and write.
+
+    .PARAMETER FolderPath
+        Full path to the inventory folder (returned by New-InventoryFolder).
+
+    .PARAMETER FileName
+        The target filename. Must match one of the allowed inventory file names.
+
+    .EXAMPLE
+        Save-InventoryFile -InputObject $definition -FolderPath $path -FileName "definition.json"
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
         $InputObject,
@@ -291,28 +317,31 @@ function Save-InventoryFile {
 
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
     $json = ConvertTo-DeterministicJson -InputObject $InputObject
-    Set-Content -Path $filePath -Value $json -Encoding utf8NoBOM -Force
+    if ($PSCmdlet.ShouldProcess($filePath, 'Write inventory file')) {
+        Set-Content -Path $filePath -Value $json -Encoding utf8NoBOM -Force
+    }
 }
 
-<#
-.SYNOPSIS
-    Moves a removed entity folder to the inventory archive.
-
-.DESCRIPTION
-    Called when Get-RemovedEntities detects an entity no longer present in PIM.
-    Instead of leaving the folder in place (causing repeated removal notifications)
-    or deleting it (losing history), moves it to inventory/archive/{workload}/{slug}_{date}.
-
-    Git sees the move as a delete + add, preserving full history via git log --follow.
-
-.PARAMETER FolderPath
-    Full path to the entity folder being archived (e.g. inventory/directory-roles/global-administrator).
-
-.PARAMETER InventoryRoot
-    Root inventory path (e.g. /repo/inventory).
-#>
 function Move-ToArchive {
-    [CmdletBinding()]
+    <#
+    .SYNOPSIS
+        Moves a role or group inventory folder to the archive directory.
+
+    .DESCRIPTION
+        Called when a role or group disappears from PIM. The folder is moved rather than
+        deleted so the historical inventory data is preserved. The destination path is
+        inventory/archive/{workload}/{slug}_{date}.
+
+    .PARAMETER FolderPath
+        Full path to the inventory folder to archive.
+
+    .PARAMETER InventoryRoot
+        Root of the inventory directory (contains the workload subdirectories).
+
+    .EXAMPLE
+        Move-ToArchive -FolderPath $folderPath -InventoryRoot $inventoryRoot
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
         [string] $FolderPath,
@@ -327,10 +356,11 @@ function Move-ToArchive {
     $archiveDir    = Join-Path $InventoryRoot (Join-Path 'archive' $workload)
     $archiveDest   = Join-Path $archiveDir "${slug}_${dateSuffix}"
 
-    if (-not (Test-Path $archiveDir)) {
-        New-Item -ItemType Directory -Path $archiveDir -Force | Out-Null
+    if ($PSCmdlet.ShouldProcess($FolderPath, "Archive to archive/$workload/${slug}_${dateSuffix}")) {
+        if (-not (Test-Path $archiveDir)) {
+            New-Item -ItemType Directory -Path $archiveDir -Force | Out-Null
+        }
+        Move-Item -Path $FolderPath -Destination $archiveDest -Force
+        Write-Host "  Archived: $workload/$slug -> archive/$workload/${slug}_${dateSuffix}"
     }
-
-    Move-Item -Path $FolderPath -Destination $archiveDest -Force
-    Write-Host "  Archived: $workload/$slug -> archive/$workload/${slug}_${dateSuffix}"
 }

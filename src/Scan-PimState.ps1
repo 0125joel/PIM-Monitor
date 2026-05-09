@@ -26,12 +26,9 @@
 
 param()
 
-# Initialization
-
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-# Import script modules (order matters: helpers first, then others that depend on it)
 . (Join-Path -Path $PSScriptRoot -ChildPath "helpers.ps1")
 . (Join-Path -Path $PSScriptRoot -ChildPath "graphEndpoints.ps1")
 . (Join-Path -Path $PSScriptRoot -ChildPath "diff.ps1")
@@ -50,19 +47,14 @@ function Write-StepLog {
 
 Write-StepLog "PIM Monitor scan starting"
 
-# Ensure inventory folder exists
 $inventoryRoot = Join-Path -Path (Get-Location) -ChildPath "inventory"
 if (-not (Test-Path $inventoryRoot)) {
     New-Item -ItemType Directory -Path $inventoryRoot -Force | Out-Null
 }
 
-# Accumulator for all detected changes across all workloads
 $allChanges = @()
-
-# Accumulator for non-fatal component failures
 $scanErrors = [System.Collections.Generic.List[hashtable]]::new()
 
-# Load expected changes (if file exists)
 $expectedChangesPath = Join-Path -Path (Get-Location) -ChildPath "expected-changes.json"
 $expectations = @()
 if (Test-Path $expectedChangesPath) {
@@ -76,17 +68,15 @@ if (Test-Path $expectedChangesPath) {
     }
 }
 
-# Authentication
-
 Write-StepLog "Acquiring Graph API access token"
 
-# WIF authentication via AzurePowerShell@5 task — token obtained via OIDC exchange
 # Az.Accounts 5.x returns .Token as SecureString; -AsPlainText doesn't exist in this version.
 # NetworkCredential unwraps SecureString safely; falls back to plain string for future versions.
 $rawToken = (Get-AzAccessToken -ResourceTypeName MSGraph).Token
 $token = if ($rawToken -is [System.Security.SecureString]) {
     [System.Net.NetworkCredential]::new('', $rawToken).Password
-} else {
+}
+else {
     $rawToken
 }
 if (-not $token) {
@@ -96,9 +86,8 @@ if (-not $token) {
 $tenantDisplayName = try {
     $orgResponse = Invoke-GraphRequest -Uri $script:GraphEndpoints.Organization -Headers @{ Authorization = "Bearer $token" }
     $orgResponse.PSObject.Properties['value']?.Value[0].PSObject.Properties['displayName']?.Value
-} catch { $null }
-
-# Lookups — Authentication Contexts
+}
+catch { $null }
 
 Write-StepLog "Fetching authentication contexts"
 
@@ -131,7 +120,6 @@ try {
         if ($acId -and $acName) { $authContextLookup[$acId] = $acName }
     }
 
-    # Detect removed authentication contexts
     $removedAuthContexts = Get-RemovedEntities `
         -WorkloadPath (Join-Path $inventoryRoot "authentication-contexts") `
         -CurrentSlugs $authContextSlugs
@@ -142,8 +130,6 @@ catch {
     Write-Warning "Authentication contexts scan failed: $_"
     $scanErrors.Add(@{ Component = 'Authentication Contexts'; Error = $_.ToString() })
 }
-
-# Lookups — Administrative Units
 
 Write-StepLog "Fetching administrative units"
 
@@ -169,7 +155,6 @@ try {
         Save-InventoryFile -InputObject $adminUnit -FolderPath $folderPath -FileName "definition.json"
     }
 
-    # Detect removed administrative units
     $removedAdminUnits = Get-RemovedEntities `
         -WorkloadPath (Join-Path $inventoryRoot "administrative-units") `
         -CurrentSlugs $adminUnitSlugs
@@ -180,8 +165,6 @@ catch {
     Write-Warning "Administrative units scan failed: $_"
     $scanErrors.Add(@{ Component = 'Administrative Units'; Error = $_.ToString() })
 }
-
-# Activation Events (Monthly Archive)
 
 Write-StepLog "Fetching PIM activation events"
 
@@ -234,9 +217,9 @@ try {
         )
 
         $newEventCount = 0
-        foreach ($event in $auditEvents) {
-            if (-not $eventIds.Contains($event.id)) {
-                $monthlyEvents += $event
+        foreach ($auditEntry in $auditEvents) {
+            if (-not $eventIds.Contains($auditEntry.id)) {
+                $monthlyEvents += $auditEntry
                 $newEventCount++
             }
         }
@@ -263,11 +246,9 @@ catch {
     }
 }
 
-# Directory Roles
-
 Write-StepLog "Fetching Directory Roles"
 
-$roleResults = @()   # initialised here so Expiring Assignments can safely iterate if Directory Roles fails
+$roleResults = @()
 
 try {
     $roleDefinitions = @(Get-AllGraphItems -Uri $script:GraphEndpoints.RoleDefinitions -AccessToken $token)
@@ -275,14 +256,13 @@ try {
 
     $roleSlugs = @()
 
-    # Functions are not available inside -Parallel; serialize to string so it can cross the
-    # runspace boundary via $using: (script block variables are not allowed with $using:).
-    $slugFnStr = ${function:Get-InventorySlug}.ToString()
-    $invokeGraphFnStr = ${function:Invoke-GraphRequest}.ToString()
+    # Functions are not available inside -Parallel; serialize to string so they can cross the
+    # runspace boundary via $using:.
+    $slugFnStr           = ${function:Get-InventorySlug}.ToString()
+    $invokeWithRetryFnStr = ${function:Invoke-WithRetry}.ToString()
+    $invokeGraphFnStr    = ${function:Invoke-GraphRequest}.ToString()
 
-    # Pre-build all per-role URIs using the URI builder functions before entering -Parallel.
-    # URI builder functions are also unavailable inside -Parallel, so this keeps all URI
-    # construction in one place (graphEndpoints.ps1) and eliminates inline duplication.
+    # URI builder functions are also unavailable inside -Parallel, so build the map here.
     $roleUriMap = @{}
     foreach ($role in $roleDefinitions) {
         $roleUriMap[$role.id] = @{
@@ -293,88 +273,84 @@ try {
         }
     }
 
-    # Parallel fetch per role (policies + assignments).
-    # Pipe functions and endpoints via $using:, collect results for sequential write.
     $roleResults = @($roleDefinitions | ForEach-Object -Parallel {
-        $role = $_
-        $roleId = $role.id
-        $roleDisplayName = $role.displayName
+            $role = $_
+            $roleId = $role.id
+            $roleDisplayName = $role.displayName
 
-        $slugName = & ([scriptblock]::Create($using:slugFnStr)) -Name $roleDisplayName
+            $slugName = & ([scriptblock]::Create($using:slugFnStr)) -Name $roleDisplayName
 
-        # Output may appear out of order in parallel blocks due to runspace interleaving
-        Write-Host "  Processing: $roleDisplayName ($slugName)"
+            Write-Host "  Processing: $roleDisplayName ($slugName)"
 
-        try {
-            $uris    = ($using:roleUriMap)[$roleId]
-            $headers = @{ Authorization = "Bearer $($using:token)" }
+            try {
+                $uris = ($using:roleUriMap)[$roleId]
+                $headers = @{ Authorization = "Bearer $($using:token)" }
 
-            # Use serialized Invoke-GraphRequest function for consistent retry logic with jitter
-            $invokeGraphRequest = [scriptblock]::Create($using:invokeGraphFnStr)
+                ${function:Invoke-WithRetry} = [scriptblock]::Create($using:invokeWithRetryFnStr)
+                $invokeGraphRequest = [scriptblock]::Create($using:invokeGraphFnStr)
 
-            $policyItems = @()
-            $currentUri = $uris.policy
-            while ($currentUri) {
-                $response = & $invokeGraphRequest -Uri $currentUri -Headers $headers
-                if ($response.value) { $policyItems += $response.value }
-                $currentUri = $response.PSObject.Properties['@odata.nextLink']?.Value
-            }
-            $policyAssignment = $policyItems | Select-Object -First 1
-
-            if (-not $policyAssignment) {
-                Write-Warning "    No policy assignment found for role: $roleDisplayName"
-            }
-
-            # Fetch assignments (permanent, eligible, active)
-            $permUri = $uris.permanent
-            $eligUri = $uris.eligible
-            $actUri  = $uris.active
-
-            $fetchAssignments = {
-                param($uri)
-                $items = @()
-                $currentUri = $uri
+                $policyItems = @()
+                $currentUri = $uris.policy
                 while ($currentUri) {
                     $response = & $invokeGraphRequest -Uri $currentUri -Headers $headers
-                    if ($response.value) { $items += $response.value }
+                    $v = $response.PSObject.Properties['value']?.Value
+                    if ($v) { $policyItems += $v }
                     $currentUri = $response.PSObject.Properties['@odata.nextLink']?.Value
                 }
-                return $items
+                $policyAssignment = $policyItems | Select-Object -First 1
+
+                if (-not $policyAssignment) {
+                    Write-Warning "    No policy assignment found for role: $roleDisplayName"
+                }
+
+                $permUri = $uris.permanent
+                $eligUri = $uris.eligible
+                $actUri = $uris.active
+
+                $fetchAssignments = {
+                    param($uri)
+                    $items = @()
+                    $currentUri = $uri
+                    while ($currentUri) {
+                        $response = & $invokeGraphRequest -Uri $currentUri -Headers $headers
+                        $v = $response.PSObject.Properties['value']?.Value
+                        if ($v) { $items += $v }
+                        $currentUri = $response.PSObject.Properties['@odata.nextLink']?.Value
+                    }
+                    return $items
+                }
+
+                $permanent = (& $fetchAssignments $permUri) ?? @()
+                $eligible = (& $fetchAssignments $eligUri) ?? @()
+                $active = (& $fetchAssignments $actUri) ?? @()
+
+                $assignments = @{
+                    permanent = $permanent
+                    eligible  = $eligible
+                    active    = $active
+                }
+
+                Write-Host "    Permanent: $($permanent.Count) | Eligible: $($eligible.Count) | Active: $($active.Count)"
+
+                @{
+                    definition       = $role
+                    slug             = $slugName
+                    policyAssignment = $policyAssignment
+                    assignments      = $assignments
+                    error            = $null
+                }
             }
-
-            $permanent = (& $fetchAssignments $permUri) ?? @()
-            $eligible  = (& $fetchAssignments $eligUri) ?? @()
-            $active    = (& $fetchAssignments $actUri)  ?? @()
-
-            $assignments = @{
-                permanent = $permanent
-                eligible  = $eligible
-                active    = $active
+            catch {
+                Write-Warning "    Failed to fetch data for role $roleDisplayName — $_"
+                @{
+                    definition = $role
+                    slug       = $slugName
+                    error      = $_.ToString()
+                }
             }
+        } -ThrottleLimit 5)
 
-            Write-Host "    Permanent: $($permanent.Count) | Eligible: $($eligible.Count) | Active: $($active.Count)"
-
-            @{
-                definition       = $role
-                slug             = $slugName
-                policyAssignment = $policyAssignment
-                assignments      = $assignments
-                error            = $null
-            }
-        }
-        catch {
-            Write-Warning "    Failed to fetch data for role $roleDisplayName — $_"
-            @{
-                definition = $role
-                slug       = $slugName
-                error      = $_.ToString()
-            }
-        }
-    } -ThrottleLimit 5)
-
-    # Post-process sequentially: organize files, compute diffs, collect changes
     foreach ($result in $roleResults) {
-        # Always track slug to prevent false-positive archiving when a role fails transiently
         $roleSlugs += $result.slug
 
         if ($result.error) {
@@ -430,6 +406,7 @@ catch {
 
 Write-StepLog "Fetching PIM Groups"
 
+$groupResults = @()   # initialised here so Access-Model Compliance can safely iterate if PIM Groups fails
 $groupAssignmentsByEntity = @{}   # initialised here so Expiring Assignments can safely iterate if PIM Groups fails
 
 try {
@@ -465,7 +442,7 @@ try {
 
             # Fetch per-group eligible and active instances (filtered by groupId)
             $groupEligible = @(Get-AllGraphItems -Uri (Get-GroupEligibleAssignmentsUri -GroupId $groupId) -AccessToken $token)
-            $groupActive   = @(Get-AllGraphItems -Uri (Get-GroupActiveAssignmentsUri   -GroupId $groupId) -AccessToken $token)
+            $groupActive = @(Get-AllGraphItems -Uri (Get-GroupActiveAssignmentsUri   -GroupId $groupId) -AccessToken $token)
 
             # Fetch policies for this group — returns both member and owner policy assignments
             $policyItems = @(Get-AllGraphItems -Uri (Get-GroupPolicyUri -GroupId $groupId) -AccessToken $token)
@@ -509,11 +486,25 @@ try {
                 Save-InventoryFile -InputObject $policyWrapper -FolderPath $folderPath -FileName "policy.json"
             }
             Save-InventoryFile -InputObject $cleanAssignments -FolderPath $folderPath -FileName "assignments.json"
+
+            $groupResults += @{
+                definition       = $groupDef
+                slug             = $slug
+                policyAssignment = $policyWrapper
+                error            = $null
+            }
         }
         catch {
             $componentName = if ($groupDisplayName) { "PIM Group: $groupDisplayName" } else { "PIM Group: $groupId" }
             Write-Warning "  Failed to process $componentName — $_"
             $scanErrors.Add(@{ Component = $componentName; Error = $_.ToString() })
+            if ($slug) {
+                $groupResults += @{
+                    definition = $groupDef
+                    slug       = $slug
+                    error      = $_.ToString()
+                }
+            }
         }
     }
 
@@ -614,7 +605,7 @@ if ($expectations.Count -gt 0) {
     }
     else {
         # Rewrite with remaining expectations
-        $updatedFile = @{ expected = $remainingExpectations } | ConvertTo-Json -Depth 10
+        $updatedFile = ConvertTo-DeterministicJson -InputObject @{ expected = $remainingExpectations }
         Set-Content -Path $expectedChangesPath -Value $updatedFile -Encoding utf8NoBOM -Force
         Write-Host "  Updated expected-changes.json with $($remainingExpectations.Count) remaining"
     }
@@ -658,7 +649,7 @@ if ($env:REPORT_ARTIFACT -eq 'true') {
     }
     else {
         Write-StepLog "Writing HTML scan report"
-        $reportPath    = Join-Path $stagingDir "scan-report.html"
+        $reportPath = Join-Path $stagingDir "scan-report.html"
         $reportTenantId = try { (Get-AzContext).Tenant.Id } catch { $null }
         $reportCommitSha = if ($publishResult -and $publishResult.committed) { $publishResult.commitSha } else { $null }
         Export-ScanReport `
@@ -679,9 +670,9 @@ if ($changesBySeverity.Total -gt 0) {
 
     # ADO passes unresolved macro references as literal $(VAR_NAME) strings when a
     # variable is absent from both YAML and UI. Treat those as not set.
-    $notifEmail    = if ($env:NOTIFICATION_EMAIL       -notmatch '^\$\(') { $env:NOTIFICATION_EMAIL       } else { $null }
-    $notifFrom     = if ($env:NOTIFICATION_MAIL_FROM   -notmatch '^\$\(') { $env:NOTIFICATION_MAIL_FROM   } else { $null }
-    $notifWebhook  = if ($env:NOTIFICATION_WEBHOOK_URL -notmatch '^\$\(') { $env:NOTIFICATION_WEBHOOK_URL } else { $null }
+    $notifEmail = if ($env:NOTIFICATION_EMAIL -notmatch '^\$\(') { $env:NOTIFICATION_EMAIL } else { $null }
+    $notifFrom = if ($env:NOTIFICATION_MAIL_FROM -notmatch '^\$\(') { $env:NOTIFICATION_MAIL_FROM } else { $null }
+    $notifWebhook = if ($env:NOTIFICATION_WEBHOOK_URL -notmatch '^\$\(') { $env:NOTIFICATION_WEBHOOK_URL } else { $null }
 
     if ($notifEmail -and $notifFrom) {
         Write-StepLog "Sending email notification"
@@ -713,8 +704,8 @@ else {
 if ($scanErrors.Count -gt 0) {
     Write-StepLog "Sending scan-error notification ($($scanErrors.Count) component(s) failed)"
 
-    $notifEmail   = if ($env:NOTIFICATION_EMAIL       -and $env:NOTIFICATION_EMAIL       -notmatch '^\$\(') { $env:NOTIFICATION_EMAIL       } else { $null }
-    $notifFrom    = if ($env:NOTIFICATION_MAIL_FROM   -and $env:NOTIFICATION_MAIL_FROM   -notmatch '^\$\(') { $env:NOTIFICATION_MAIL_FROM   } else { $null }
+    $notifEmail = if ($env:NOTIFICATION_EMAIL -and $env:NOTIFICATION_EMAIL -notmatch '^\$\(') { $env:NOTIFICATION_EMAIL } else { $null }
+    $notifFrom = if ($env:NOTIFICATION_MAIL_FROM -and $env:NOTIFICATION_MAIL_FROM -notmatch '^\$\(') { $env:NOTIFICATION_MAIL_FROM } else { $null }
     $notifWebhook = if ($env:NOTIFICATION_WEBHOOK_URL -and $env:NOTIFICATION_WEBHOOK_URL -notmatch '^\$\(') { $env:NOTIFICATION_WEBHOOK_URL } else { $null }
 
     Send-ScanErrorNotification `

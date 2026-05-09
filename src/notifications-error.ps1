@@ -32,8 +32,9 @@
 .PARAMETER WebhookUrl
     Full webhook URL. Null/empty skips webhook delivery.
 #>
+
 function Send-ScanErrorNotification {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)] [array]  $ScanErrors,
         [Parameter(Mandatory)] [string] $AccessToken,
@@ -43,11 +44,11 @@ function Send-ScanErrorNotification {
     )
 
     if ($ScanErrors.Count -eq 0) { return }
+    if (-not $PSCmdlet.ShouldProcess('scan-error notification', 'Send')) { return }
 
     $componentList = ($ScanErrors | ForEach-Object { $_.Component }) -join ', '
     Write-Host "  Scan errors in: $componentList"
 
-    # ---- Email ----
     if ($ToAddress -and $FromAddress) {
         $htmlBody = Format-ScanErrorHtml -ScanErrors $ScanErrors
         $s        = if ($ScanErrors.Count -eq 1) { 'component' } else { 'components' }
@@ -74,8 +75,8 @@ function Send-ScanErrorNotification {
         }
 
         try {
-            Invoke-RestMethod -Uri $uri -Method Post -Headers $headers `
-                -Body ($payload | ConvertTo-Json -Depth 10) | Out-Null
+            $sendBody = $payload | ConvertTo-Json -Depth 10
+            Invoke-WithRetry -ScriptBlock { Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body $sendBody }.GetNewClosure() -OperationName "scan-error sendMail to $ToAddress" | Out-Null
             Write-Host "  Scan-error email sent to $ToAddress"
         }
         catch {
@@ -83,7 +84,6 @@ function Send-ScanErrorNotification {
         }
     }
 
-    # ---- Webhook ----
     if ($WebhookUrl) {
         $type = Get-WebhookType -Url $WebhookUrl
 

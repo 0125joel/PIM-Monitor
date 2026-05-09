@@ -1,43 +1,34 @@
 <#
-.SYNOPSIS
-    Git operations for PIM Monitor — commit and push inventory changes.
+    .SYNOPSIS
+        Commits staged inventory changes and pushes them to the remote branch.
 
-.DESCRIPTION
-    Stages inventory/ folder, commits changes with timestamp, and pushes to origin.
-    Only commits if files have actually changed.
-#>
+    .DESCRIPTION
+        Stages inventory/ and expected-changes.json (if present), commits with a timestamped
+        message, and pushes to the current branch. If the push is rejected because another
+        pipeline run pushed concurrently, it fetches the remote branch and rebases before
+        retrying the push. The commit SHA is re-read after rebase because it changes.
 
-<#
-.SYNOPSIS
-    Commits and pushes inventory changes to the repository.
+        Reads the target branch from BUILD_SOURCEBRANCHNAME (ADO) or GITHUB_REF_NAME (GHA),
+        falling back to 'main'.
 
-.DESCRIPTION
-    Stages inventory/ folder and expected-changes.json (if modified/deleted),
-    checks for changes, commits with timestamp message, and pushes to the current branch.
-
-    Returns: @{ committed = $true/false; message = "..."; commitSha = "..." }
-
-.EXAMPLE
-    $result = Publish-InventoryChanges
-    if ($result.committed) { Write-Host "Pushed $($result.commitSha)" }
-#>
+    .EXAMPLE
+        $result = Publish-InventoryChanges
+        if ($result.committed) { Write-Host "Committed: $($result.commitSha)" }
+    #>
 function Publish-InventoryChanges {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param()
+
+    if (-not $PSCmdlet.ShouldProcess('inventory/', 'Commit and push inventory changes')) { return }
 
     $timestamp = Get-Date -AsUTC -Format "yyyy-MM-ddTHH:mm:ssZ"
 
     try {
-        # Configure git (required for commits in pipelines)
-        Write-Host "Configuring git user"
         git config user.name "PIM Monitor" | Out-Null
         git config user.email "pim-monitor@noreply.github.com" | Out-Null
 
-        # Stage inventory changes
-        Write-Host "Staging inventory/ folder"
         git add inventory/ | Out-Null
 
-        # Stage expected-changes.json cleanup (modified or deleted by the scan)
         $expectedChangesPath = Join-Path -Path (Get-Location) -ChildPath "expected-changes.json"
         if (Test-Path $expectedChangesPath) {
             git add expected-changes.json | Out-Null
@@ -46,10 +37,8 @@ function Publish-InventoryChanges {
             git rm --cached --ignore-unmatch expected-changes.json | Out-Null
         }
 
-        # Check if there are changes to commit
         $statusOutput = git diff --cached --quiet
         if ($LASTEXITCODE -eq 0) {
-            # No changes
             Write-Host "No inventory changes detected"
             return @{
                 committed = $false
@@ -58,18 +47,16 @@ function Publish-InventoryChanges {
             }
         }
 
-        # Commit changes
         $commitMessage = "scan: $timestamp"
         Write-Host "Committing: $commitMessage"
         git commit -m $commitMessage | Out-Null
 
-        # Get commit SHA
         $commitSha = git rev-parse HEAD
         if ($LASTEXITCODE -ne 0) {
             throw "Failed to retrieve commit SHA"
         }
 
-        # Determine target branch — ADO uses BUILD_SOURCEBRANCHNAME, GHA uses GITHUB_REF_NAME
+        # ADO sets BUILD_SOURCEBRANCHNAME; GHA sets GITHUB_REF_NAME
         $targetBranch = if ($env:BUILD_SOURCEBRANCHNAME) {
             $env:BUILD_SOURCEBRANCHNAME
         } elseif ($env:GITHUB_REF_NAME) {
@@ -78,7 +65,7 @@ function Publish-InventoryChanges {
             'main'
         }
 
-        # Push to origin — retry once with rebase if remote has moved forward
+        # Retry once with rebase if another pipeline run pushed while this one was scanning
         Write-Host "Pushing to origin/$targetBranch"
         git push origin "HEAD:$targetBranch" 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) {
@@ -94,7 +81,7 @@ function Publish-InventoryChanges {
             }
         }
 
-        # Re-read SHA after potential rebase
+        # Re-read SHA: rebase may have changed it
         $commitSha = git rev-parse HEAD
 
         Write-Host "Changes published successfully"

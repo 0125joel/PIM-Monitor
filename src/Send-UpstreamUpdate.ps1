@@ -1,16 +1,19 @@
 #Requires -Version 7.0
 
+. (Join-Path -Path $PSScriptRoot -ChildPath "helpers.ps1")
+
 Add-Type -AssemblyName System.Web
 
 $latestVersion  = $env:UPSTREAM_LATEST_VERSION
 $currentVersion = $env:UPSTREAM_CURRENT_VERSION
-$repoUrl        = "https://github.com/0125joel/PIM-Monitor"
+$repoUrl        = $env:UPSTREAM_REPO_URL
 $releaseUrl     = "$repoUrl/releases/tag/v$latestVersion"
 
 $releaseNotes = ""
 try {
+    $apiRepoPath = $repoUrl -replace '^https://github\.com/', ''
     $release = Invoke-RestMethod `
-        -Uri "https://api.github.com/repos/0125joel/PIM-Monitor/releases/latest" `
+        -Uri "https://api.github.com/repos/$apiRepoPath/releases/latest" `
         -Headers @{ Accept = "application/vnd.github+json"; "X-GitHub-Api-Version" = "2022-11-28" } `
         -TimeoutSec 10
     $releaseNotes = $release.PSObject.Properties['body']?.Value ?? ""
@@ -96,9 +99,9 @@ $notesHtml<tr><td style="padding:8px 32px;">
     } | ConvertTo-Json -Depth 10
 
     try {
-        Invoke-RestMethod -Uri "https://graph.microsoft.com/v1.0/users/$($env:NOTIFICATION_MAIL_FROM)/sendMail" `
-            -Method Post -Headers @{ Authorization = "Bearer $token" } `
-            -Body $body -ContentType "application/json"
+        $mailUri     = "https://graph.microsoft.com/v1.0/users/$($env:NOTIFICATION_MAIL_FROM)/sendMail"
+        $mailHeaders = @{ Authorization = "Bearer $token"; 'Content-Type' = 'application/json' }
+        Invoke-WithRetry -ScriptBlock { Invoke-RestMethod -Uri $mailUri -Method Post -Headers $mailHeaders -Body $body }.GetNewClosure() -OperationName "sendMail (upstream update)" | Out-Null
         Write-Host "Upstream update email sent"
     } catch {
         Write-Warning "Upstream update email failed: $_"

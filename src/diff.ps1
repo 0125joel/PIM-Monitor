@@ -76,25 +76,13 @@ $script:PropertySeverity = [ordered]@{
     "infoCatalogs"           = "Informational"
 }
 
-$script:DefaultPropertySeverity  = "Medium"   # new/unknown API fields — may require action
-$script:DefaultCategorySeverity  = "Medium"           # unknown assignment category types
+$script:DefaultPropertySeverity  = "Medium"   # unknown API fields default to Medium, not Low — may require action
+$script:DefaultCategorySeverity  = "Medium"   # unknown assignment category types
 
-# Nested field paths to strip from assignment objects before diff and storage.
-# scheduleInfo.startDateTime: Microsoft re-provisions this heartbeat timestamp
-# every ~30 min without any user action — storing it creates spurious commits.
-# Paths use dot-notation; @(@(...)) flattens in PowerShell so we use strings instead.
+# scheduleInfo.startDateTime is re-provisioned by Microsoft every ~30 min without any user action;
+# storing it creates spurious commits on every scan run.
 $script:AssignmentNoisePaths = @('scheduleInfo.startDateTime')
 
-# Core Comparison Functions
-
-<#
-.SYNOPSIS
-    Compares two JSON-serializable objects for equality.
-
-.DESCRIPTION
-    Normalizes both objects to deterministic JSON and compares the strings.
-    Returns $true if identical, $false if different.
-#>
 function Test-ObjectEqual {
     [CmdletBinding()]
     param(
@@ -108,14 +96,6 @@ function Test-ObjectEqual {
     return $leftJson -eq $rightJson
 }
 
-<#
-.SYNOPSIS
-    Checks whether an object exposes a given key/property.
-
-.DESCRIPTION
-    Works for both hashtables (fresh fetch data) and PSCustomObject
-    (data loaded from disk via ConvertFrom-Json). Returns $false for $null.
-#>
 function Test-ObjectHasKey {
     [CmdletBinding()]
     param(
@@ -129,17 +109,6 @@ function Test-ObjectHasKey {
     return $false
 }
 
-<#
-.SYNOPSIS
-    Reads a previous inventory file from disk (current committed state).
-
-.DESCRIPTION
-    Reads the file at the given path if it exists. Returns $null if not found.
-    Used to compare against newly fetched data before overwriting.
-
-.PARAMETER FilePath
-    Absolute path to the inventory file.
-#>
 function Read-PreviousInventoryFile {
     [CmdletBinding()]
     param(
@@ -501,12 +470,14 @@ function Compare-Assignments {
         # Detect removed assignments
         foreach ($key in $oldById.Keys) {
             if (-not $newById.ContainsKey($key)) {
+                $accessLabel = $oldById[$key].PSObject.Properties['accessId']?.Value
+                $typePrefix  = if ($accessLabel) { "$accessLabel " } else { '' }
                 $changes += @{
                     severity    = "Low"
                     category    = $category
                     changeType  = "removed"
                     context     = $Context
-                    description = "$category assignment removed ($Context)"
+                    description = "$category ${typePrefix}assignment removed ($Context)"
                     old         = $oldById[$key]
                     new         = $null
                 }
@@ -532,12 +503,14 @@ function Compare-Assignments {
                     $severity = "High"
                 }
 
+                $accessLabel = $newById[$key].PSObject.Properties['accessId']?.Value
+                $typePrefix  = if ($accessLabel) { "$accessLabel " } else { '' }
                 $changes += @{
                     severity    = $severity
                     category    = $category
                     changeType  = "added"
                     context     = $Context
-                    description = "New $category assignment ($Context)"
+                    description = "New $category ${typePrefix}assignment ($Context)"
                     old         = $null
                     new         = $newById[$key]
                 }
@@ -545,12 +518,14 @@ function Compare-Assignments {
             else {
                 # Both exist — check for changes
                 if (-not (Test-ObjectEqual -Left $oldById[$key] -Right $newById[$key])) {
+                    $accessLabel = $newById[$key].PSObject.Properties['accessId']?.Value
+                    $typePrefix  = if ($accessLabel) { "$accessLabel " } else { '' }
                     $changes += @{
                         severity    = "Medium"
                         category    = $category
                         changeType  = "updated"
                         context     = $Context
-                        description = "$category assignment changed ($Context)"
+                        description = "$category ${typePrefix}assignment changed ($Context)"
                         old         = $oldById[$key]
                         new         = $newById[$key]
                     }
@@ -1066,10 +1041,10 @@ function Test-ChangeIsExpected {
         return $false
     }
 
-    $changeWorkload = if ($Change.workload) { $Change.workload.ToLower() } else { "" }
-    $changeEntity = if ($Change.entity) { $Change.entity.ToLower() } else { "" }
-    $changeFileType = if ($Change.fileType) { $Change.fileType.ToLower() } else { "" }
-    $changeRuleId = if ($Change.ruleId) { $Change.ruleId } else { $null }
+    $changeWorkload  = $Change.PSObject.Properties['workload']?.Value?.ToLower() ?? ""
+    $changeEntity    = $Change.PSObject.Properties['entity']?.Value?.ToLower() ?? ""
+    $changeFileType  = $Change.PSObject.Properties['fileType']?.Value?.ToLower() ?? ""
+    $changeRuleId    = $Change.PSObject.Properties['ruleId']?.Value
 
     foreach ($expectation in $Expectations) {
         if ($expectation.expiresUtc) {
@@ -1131,10 +1106,11 @@ function Group-ChangesBySeverity {
     )
 
     $grouped = @{
-        High          = @($Changes | Where-Object { $_.severity -eq "High" })
-        Medium        = @($Changes | Where-Object { $_.severity -eq "Medium" })
-        Low           = @($Changes | Where-Object { $_.severity -eq "Low" })
-        Informational = @($Changes | Where-Object { $_.severity -notin @("High", "Medium", "Low") })
+        High          = @($Changes | Where-Object { $_.severity -eq "High"   -and $_.PSObject.Properties['fileType']?.Value -ne 'tier-coverage' })
+        Medium        = @($Changes | Where-Object { $_.severity -eq "Medium" -and $_.PSObject.Properties['fileType']?.Value -ne 'tier-coverage' })
+        Low           = @($Changes | Where-Object { $_.severity -eq "Low"    -and $_.PSObject.Properties['fileType']?.Value -ne 'tier-coverage' })
+        Informational = @($Changes | Where-Object { $_.severity -notin @("High", "Medium", "Low") -and $_.PSObject.Properties['fileType']?.Value -ne 'tier-coverage' })
+        Coverage      = @($Changes | Where-Object { $_.PSObject.Properties['fileType']?.Value -eq 'tier-coverage' })
         Total         = $Changes.Count
     }
 

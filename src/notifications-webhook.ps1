@@ -120,7 +120,20 @@ function Build-TeamsPayload {
                             $ov = if ($oh.ContainsKey($k)) { $oh[$k] } else { $null }
                             $nv = if ($nh.ContainsKey($k)) { $nh[$k] } else { $null }
                             if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
-                            $diffLines += "${k}: $(& $fmtValWh $ov) → $(& $fmtValWh $nv)"
+                            if ($ov -is [System.Collections.IDictionary] -and $nv -is [System.Collections.IDictionary]) {
+                                $subShown = 0
+                                foreach ($sk in (@(@($ov.Keys) + @($nv.Keys)) | Sort-Object -Unique)) {
+                                    if ($subShown -ge 8) { break }
+                                    $sov = if ($ov.ContainsKey($sk)) { $ov[$sk] } else { $null }
+                                    $snv = if ($nv.ContainsKey($sk)) { $nv[$sk] } else { $null }
+                                    if ((ConvertTo-DeterministicJson -InputObject $sov) -eq (ConvertTo-DeterministicJson -InputObject $snv)) { continue }
+                                    if (-not ((& $isScalarWh $sov) -and (& $isScalarWh $snv))) { continue }
+                                    $diffLines += "Property: ${k}.${sk}: $(& $fmtValWh $sov) → $(& $fmtValWh $snv)"
+                                    $subShown++
+                                }
+                            } else {
+                                $diffLines += "Property: ${k}: $(& $fmtValWh $ov) → $(& $fmtValWh $nv)"
+                            }
                             $shown++
                         }
                     } catch {}
@@ -158,6 +171,22 @@ function Build-TeamsPayload {
         }
 
         $body += @{ type = 'Container'; items = $severityItems; spacing = 'Medium'; style = $containerStyle[$severity] }
+    }
+
+    # Access model coverage section
+    $covItems = if ($ChangesBySeverity['Coverage']) { @($ChangesBySeverity.Coverage) } else { @() }
+    if ($covItems.Count -gt 0) {
+        $covHeader = @{ type = 'TextBlock'; weight = 'Bolder'; text = "Access Model Coverage ($($covItems.Count))"; spacing = 'Medium' }
+        $covNote   = @{ type = 'TextBlock'; text = 'Roles not in any access model definition. Add to AccessModel/*.json or AccessModel/coverage-exclusions.json to suppress.'; wrap = $true; isSubtle = $true; size = 'Small'; spacing = 'None' }
+        $covBlock  = @{ type = 'Container'; style = 'accent'; spacing = 'Medium'; items = @($covHeader, $covNote) }
+
+        foreach ($change in ($covItems | Sort-Object { $_['context'] } | Select-Object -First 15)) {
+            $covBlock.items += @{ type = 'TextBlock'; text = "• $($change['context'])"; wrap = $true; spacing = 'Small' }
+        }
+        if ($covItems.Count -gt 15) {
+            $covBlock.items += @{ type = 'TextBlock'; text = "... and $($covItems.Count - 15) more"; isSubtle = $true; spacing = 'Small' }
+        }
+        $body += $covBlock
     }
 
     $actions = @()
@@ -260,7 +289,20 @@ function Build-SlackPayload {
                             $ov = if ($oh.ContainsKey($k)) { $oh[$k] } else { $null }
                             $nv = if ($nh.ContainsKey($k)) { $nh[$k] } else { $null }
                             if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
-                            $diffLines += "  ``${k}: $(& $fmtValWh $ov) → $(& $fmtValWh $nv)``"
+                            if ($ov -is [System.Collections.IDictionary] -and $nv -is [System.Collections.IDictionary]) {
+                                $subShown = 0
+                                foreach ($sk in (@(@($ov.Keys) + @($nv.Keys)) | Sort-Object -Unique)) {
+                                    if ($subShown -ge 8) { break }
+                                    $sov = if ($ov.ContainsKey($sk)) { $ov[$sk] } else { $null }
+                                    $snv = if ($nv.ContainsKey($sk)) { $nv[$sk] } else { $null }
+                                    if ((ConvertTo-DeterministicJson -InputObject $sov) -eq (ConvertTo-DeterministicJson -InputObject $snv)) { continue }
+                                    if (-not ((& $isScalarWh $sov) -and (& $isScalarWh $snv))) { continue }
+                                    $diffLines += "  ``Property: ${k}.${sk}: $(& $fmtValWh $sov) → $(& $fmtValWh $snv)``"
+                                    $subShown++
+                                }
+                            } else {
+                                $diffLines += "  ``Property: ${k}: $(& $fmtValWh $ov) → $(& $fmtValWh $nv)``"
+                            }
                             $shown++
                         }
                     } catch {}
@@ -293,6 +335,16 @@ function Build-SlackPayload {
         if ($bucket.Count -gt 20) { $text += "_... and $($bucket.Count - 20) more_" }
 
         $blocks += @{ type = 'section'; text = @{ type = 'mrkdwn'; text = $text } }
+    }
+
+    $covItems = if ($ChangesBySeverity['Coverage']) { @($ChangesBySeverity.Coverage) } else { @() }
+    if ($covItems.Count -gt 0) {
+        $covText = "*Access Model Coverage ($($covItems.Count))*`n_Roles not in any access model definition — add to AccessModel/*.json or AccessModel/coverage-exclusions.json:_`n"
+        foreach ($change in ($covItems | Sort-Object { $_['context'] } | Select-Object -First 20)) {
+            $covText += "• $($change['context'])`n"
+        }
+        if ($covItems.Count -gt 20) { $covText += "_... and $($covItems.Count - 20) more_" }
+        $blocks += @{ type = 'section'; text = @{ type = 'mrkdwn'; text = $covText } }
     }
 
     if ($CommitSha) {
@@ -373,7 +425,20 @@ function Build-DiscordPayload {
                             $ov = if ($oh.ContainsKey($k)) { $oh[$k] } else { $null }
                             $nv = if ($nh.ContainsKey($k)) { $nh[$k] } else { $null }
                             if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
-                            $diffLines += "  ${k}: $(& $fmtValWh $ov) → $(& $fmtValWh $nv)"
+                            if ($ov -is [System.Collections.IDictionary] -and $nv -is [System.Collections.IDictionary]) {
+                                $subShown = 0
+                                foreach ($sk in (@(@($ov.Keys) + @($nv.Keys)) | Sort-Object -Unique)) {
+                                    if ($subShown -ge 8) { break }
+                                    $sov = if ($ov.ContainsKey($sk)) { $ov[$sk] } else { $null }
+                                    $snv = if ($nv.ContainsKey($sk)) { $nv[$sk] } else { $null }
+                                    if ((ConvertTo-DeterministicJson -InputObject $sov) -eq (ConvertTo-DeterministicJson -InputObject $snv)) { continue }
+                                    if (-not ((& $isScalarWh $sov) -and (& $isScalarWh $snv))) { continue }
+                                    $diffLines += "  Property: ${k}.${sk}: $(& $fmtValWh $sov) → $(& $fmtValWh $snv)"
+                                    $subShown++
+                                }
+                            } else {
+                                $diffLines += "  Property: ${k}: $(& $fmtValWh $ov) → $(& $fmtValWh $nv)"
+                            }
                             $shown++
                         }
                     } catch {}
@@ -408,6 +473,17 @@ function Build-DiscordPayload {
         if ($value.Length -gt 1020) { $value = $value.Substring(0, 1020) + '...' }
 
         $fields += @{ name = "$severity ($($bucket.Count))"; value = $value; inline = $false }
+    }
+
+    $covItems = if ($ChangesBySeverity['Coverage']) { @($ChangesBySeverity.Coverage) } else { @() }
+    if ($covItems.Count -gt 0) {
+        $covValue = "Roles not in any access model definition:`n"
+        foreach ($change in ($covItems | Sort-Object { $_['context'] } | Select-Object -First 10)) {
+            $covValue += "• $($change['context'])`n"
+        }
+        if ($covItems.Count -gt 10) { $covValue += "_... +$($covItems.Count - 10) more_" }
+        if ($covValue.Length -gt 1020) { $covValue = $covValue.Substring(0, 1020) + '...' }
+        $fields += @{ name = "Access Model Coverage ($($covItems.Count))"; value = $covValue; inline = $false }
     }
 
     $embed = @{
@@ -450,7 +526,7 @@ function Build-DiscordPayload {
     Optional commit SHA to include as a diff link in the payload.
 #>
 function Send-WebhookNotification {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)] $ChangesBySeverity,
         [Parameter(Mandatory)] [string] $WebhookUrl,
@@ -464,6 +540,9 @@ function Send-WebhookNotification {
         if ($script:SeverityRank[$sev] -ge $script:SeverityRank[$MinSeverity]) {
             $relevantCount += $ChangesBySeverity.$sev.Count
         }
+    }
+    if ($ChangesBySeverity['Coverage'] -and $script:SeverityRank['Medium'] -ge $script:SeverityRank[$MinSeverity]) {
+        $relevantCount += $ChangesBySeverity.Coverage.Count
     }
     if ($relevantCount -eq 0) {
         Write-Host "  No changes at or above $MinSeverity severity — skipping webhook"
@@ -488,7 +567,12 @@ function Send-WebhookNotification {
                     } }
     }
 
+    if (-not $PSCmdlet.ShouldProcess($WebhookUrl, 'Send webhook notification')) { return }
+
     try {
+        # ConvertTo-Json here serializes the webhook payload body — not an inventory file.
+        # Key ordering is intentionally left non-deterministic; Teams/Slack/Discord card
+        # schemas depend on insertion order for array rendering.
         Invoke-RestMethod -Uri $WebhookUrl -Method Post `
             -ContentType 'application/json' `
             -Body ($payload | ConvertTo-Json -Depth 20) | Out-Null

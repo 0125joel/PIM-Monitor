@@ -85,12 +85,120 @@ function Format-ScanReportHtml {
         "<div class=`"diff-line $cls`">${ke}: ${ve}</div>"
     }
 
+    $renderPropertyBlock = {
+        param([string]$key, $oldVal, $newVal, [string]$oldLabel = 'actual', [string]$newLabel = 'expected')
+
+        $isComplexVal = { param($v) -not ($null -eq $v -or $v -is [string] -or $v -is [bool] -or $v -is [int] -or $v -is [long] -or $v -is [double]) }
+
+        if ($oldVal -is [System.Collections.IDictionary] -and $newVal -is [System.Collections.IDictionary]) {
+            $blocks = @()
+            foreach ($sk in (@(@($oldVal.Keys) + @($newVal.Keys)) | Sort-Object -Unique)) {
+                $sov = if ($oldVal.ContainsKey($sk)) { $oldVal[$sk] } else { $null }
+                $snv = if ($newVal.ContainsKey($sk)) { $newVal[$sk] } else { $null }
+                if ((ConvertTo-DeterministicJson -InputObject $sov) -eq (ConvertTo-DeterministicJson -InputObject $snv)) { continue }
+                if ((& $isComplexVal $sov) -or (& $isComplexVal $snv)) { continue }
+                $flatKey = [System.Web.HttpUtility]::HtmlEncode("$key.$sk")
+                $sove    = [System.Web.HttpUtility]::HtmlEncode((& $fmtVal $sov))
+                $snve    = [System.Web.HttpUtility]::HtmlEncode((& $fmtVal $snv))
+                $blocks += "<div class=`"diff-prop`">Property: $flatKey</div>"
+                $blocks += "<div class=`"diff-line del`">${oldLabel}: $sove</div>"
+                $blocks += "<div class=`"diff-line add`">${newLabel}: $snve</div>"
+            }
+            if ($blocks.Count -gt 0) {
+                $blocks -join ''
+                return
+            }
+        }
+
+        $ke  = [System.Web.HttpUtility]::HtmlEncode($key)
+        $ove = [System.Web.HttpUtility]::HtmlEncode((& $fmtVal $oldVal))
+        $nve = [System.Web.HttpUtility]::HtmlEncode((& $fmtVal $newVal))
+        "<div class=`"diff-prop`">Property: $ke</div>" +
+        "<div class=`"diff-line del`">${oldLabel}: $ove</div>" +
+        "<div class=`"diff-line add`">${newLabel}: $nve</div>"
+    }
+
     $diffIgnore = [System.Collections.Generic.HashSet[string]]::new(
         $script:DiffIgnoreProperties,
         [System.StringComparer]::OrdinalIgnoreCase
     )
 
-    # Build change sections
+    # Shared helpers
+    $isScalar = { param($v) $v -is [string] -or $v -is [bool] -or $v -is [int] -or $v -is [long] -or $v -is [double] }
+
+    # Renders a single change entry as a <details> element.
+    # $oldLabel / $newLabel are passed explicitly so each rendering pass controls labels independently.
+    $renderChangeEntry = {
+        param($change, $cls, [string]$oldLabel, [string]$newLabel)
+
+        $desc = [System.Web.HttpUtility]::HtmlEncode($change.description)
+
+        $entraHtml = ''
+        $roleId  = $change['roleId']
+        $groupId = $change['groupId']
+        if ($roleId) {
+            $safeId = [System.Web.HttpUtility]::HtmlAttributeEncode($roleId)
+            $entraHtml = "<a href=`"https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RoleDetailsMenuBlade/~/Description/roleDefinitionId/$safeId`" class=`"entra-link`" target=`"_blank`" rel=`"noopener`">Entra</a>"
+        } elseif ($groupId) {
+            $safeId = [System.Web.HttpUtility]::HtmlAttributeEncode($groupId)
+            $entraHtml = "<a href=`"https://entra.microsoft.com/#view/Microsoft_AAD_IAM/GroupDetailsMenuBlade/~/Overview/groupId/$safeId`" class=`"entra-link`" target=`"_blank`" rel=`"noopener`">Entra</a>"
+        }
+
+        $changeType = $change['changeType']
+        $addTypes   = @('added', 'created', 'rule_added', 'policy_added', 'new_property', 'non-compliant', 'unclassified')
+        $delTypes   = @('removed', 'deleted', 'rule_removed', 'policy_removed', 'removed_property')
+        $sigilChar  = if ($addTypes -contains $changeType) { '+' } elseif ($delTypes -contains $changeType) { '&#8722;' } else { 'M' }
+        $sigilCls   = if ($addTypes -contains $changeType) { 'add' } elseif ($delTypes -contains $changeType) { 'del' } else { 'mod' }
+        $sigilHtml  = "<span class=`"evt-sig $sigilCls`">$sigilChar</span>"
+
+        $headerHtml = if ($change.context) {
+            $ctxE      = [System.Web.HttpUtility]::HtmlEncode($change.context)
+            $shortDesc = [System.Web.HttpUtility]::HtmlEncode(($change.description -replace '\s*\([^)]*\)\s*$', ''))
+            "<div class=`"al-meta`"><div class=`"al-title`">$ctxE</div><div class=`"al-desc`">$sigilHtml $shortDesc</div></div>"
+        } else {
+            "<div class=`"al-meta`"><div class=`"al-title`">$sigilHtml $desc</div></div>"
+        }
+
+        $diffLines = @()
+        if ($null -ne $change.old -and $null -ne $change.new) {
+            if ((& $isScalar $change.old) -and (& $isScalar $change.new)) {
+                $diffLines += & $renderLine 'del' $oldLabel $change.old
+                $diffLines += & $renderLine 'add' $newLabel $change.new
+            } else {
+                try {
+                    $oh = $change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+                    $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+                    foreach ($k in (@(@($oh.Keys) + @($nh.Keys)) | Sort-Object -Unique)) {
+                        if ($diffIgnore.Contains($k)) { continue }
+                        $ov = if ($oh.ContainsKey($k)) { $oh[$k] } else { $null }
+                        $nv = if ($nh.ContainsKey($k)) { $nh[$k] } else { $null }
+                        if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
+                        $diffLines += & $renderPropertyBlock $k $ov $nv $oldLabel $newLabel
+                    }
+                } catch { Write-Warning "Diff rendering failed for '$($change.description)': $_" }
+            }
+        } elseif ($null -ne $change.new) {
+            try {
+                $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+                foreach ($k in ($nh.Keys | Sort-Object)) {
+                    if ($diffIgnore.Contains($k)) { continue }
+                    $diffLines += & $renderLine 'add' $k $nh[$k]
+                }
+            } catch { Write-Warning "Diff rendering failed for '$($change.description)': $_" }
+        } elseif ($null -ne $change.old) {
+            try {
+                $oh = $change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+                foreach ($k in ($oh.Keys | Sort-Object)) {
+                    if ($diffIgnore.Contains($k)) { continue }
+                    $diffLines += & $renderLine 'del' $k $oh[$k]
+                }
+            } catch { Write-Warning "Diff rendering failed for '$($change.description)': $_" }
+        }
+
+        $diffHtml = if ($diffLines.Count -gt 0) { "<div class=`"diff`">$($diffLines -join '')</div>" } else { '' }
+        "<details class=`"al $cls`"><summary>$headerHtml$entraHtml</summary>$diffHtml</details>"
+    }
+
     $sevClass = @{ High = 'high'; Medium = 'med'; Low = 'low'; Informational = 'inf' }
     $chipMap  = @{
         High          = '<span class="sev chip-h"><span class="br">[</span><span class="gl">!!</span><span class="br">]</span><span class="tx">high</span></span>'
@@ -105,85 +213,12 @@ function Format-ScanReportHtml {
         $bucket = $ChangesBySeverity.$severity
         if (-not $bucket -or $bucket.Count -eq 0) { continue }
         $cls = $sevClass[$severity]
-        $cnt = $bucket.Count
-        $sections += "<div class=`"sec-lbl`">$($chipMap[$severity]) ($cnt)</div>"
-
+        $sections += "<div class=`"sec-lbl`">$($chipMap[$severity]) ($($bucket.Count))</div>"
         foreach ($change in @($bucket | Sort-Object { $_['changeType'] })) {
-            $desc = [System.Web.HttpUtility]::HtmlEncode($change.description)
-
-            # Entra portal link (item 6)
-            $entraHtml = ''
-            $roleId  = $change['roleId']
-            $groupId = $change['groupId']
-            if ($roleId) {
-                $safeId = [System.Web.HttpUtility]::HtmlAttributeEncode($roleId)
-                $entraHtml = "<a href=`"https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RoleDetailsMenuBlade/~/Description/roleDefinitionId/$safeId`" class=`"entra-link`" target=`"_blank`" rel=`"noopener`">Entra</a>"
-            } elseif ($groupId) {
-                $safeId = [System.Web.HttpUtility]::HtmlAttributeEncode($groupId)
-                $entraHtml = "<a href=`"https://entra.microsoft.com/#view/Microsoft_AAD_IAM/GroupDetailsMenuBlade/~/Overview/groupId/$safeId`" class=`"entra-link`" target=`"_blank`" rel=`"noopener`">Entra</a>"
-            }
-
-            # Sigil: git-porcelain style event marker (design 09)
-            $changeType = $change['changeType']
-            $addTypes   = @('added', 'created', 'rule_added', 'policy_added', 'new_property')
-            $delTypes   = @('removed', 'deleted', 'rule_removed', 'policy_removed', 'removed_property')
-            $sigilChar  = if ($addTypes -contains $changeType) { '+' } elseif ($delTypes -contains $changeType) { '&#8722;' } else { 'M' }
-            $sigilCls   = if ($addTypes -contains $changeType) { 'add' } elseif ($delTypes -contains $changeType) { 'del' } else { 'mod' }
-            $sigilHtml  = "<span class=`"evt-sig $sigilCls`">$sigilChar</span>"
-
-            # Two-line header when context is available
-            $headerHtml = if ($change.context) {
-                $ctxE      = [System.Web.HttpUtility]::HtmlEncode($change.context)
-                $shortDesc = [System.Web.HttpUtility]::HtmlEncode(($change.description -replace '\s*\([^)]*\)\s*$', ''))
-                "<div class=`"al-meta`"><div class=`"al-title`">$ctxE</div><div class=`"al-desc`">$sigilHtml $shortDesc</div></div>"
-            } else {
-                "<div class=`"al-meta`"><div class=`"al-title`">$sigilHtml $desc</div></div>"
-            }
-
-            # Diff lines
-            $diffLines = @()
-            $isScalar = { param($v) $v -is [string] -or $v -is [bool] -or $v -is [int] -or $v -is [long] -or $v -is [double] }
-
-            if ($null -ne $change.old -and $null -ne $change.new) {
-                if ((& $isScalar $change.old) -and (& $isScalar $change.new)) {
-                    $diffLines += & $renderLine 'del' 'value' $change.old
-                    $diffLines += & $renderLine 'add' 'value' $change.new
-                } else {
-                    try {
-                        $oh = $change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                        $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                        foreach ($k in (@(@($oh.Keys) + @($nh.Keys)) | Sort-Object -Unique)) {
-                            if ($diffIgnore.Contains($k)) { continue }
-                            $ov = if ($oh.ContainsKey($k)) { $oh[$k] } else { $null }
-                            $nv = if ($nh.ContainsKey($k)) { $nh[$k] } else { $null }
-                            if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
-                            $diffLines += & $renderLine 'del' $k $ov
-                            $diffLines += & $renderLine 'add' $k $nv
-                        }
-                    } catch { Write-Warning "Diff rendering failed for '$($change.description)': $_" }
-                }
-            } elseif ($null -ne $change.new) {
-                try {
-                    $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                    foreach ($k in ($nh.Keys | Sort-Object)) {
-                        if ($diffIgnore.Contains($k)) { continue }
-                        $diffLines += & $renderLine 'add' $k $nh[$k]
-                    }
-                } catch { Write-Warning "Diff rendering failed for '$($change.description)': $_" }
-            } elseif ($null -ne $change.old) {
-                try {
-                    $oh = $change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                    foreach ($k in ($oh.Keys | Sort-Object)) {
-                        if ($diffIgnore.Contains($k)) { continue }
-                        $diffLines += & $renderLine 'del' $k $oh[$k]
-                    }
-                } catch { Write-Warning "Diff rendering failed for '$($change.description)': $_" }
-            }
-
-            $diffHtml = if ($diffLines.Count -gt 0) { "<div class=`"diff`">$($diffLines -join '')</div>" } else { '' }
-            $sections += "<details class=`"al $cls`"><summary>$headerHtml$entraHtml</summary>$diffHtml</details>"
+            $sections += & $renderChangeEntry $change $cls 'was' 'changed to'
         }
     }
+
     $sectionsHtml = $sections -join "`n"
 
     # View diff button
@@ -292,6 +327,8 @@ details.al[open]>summary::after{transform:rotate(90deg)}
 .diff-line{font-size:11px;line-height:1.9;word-break:break-word;overflow-wrap:break-word}
 .diff-line.del{color:#f87171}
 .diff-line.add{color:#4ade80}
+.diff-prop{font-size:11px;color:#a3a3a3;margin-top:8px;line-height:1.6;word-break:break-word}
+.diff-prop:first-child{margin-top:0}
 .btn{height:32px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border-radius:4px;font-family:inherit;font-size:13px;font-weight:500;letter-spacing:-0.005em;border:1px solid transparent;text-decoration:none;white-space:nowrap}
 .btn-secondary{background:transparent;color:#a3a3a3;border-color:#262626}
 .btn-secondary:hover{color:#e5e5e5;border-color:#404040}
