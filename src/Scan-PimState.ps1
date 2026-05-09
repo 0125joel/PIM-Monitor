@@ -102,6 +102,7 @@ $tenantDisplayName = try {
 
 Write-StepLog "Fetching authentication contexts"
 
+$authContextLookup = @{}
 try {
     $authContexts = @(Get-AllGraphItems -Uri $script:GraphEndpoints.AuthenticationContexts -AccessToken $token)
     Write-Host "  Found $($authContexts.Count) authentication contexts"
@@ -122,6 +123,12 @@ try {
         $allChanges += $changes
 
         Save-InventoryFile -InputObject $authContext -FolderPath $folderPath -FileName "definition.json"
+    }
+
+    foreach ($ac in $authContexts) {
+        $acId   = $ac.PSObject.Properties['id']?.Value
+        $acName = $ac.PSObject.Properties['displayName']?.Value
+        if ($acId -and $acName) { $authContextLookup[$acId] = $acName }
     }
 
     # Detect removed authentication contexts
@@ -659,7 +666,8 @@ if ($env:REPORT_ARTIFACT -eq 'true') {
             -OutputPath $reportPath `
             -TenantId $reportTenantId `
             -TenantName $tenantDisplayName `
-            -CommitSha $reportCommitSha
+            -CommitSha $reportCommitSha `
+            -AuthContextLookup $authContextLookup
     }
 }
 
@@ -683,7 +691,8 @@ if ($changesBySeverity.Total -gt 0) {
             -FromAddress $notifFrom `
             -AccessToken $token `
             -MinSeverity $minSeverity `
-            -CommitSha   $commitSha
+            -CommitSha   $commitSha `
+            -AuthContextLookup $authContextLookup
     }
 
     if ($notifWebhook) {

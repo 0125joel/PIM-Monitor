@@ -120,14 +120,20 @@ function Format-ChangeSummaryHtml {
         [Parameter(Mandatory)] $ChangesBySeverity,
         [ValidateSet('High', 'Medium', 'Low', 'Informational')]
         [string] $MinSeverity = 'Medium',
-        [string] $CommitUrl
+        [string] $CommitUrl,
+        [hashtable] $AuthContextLookup = @{}
     )
 
     $fmtVal = {
         param($v)
         if ($null -eq $v) { return '(none)' }
         if ($v -is [bool])   { return $(if ($v) { 'true' } else { 'false' }) }
-        if ($v -is [string]) { return $v }
+        if ($v -is [string]) {
+            if ($AuthContextLookup.Count -gt 0 -and $AuthContextLookup.ContainsKey($v)) {
+                return "$($AuthContextLookup[$v]) ($v)"
+            }
+            return $v
+        }
         if ($v -is [System.Collections.IDictionary]) {
             if ($v.Contains('displayName')) { return [string]$v['displayName'] }
             return $v | ConvertTo-Json -Depth 2 -Compress

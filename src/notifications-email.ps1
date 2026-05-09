@@ -40,7 +40,8 @@ function Send-EmailNotification {
         [Parameter(Mandatory)] [string] $AccessToken,
         [ValidateSet('High', 'Medium', 'Low', 'Informational')]
         [string] $MinSeverity = 'Medium',
-        [string] $CommitSha
+        [string] $CommitSha,
+        [hashtable] $AuthContextLookup = @{}
     )
 
     # Count changes meeting threshold
@@ -57,7 +58,7 @@ function Send-EmailNotification {
     }
 
     $commitUrl = if ($CommitSha) { Get-CommitDiffUrl -CommitSha $CommitSha } else { $null }
-    $htmlBody = Format-ChangeSummaryHtml -ChangesBySeverity $ChangesBySeverity -MinSeverity $MinSeverity -CommitUrl $commitUrl
+    $htmlBody = Format-ChangeSummaryHtml -ChangesBySeverity $ChangesBySeverity -MinSeverity $MinSeverity -CommitUrl $commitUrl -AuthContextLookup $AuthContextLookup
 
     $sevParts = @()
     if ($ChangesBySeverity.High.Count -gt 0)          { $sevParts += "$($ChangesBySeverity.High.Count) High" }

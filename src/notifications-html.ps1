@@ -34,7 +34,8 @@ function Format-ScanReportHtml {
         [string] $TenantId,
         [string] $TenantName,
         [string] $CommitSha,
-        [string] $CommitUrl
+        [string] $CommitUrl,
+        [hashtable] $AuthContextLookup = @{}
     )
 
     $timestamp = Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ'
@@ -57,7 +58,12 @@ function Format-ScanReportHtml {
         param($v)
         if ($null -eq $v) { return '(none)' }
         if ($v -is [bool])   { return $(if ($v) { 'true' } else { 'false' }) }
-        if ($v -is [string]) { return $v }
+        if ($v -is [string]) {
+            if ($AuthContextLookup.Count -gt 0 -and $AuthContextLookup.ContainsKey($v)) {
+                return "$($AuthContextLookup[$v]) ($v)"
+            }
+            return $v
+        }
         if ($v -is [System.Collections.IDictionary]) {
             if ($v.Contains('displayName')) { return [string]$v['displayName'] }
             return $v | ConvertTo-Json -Depth 2 -Compress
@@ -356,7 +362,8 @@ function Export-ScanReport {
         [string] $MinSeverity = 'Low',
         [string] $TenantId,
         [string] $TenantName,
-        [string] $CommitSha
+        [string] $CommitSha,
+        [hashtable] $AuthContextLookup = @{}
     )
 
     $commitUrl = if ($CommitSha) { Get-CommitDiffUrl -CommitSha $CommitSha } else { $null }
@@ -366,7 +373,8 @@ function Export-ScanReport {
         -TenantId $TenantId `
         -TenantName $TenantName `
         -CommitSha $CommitSha `
-        -CommitUrl $commitUrl
+        -CommitUrl $commitUrl `
+        -AuthContextLookup $AuthContextLookup
     Set-Content -Path $OutputPath -Value $html -Encoding UTF8
     Write-Host "  Scan report written to $OutputPath"
 }
