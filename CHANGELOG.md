@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/0125joel/PIM-Monitor/compare/v0.2.1...v0.3.0) (2026-05-09)
+
+
+### Features
+
+* add AuthContextLookup parameter to notification functions for enhanced context mapping ([b0ff2f8](https://github.com/0125joel/PIM-Monitor/commit/b0ff2f8a2922f6936c24eafe7a56caff2aafdcb4))
+
 ## [0.2.1](https://github.com/0125joel/PIM-Monitor/compare/v0.2.0...v0.2.1) (2026-05-01)
 
 
