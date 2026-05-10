@@ -1,7 +1,3 @@
-> [!WARNING]
-> **Work in Progress**: This repository is currently under active development. 
-> Features may be unstable, incomplete, or subject to significant changes without notice.
-
 # PIM Monitor
 
 Continuous monitoring of Microsoft Entra ID Privileged Identity Management (PIM) with a git-based audit trail. Run it as a scheduled Azure DevOps pipeline (or GitHub Actions) and get full change history committed to your repo.
