@@ -5,13 +5,6 @@
 
 ### Features
 
-* promote EAM access model, notification overhaul, and test suite to production ([e5b6c93](https://github.com/0125joel/PIM-Monitor/commit/e5b6c9336fd386a42e58d5275f617a5e7a713cd6))
-
-## [0.4.0](https://github.com/0125joel/PIM-Monitor/compare/v0.3.0...v0.4.0) (2026-06-13)
-
-
-### Features
-
 * add EAM access model with compliance engine, curated role catalog, and per-level severity classification
 * add CA policy compliance check for authentication contexts via authContext field on access model files
 * add NOTIFICATION_WEBHOOK_TYPE support and split webhook notifications into per-channel modules (Teams, Slack, Discord)
@@ -33,6 +26,8 @@
 * keep Policy.Read.All for Conditional Access policy reads (ConditionalAccess app permission is insufficient)
 * update fileType references from tier to access-model across scripts and documentation
 * hide the inactive view and highlight the active tab in the HTML report toggle
+
+(https://github.com/0125joel/PIM-Monitor/commit/e5b6c9336fd386a42e58d5275f617a5e7a713cd6))
 
 ## [0.3.0](https://github.com/0125joel/PIM-Monitor/compare/v0.2.1...v0.3.0) (2026-05-09)
 
