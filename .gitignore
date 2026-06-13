@@ -23,7 +23,8 @@ docs-site/package-lock.json
 docs/Design/
 
 # Live scan state (tenant-specific; never commit to the public repo)
-inventory/
+# Anchored to repo root so it does not match tests/fixtures/inventory/.
+/inventory/
 
 # Preview-script outputs (regeneratable via tests/scripts/Preview-*.ps1)
 tests/output/
