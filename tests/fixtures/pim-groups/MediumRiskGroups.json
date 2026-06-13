@@ -1,0 +1,26 @@
+{
+  "name": "Security Operations Groups",
+  "description": "Groups for SOC and security operations teams.",
+  "severity": "Medium",
+  "groups": [
+    {
+      "id": "82ddb955-h1bf-50d9-9667-54581cc288d5",
+      "displayName": "SOC-Analysts-Members"
+    },
+    {
+      "id": "93eec066-i2cg-51ea-0778-65692dd399e6",
+      "displayName": "IR-Responders-Members"
+    }
+  ],
+  "expectedConfig": {
+    "member": {
+      "requireMFA": true,
+      "requireJustification": true,
+      "maxActivationDuration": "PT4H"
+    },
+    "owner": {
+      "requireMFA": true,
+      "requireJustification": true
+    }
+  }
+}

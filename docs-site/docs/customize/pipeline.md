@@ -1,5 +1,6 @@
 ---
 sidebar_position: 4
+description: Configure the PIM Monitor pipeline schedule, trigger conditions, and pipeline variables in Azure DevOps and GitHub Actions.
 ---
 
 # Pipeline Configuration
@@ -11,7 +12,7 @@ Configure scan schedule, commit behavior, inventory storage, module versions, an
 | Setting | File | Default | Purpose |
 |---------|------|---------|---------|
 | Schedule (cron) | `monitor-pipeline.yml` / `.github/workflows/scan.yml` | `0 */6 * * *` | How often scan runs |
-| Upstream update check | `NOTIFY_UPSTREAM_UPDATE` | Enabled | Notify when GitHub has new commits |
+| Upstream update check | `NOTIFY_UPSTREAM_UPDATE` | Enabled | Notify when a newer release is published upstream |
 | Inventory path | `src/Scan-PimState.ps1` | `./inventory/` | Where state is stored |
 | Commit message | `monitor-pipeline.yml` / `.github/workflows/scan.yml` | ISO 8601 timestamp | Git commit format |
 | Git author | `src/git.ps1` | "PIM Monitor" | Author name |
@@ -61,26 +62,21 @@ on:
 
 ### Check for upstream updates on GitHub
 
-At the start of each run, the Azure DevOps pipeline checks whether the public GitHub repository has commits that are not yet in your local copy. If it does, a warning is written to the pipeline log. If notification channels are configured, a notification is also sent via webhook and/or email.
+At the start of each run, the pipeline compares the `VERSION` file in your copy against the latest published release of the upstream repository. If a newer release exists, a warning is written to the run log. If notification channels are configured, a notification is also sent via webhook and/or email.
 
-This check runs before the scan so the warning appears early in the run log. The notification is sent at the very end of the pipeline (after artifact publishing), using the same channels configured for PIM change notifications.
+This check runs before the scan so the warning appears early in the run log. The notification is sent at the very end of the run (after artifact publishing), using the same channels configured for PIM change notifications.
 
-**What it checks**: commits on `main` in `https://github.com/0125joel/PIM-Monitor` that are not present in your AzDO repo's current HEAD.
+**What it checks**: the latest release tag of `https://github.com/0125joel/PIM-Monitor` against your local `VERSION` file, compared with semantic version ordering.
 
-**Pipeline log output** (when updates are available):
+**Run log output** (when an update is available):
 ```
-##[warning] PIM Monitor: 3 upstream commit(s) available on GitHub. Review and update your local copy.
+PIM Monitor 0.4.0 is available (running 0.3.0). See https://github.com/0125joel/PIM-Monitor/releases/tag/v0.4.0
 ```
 
-**Disabling the notification**: set `NOTIFY_UPSTREAM_UPDATE` to `false` in your pipeline variables:
-
-1. **Pipelines** → **PIM Monitor** → **Edit** → **Variables**
-2. Add: `NOTIFY_UPSTREAM_UPDATE` = `false`
-
-The upstream check step itself still runs and logs to the pipeline; only the webhook/email notification is suppressed.
+**Disabling the notification**: set `NOTIFY_UPSTREAM_UPDATE` to `false` in your pipeline variables (Azure DevOps) or repository variables (GitHub Actions). The check step itself still runs and logs; only the webhook/email notification is suppressed.
 
 :::note
-This feature applies to the Azure DevOps pipeline only. GitHub Actions users run directly from the GitHub repository and always have the latest version.
+This runs on both Azure DevOps and GitHub Actions. Both run from a checked-out copy of the repo and can drift behind upstream releases, so both perform the version check.
 :::
 
 ### Allow manual triggers
@@ -171,44 +167,6 @@ git add security/pim-inventory/ expected-changes.json 2>/dev/null || true
 git add security/pim-inventory/ expected-changes.json
 ```
 
-## Module & Dependencies
-
-### Pin Microsoft.Graph module version
-
-The PowerShell pipeline uses `Microsoft.Graph` for Azure AD queries. You can pin a specific version.
-
-**Current default**: `2.35.1`
-
-Edit in `monitor-pipeline.yml` (Azure DevOps, line ~14) or `.github/workflows/scan.yml` (GitHub Actions, line ~17):
-
-```yaml
-variables:
-  MSGRAPH_VERSION: "2.35.1"
-```
-
-Change to:
-```yaml
-variables:
-  MSGRAPH_VERSION: "2.36.0"
-```
-
-**When to change**:
-- New Graph API features required
-- Critical security patch released
-- Compatibility issue with current version
-- Microsoft deprecates the version
-
-**What happens**:
-- Pipeline cache key includes version
-- Changing version automatically invalidates cache
-- Module is re-downloaded on next run
-- Previous version cache is kept for 7 days
-
-**How to check latest**:
-```bash
-Find-Module Microsoft.Graph | Select-Object Version
-```
-
 ## Reporting & Artifacts
 
 ### Enable HTML scan report artifact
@@ -245,7 +203,7 @@ Set `EXPIRING_WINDOW_DAYS` in your pipeline variables to control early warning f
 - `14` = 2 weeks (default)
 - `30` = 1 month
 
-Assignments expiring within this window are flagged as `Informational` severity changes.
+Assignments expiring within this window are flagged as `Medium` severity changes.
 
 See [Expiring Assignments](./expiring-assignments.md) for details.
 
@@ -293,13 +251,6 @@ Then configure two pipelines in Azure DevOps UI pointing to different files.
 - Are workflows enabled? (GitHub Actions)
 - Check pipeline run history for errors
 - Verify cron syntax (test at https://crontab.guru/)
-
-### Module cache not working
-
-**Check**:
-- Did you change `MSGRAPH_VERSION`? Cache is invalidated on version change
-- Is cache size exceeded? Pipelines have cache limits
-- Try manually clearing cache and re-running
 
 ### Inventory not committing
 

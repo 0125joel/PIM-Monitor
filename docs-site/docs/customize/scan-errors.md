@@ -5,7 +5,7 @@ description: Scan error notifications for PIM Monitor. Configure partial-failure
 
 # Scan Error Notifications
 
-Handle and notify when scan components fail gracefully.
+When a component fails, the rest of the scan continues. You get a separate notification naming exactly what broke, and the pipeline exits clean.
 
 ## What Are Scan Errors?
 
@@ -17,7 +17,7 @@ When PIM Monitor scans your tenant, it fetches data from multiple sources:
 - Activation Events (audit log)
 - Expiring Assignments (detection)
 
-Normally, if any resource fails, the rest of the pipeline continues. **Scan error notifications** let failed components trigger a **separate notification**, allowing the pipeline to succeed while reporting exactly what went wrong.
+Normally, if any resource fails, the rest of the pipeline continues. Scan error notifications let failed components trigger a separate notification, so the pipeline can succeed while still reporting exactly what went wrong.
 
 ### Example Scenario
 
@@ -41,7 +41,7 @@ Scan errors are reported at the finest possible level:
 | **Activation Events** | Whole workload | `Activation Events` |
 | **Expiring Assignments** | Whole workload | `Expiring Assignments` |
 
-Directory Roles and PIM Groups use per-resource granularity because they are the highest-value workloads — a single failing role or group should not prevent the scan from processing and reporting on all others.
+Directory Roles and PIM Groups use per-resource granularity because they are the highest-value workloads. A single failing role or group should not prevent the scan from processing and reporting on all others.
 
 ## When Scan Errors Occur
 
@@ -57,7 +57,7 @@ Scan errors are triggered by non-fatal failures. All Graph API calls use exponen
 | **Expiring Assignments** | Malformed assignment date, missing required fields |
 
 **NOT scan errors** (still cause pipeline failure):
-- Token acquisition failure — impossible to proceed without auth
+- Token acquisition failure, impossible to proceed without auth
 - Unrecoverable network issues
 
 ## How Scan Error Notifications Work
@@ -74,7 +74,7 @@ Scan errors are triggered by non-fatal failures. All Graph API calls use exponen
        @{ definition = $role; ...; error = $null }
    }
    catch {
-       Write-Warning "Failed to fetch data for role $roleDisplayName — $_"
+       Write-Warning "Failed to fetch data for role $roleDisplayName : $_"
        @{ definition = $role; slug = $slugName; error = $_.ToString() }
    }
    
@@ -100,8 +100,8 @@ Scan errors are triggered by non-fatal failures. All Graph API calls use exponen
 
 3. **After all components complete**
    - If `$scanErrors.Count -gt 0`, scan error notification is sent
-   - Notification is **separate** from regular change notifications
-   - Pipeline exits with code **0** (success)
+   - Notification is separate from regular change notifications
+   - Pipeline exits with code 0 (success)
 
 4. **Partial inventory is committed**
    - Successfully fetched data from other roles/groups/workloads is committed
@@ -125,7 +125,7 @@ HTML body:
 ```
 [pim/monitor] scan errors
 ━━━━━━━━━━━━━━━━━━━━━━━━━
-2 component(s) failed — partial scan data may be incomplete.
+2 component(s) failed. Partial scan data may be incomplete.
 2026-04-27T18:42:15Z
 
 ▶ Directory Role: Global Administrator
@@ -145,7 +145,7 @@ HTML body:
 #### Slack Message
 
 - Header: `[PIM Monitor] Scan completed with errors`
-- Body: ⚠️ icon, count, timestamp
+- Body: warning icon, count, timestamp
 - Divider
 - Each component as a section with bold name and monospace error
 - Links to workflow run (if available)
@@ -250,7 +250,7 @@ if ($WebhookUrl -match "my-custom-domain\.com") {
 ### Partial Inventory Updates
 
 When a component fails:
-- Successfully fetched data from **other components** is still committed
+- Successfully fetched data from other components is still committed
 - The failed component's folder may be outdated or partially populated
 - Git history shows what was committed, when, and which components succeeded
 
@@ -258,7 +258,7 @@ When a component fails:
 
 ### Error Message Truncation
 
-Error messages in notifications are truncated to **~200 characters** to keep payloads reasonable:
+Error messages in notifications are truncated to ~200 characters to keep payloads reasonable:
 
 ```
 "The operation timed out. No response was received from the remote server..."
@@ -272,7 +272,7 @@ Full error messages are always available in:
 
 ### Retry Behavior
 
-All Graph API calls use **exponential backoff with jitter** (up to 6 attempts, capped at 32 seconds per wait, respecting `Retry-After` headers). A scan error is only triggered when all retries are exhausted.
+All Graph API calls use exponential backoff with jitter (up to 6 attempts, capped at 32 seconds per wait, respecting `Retry-After` headers). A scan error is only triggered when all retries are exhausted.
 
 Scan error notifications do NOT trigger automatic retries beyond that. If a resource still fails:
 - The notification alerts you to the issue
@@ -281,8 +281,8 @@ Scan error notifications do NOT trigger automatic retries beyond that. If a reso
 
 ### Scan Success Despite Errors
 
-The pipeline **succeeds** (exit code 0) even when scan errors occur. This is intentional:
-- Partial data is valuable — you want to see what succeeded
+The pipeline succeeds (exit code 0) even when scan errors occur. This is intentional:
+- Partial data is valuable: you want to see what succeeded
 - Manual intervention is not triggered (no on-call page)
 - You can review the scan error notification at your convenience
 
@@ -293,7 +293,7 @@ The pipeline **succeeds** (exit code 0) even when scan errors occur. This is int
 **Cause**: Graph API endpoint too slow, large response
 
 **Solutions**:
-1. Retry automatically — the next scheduled scan may succeed
+1. Retry automatically: the next scheduled scan may succeed
 2. Run scan manually at off-peak hours
 3. Check Azure tenant health dashboard for API issues
 4. If persistent, contact Microsoft support
@@ -322,7 +322,7 @@ The pipeline **succeeds** (exit code 0) even when scan errors occur. This is int
 **Cause**: Graph API throttling that persisted beyond all retry attempts (typically requires sustained rate limiting)
 
 **Solutions**:
-1. Transient throttling is handled automatically via retry backoff — check if it resolved on the next run
+1. Transient throttling is handled automatically via retry backoff: check if it resolved on the next run
 2. Reduce scanning frequency if you have many roles/groups
 3. Contact Microsoft if throttling is excessive (>6 consecutive 429 responses)
 
@@ -336,7 +336,7 @@ The pipeline **succeeds** (exit code 0) even when scan errors occur. This is int
 
 **GitHub Actions**:
 1. **Actions** → **PIM Change Scan** → **[latest run]**
-2. Expand **scan** job, search for "Scan errors in:"
+2. Expand the `scan` job, search for "Scan errors in:"
 
 ### View in Notifications
 
@@ -364,7 +364,7 @@ if ($scanErrors | Where-Object { $_.Component -like "Directory Role:*" }) {
 
 ## Related Pages
 
-- [Environment Variables](./environment-variables.md) — NOTIFICATION_* variables
-- [Email Notifications](./email-notifications.md) — Email configuration
-- [Webhook Channels](./webhook-channels.md) — Teams, Slack, Discord setup
-- [Pipeline Configuration](./pipeline.md) — Retry configuration
+- [Environment Variables](./environment-variables.md): NOTIFICATION_* variables
+- [Email Notifications](./email-notifications.md): email configuration
+- [Webhook Channels](./webhook-channels.md): Teams, Slack, Discord setup
+- [Pipeline Configuration](./pipeline.md): retry configuration

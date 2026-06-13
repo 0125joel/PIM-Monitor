@@ -37,7 +37,7 @@ De regel: gebruik de minst geprivilegieerde, meest stabiele versie die de vereis
 | `GET /groups/{id}` | v1.0 | Groepseigenschappen |
 | `GET /identityGovernance/privilegedAccess/group/eligibilityScheduleInstances?$filter=groupId eq '{id}'` | v1.0 | PIM-groep eligible assignments |
 | `GET /identityGovernance/privilegedAccess/group/assignmentScheduleInstances?$filter=groupId eq '{id}'` | v1.0 | PIM-groep actieve/permanente assignments |
-| `GET /identityGovernance/privilegedAccess/group/resources` | **beta** | PIM-groepsdiscovery — **gedeprecieerd 28 okt 2026** |
+| `GET /identityGovernance/privilegedAccess/group/resources` | **beta** | PIM-groepsdiscovery — beta, niet gedocumenteerd voor discovery, geen einddatum (afgevangen) |
 | `GET /identity/conditionalAccess/authenticationContextClassReferences` | v1.0 | Opzoektabel authenticatiecontexten |
 | `GET /directory/administrativeUnits` | v1.0 | Opzoektabel beheereenheden |
 | `GET /auditLogs/directoryAudits?$filter=loggedByService eq 'PIM'...` | v1.0 | PIM-activatieevenementen |
@@ -122,12 +122,9 @@ Microsoft Graph throttlet aanvragen bij te hoge belasting. De retrylogica binnen
 
 ### `GET /beta/identityGovernance/privilegedAccess/group/resources`
 
-**Status:** Gedeprecieerd. Microsoft stopt data retourneren op **28 oktober 2026**.
+**Status:** Beta, niet gedocumenteerd als discovery-surface. **Geen gepubliceerde einddatum.** De vaak genoemde deadline "28 oktober 2026" geldt voor PIM iteratie 2 (`/beta/privilegedAccess/aadRoles` + `/azureResources`), die dit project niet gebruikt.
 
-Huidig gebruik: ontdekken welke groepen PIM-onboarded zijn. Vervangende aanpak:
-1. `GET /identityGovernance/privilegedAccess/group/eligibilityScheduleInstances` (zonder filter).
-2. `GET /identityGovernance/privilegedAccess/group/assignmentScheduleInstances` (zonder filter).
-3. Unieke `groupId`-waarden uit beide resultatensets verzamelen.
+Huidig gebruik: ontdekken welke groepen PIM-onboarded zijn. Er is **geen** tenant-brede vervanging: `eligibilityScheduleInstances`, `assignmentScheduleInstances` en `roleManagementPolicyAssignments` vereisen allemaal een `groupId`/`scopeId`-filter en kunnen groepen niet enumereren. Een lege/gewijzigde respons wordt afgevangen door `Test-SafeToArchive` om massale false-archivering te voorkomen.
 
 ### `resourceScopes` op roldefinities
 

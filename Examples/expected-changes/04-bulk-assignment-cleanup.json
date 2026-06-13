@@ -1,0 +1,25 @@
+{
+  "expected": [
+    {
+      "workload": "directory-roles",
+      "entity": "helpdesk-administrator",
+      "fileType": "assignments",
+      "reason": "Org-wide role cleanup — removing 5 contractors whose assignments are being revoked",
+      "expiresUtc": "2026-05-10T20:00:00Z"
+    },
+    {
+      "workload": "directory-roles",
+      "entity": "password-administrator",
+      "fileType": "assignments",
+      "reason": "Org-wide role cleanup — removing 3 contractors whose assignments are being revoked",
+      "expiresUtc": "2026-05-10T20:00:00Z"
+    },
+    {
+      "workload": "directory-roles",
+      "entity": "user-administrator",
+      "fileType": "assignments",
+      "reason": "Org-wide role cleanup — removing 8 contractors whose assignments are being revoked",
+      "expiresUtc": "2026-05-10T20:00:00Z"
+    }
+  ]
+}

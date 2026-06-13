@@ -1,38 +1,3 @@
-<#
-.SYNOPSIS
-    Scan error notification delivery for PIM Monitor.
-
-.DESCRIPTION
-    Sends notifications when scan components fail.
-    Requires dot-sourcing notifications-email.ps1 and notifications-webhook.ps1 first.
-#>
-
-<#
-.SYNOPSIS
-    Sends a scan-error notification listing which components failed.
-
-.DESCRIPTION
-    Called when one or more scan components caught a non-fatal exception.
-    Uses the same NOTIFICATION_EMAIL, NOTIFICATION_MAIL_FROM, and
-    NOTIFICATION_WEBHOOK_URL env vars as Send-EmailNotification /
-    Send-WebhookNotification, but delivers an entirely separate payload.
-
-.PARAMETER ScanErrors
-    Array of @{Component = string; Error = string} hashtables.
-
-.PARAMETER AccessToken
-    Graph API bearer token.
-
-.PARAMETER ToAddress
-    Recipient address. Null/empty skips email delivery.
-
-.PARAMETER FromAddress
-    Sender address. Null/empty skips email delivery.
-
-.PARAMETER WebhookUrl
-    Full webhook URL. Null/empty skips webhook delivery.
-#>
-
 function Send-ScanErrorNotification {
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -50,7 +15,7 @@ function Send-ScanErrorNotification {
     Write-Host "  Scan errors in: $componentList"
 
     if ($ToAddress -and $FromAddress) {
-        $htmlBody = Format-ScanErrorHtml -ScanErrors $ScanErrors
+        $htmlBody = Build-ScanErrorEmailHtml -ScanErrors $ScanErrors
         $s        = if ($ScanErrors.Count -eq 1) { 'component' } else { 'components' }
         $subject  = "[PIM Monitor] Scan completed with errors ($($ScanErrors.Count) $s failed)"
 
@@ -101,10 +66,11 @@ function Send-ScanErrorNotification {
             }
         }
 
+        $body = $payload | ConvertTo-Json -Depth 10
         try {
-            Invoke-RestMethod -Uri $WebhookUrl -Method Post `
-                -ContentType 'application/json' `
-                -Body ($payload | ConvertTo-Json -Depth 10) | Out-Null
+            Invoke-WithRetry -ScriptBlock {
+                Invoke-RestMethod -Uri $WebhookUrl -Method Post -ContentType 'application/json' -Body $body | Out-Null
+            }.GetNewClosure() -OperationName "scan-error webhook ($type)"
             Write-Host "  Scan-error webhook sent ($type)"
         }
         catch {

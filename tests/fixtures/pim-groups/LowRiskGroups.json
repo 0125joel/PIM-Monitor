@@ -1,0 +1,15 @@
+{
+  "name": "IT Service Groups",
+  "description": "General IT service and licensing management groups.",
+  "severity": "Low",
+  "groups": [
+    {
+      "id": "a4ffg177-j3dh-62fb-1889-76703ee4aaf7",
+      "displayName": "IT-Helpdesk-Members"
+    },
+    {
+      "id": "b5ggh288-k4ei-73gc-2990-87814ff5bbg8",
+      "displayName": "Licensing-Admins-Members"
+    }
+  ]
+}

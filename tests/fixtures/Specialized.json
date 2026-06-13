@@ -1,0 +1,20 @@
+{
+  "name": "Specialized - High-impact Workload Roles",
+  "description": "High-impact roles without identity-infrastructure focus (helpdesk, user management).",
+  "severity": "High",
+  "roles": [
+    { "id": "729827e3-9c14-49f7-bb1b-9711f7a21e0f", "displayName": "Helpdesk Administrator" },
+    { "id": "c4e39bd9-1100-46d3-8c65-fb160da0071f", "displayName": "Authentication Administrator" },
+    { "id": "fe930be7-5e62-47db-91af-98c3a49a38b1", "displayName": "User Administrator" },
+    { "id": "966707d0-3269-4ba0-a099-1d26890c4b20", "displayName": "Password Administrator" },
+    { "id": "4d6c4162-2dcc-4259-969b-ebc5c905c191", "displayName": "License Administrator" }
+  ],
+  "expectedConfig": {
+    "maxActivationDuration": "PT2H",
+    "requireJustification": true,
+    "requireMFA": true,
+    "requireApproval": true,
+    "allowPermanentEligible": false,
+    "allowPermanentActive": false
+  }
+}

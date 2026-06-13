@@ -1,0 +1,38 @@
+{
+  "id": "Directory_tenant_scope_roleId_noncompliant",
+  "policy": {
+    "description": "Directory",
+    "rules": [
+      {
+        "id": "Approval_EndUser_Assignment",
+        "setting": {
+          "isApprovalRequired": false
+        }
+      },
+      {
+        "id": "AuthenticationContext_EndUser_Assignment",
+        "isEnabled": false
+      },
+      {
+        "id": "Enablement_EndUser_Assignment",
+        "setting": {
+          "enabledRules": []
+        }
+      },
+      {
+        "id": "Expiration_EndUser_Assignment",
+        "setting": {
+          "maximumDuration": "PT8H"
+        }
+      },
+      {
+        "id": "Expiration_Admin_Eligibility",
+        "isExpirationRequired": false
+      },
+      {
+        "id": "Expiration_Admin_Assignment",
+        "isExpirationRequired": false
+      }
+    ]
+  }
+}

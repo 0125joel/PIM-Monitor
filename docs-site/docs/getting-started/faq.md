@@ -1,5 +1,6 @@
 ---
 sidebar_position: 4
+description: Answers to common questions about PIM Monitor setup, authentication, Graph permissions, and pipeline behavior.
 ---
 
 # FAQ
@@ -14,7 +15,7 @@ ADO generates both the **Issuer** and **Subject identifier** automatically when 
 
 ### What if the issuer URL looks different than what's in the documentation?
 
-The issuer shown in Azure DevOps will be tenant-specific and include your tenant ID and `/v2.0`. This is expected. Use exactly what ADO shows, not the generic documentation example.
+The issuer shown in Azure DevOps is tenant-specific and includes your tenant ID and `/v2.0`. This is expected. Use exactly what ADO shows, not the generic documentation example.
 
 ---
 
@@ -155,7 +156,7 @@ See [Local Testing](./local-testing.md). You will need PowerShell 7+, the Az Pow
 
 ### How do I deploy to GitHub Actions instead of Azure DevOps?
 
-See [Installation . GitHub Actions](./installation-github.md) for a complete walkthrough. The process is similar to ADO but uses GitHub's OIDC for WIF instead.
+See [Installation: GitHub Actions](./installation-github.md) for a complete walkthrough. The process is similar to ADO but uses GitHub's OIDC for WIF instead.
 
 ---
 

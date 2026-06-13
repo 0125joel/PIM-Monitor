@@ -1,0 +1,137 @@
+---
+sidebar_position: 2
+title: "EAM Role Catalog: Entra Roles by Plane, Level, and PIM Policy"
+sidebar_label: EAM Role Catalog
+description: Every built-in Entra directory role mapped to its EAM plane, security level, and recommended PIM activation policy.
+keywords:
+  - EAM role catalog
+  - Entra directory roles
+  - Enterprise Access Model plane
+  - Securing Privileged Access levels
+  - recommended PIM policy
+  - Control Management Data plane
+---
+
+import EamRoleCatalog from "@site/src/components/EamRoleCatalog";
+import JsonLd from '@site/src/components/JsonLd';
+
+export const definedTermSetSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'DefinedTermSet',
+  name: 'Enterprise Access Model planes and Securing Privileged Access levels',
+  description:
+    'Classification scheme used by PIM Monitor to map Microsoft Entra directory roles to an Enterprise Access Model plane and a Securing Privileged Access security level.',
+  hasDefinedTerm: [
+    {
+      '@type': 'DefinedTerm',
+      name: 'Control plane',
+      description:
+        'Roles that control identity, authentication, and authorization. A compromise can lead to full tenant takeover. Maps to the Privileged security level and High severity.',
+    },
+    {
+      '@type': 'DefinedTerm',
+      name: 'Management plane',
+      description:
+        'Roles that administer workloads, devices, and services such as Exchange, Intune, SharePoint, Teams, and Defender. Maps to the Specialized security level and Medium severity.',
+    },
+    {
+      '@type': 'DefinedTerm',
+      name: 'Data plane',
+      description:
+        'Mostly read-only roles affecting end-user data and business processes, with limited blast radius. Maps to the Enterprise security level and Low severity.',
+    },
+    {
+      '@type': 'DefinedTerm',
+      name: 'Privileged',
+      description:
+        'Highest Securing Privileged Access level: 1 hour activation, MFA, approval, justification, and a phishing-resistant auth context with sign-in frequency.',
+    },
+    {
+      '@type': 'DefinedTerm',
+      name: 'Specialized',
+      description:
+        'Securing Privileged Access level for workload administrators: 4 hour activation, MFA, approval, justification, and a phishing-resistant auth context.',
+    },
+    {
+      '@type': 'DefinedTerm',
+      name: 'Enterprise',
+      description:
+        'Baseline Securing Privileged Access level: 8 hour activation, MFA, and justification with standard MFA.',
+    },
+  ],
+};
+
+# EAM Role Catalog
+
+<JsonLd schema={definedTermSetSchema} />
+
+Every built-in Microsoft Entra directory role, mapped to its Enterprise Access Model (EAM) plane, its Securing Privileged Access (SPA) security level, and a recommended PIM activation policy. Use it to decide what `expectedConfig` each role should have before you author [access-model files](./setup-compliance.mdx).
+
+Every value carries a label showing how far you can trust it, from "Microsoft says so" down to "an automated first guess". Nothing here is invented silently. The [legend below](#where-each-value-comes-from) explains the labels.
+
+<EamRoleCatalog />
+
+## How this catalog is built
+
+Every role on this page gets three things:
+
+- an **EAM plane**: how much damage a compromise could do (Control, Management, or Data);
+- a **security level**: how strictly its use should be protected (Privileged, Specialized, or Enterprise);
+- a **recommended PIM activation policy**: the concrete settings to enforce.
+
+Microsoft publishes exactly one of these per role: the `isPrivileged` flag. The plane we review by hand; the level and its policy we work out from the rules in [Security level: how strict](#security-level-how-strict) and [Recommended PIM activation policy](#recommended-pim-activation-policy) further down. So every value wears a plain-language label that tells you where it came from, no guessing about the guesses.
+
+### Where each value comes from
+
+| Label              | What it means                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- |
+| **from Microsoft** | Published by Microsoft for this exact role. The `isPrivileged` flag is the only such value.                    |
+| **reviewed**       | Assigned by hand and checked against Microsoft's model before landing here.                                    |
+| **unreviewed**     | A keyword guess, based on the role's name, for a role nobody has reviewed yet. Always flagged review needed.   |
+| **by rule**        | Calculated by a rule, with no per-role judgement. See [Security level: how strict](#security-level-how-strict) below. |
+
+### EAM plane: blast radius
+
+Microsoft does not hand out a plane per role, so we assign one ourselves: reviewed by hand for the roles we know, an unreviewed keyword guess for anything new or unfamiliar. We judge it from the role's name and description against Microsoft's [Enterprise Access Model](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-access-model).
+
+| Plane          | Controls                                                                              | Examples                                                      |
+| -------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Control**    | Identity, authentication, authorization. Compromise can lead to full tenant takeover. | Global Admin, Conditional Access Admin, Privileged Role Admin |
+| **Management** | Workload, device, and service configuration.                                          | Intune, Exchange, SharePoint, Teams, Defender                 |
+| **Data**       | End-user data and business processes (mostly read-only roles).                        | Reports Reader, Message Center Reader, Search Editor          |
+
+### Security level: how strict
+
+A role's level follows three rules, in order. The first that matches wins:
+
+1. Microsoft marks it `isPrivileged`, so it is Privileged. This signal comes straight from the role definition in your inventory. Some read-only roles count here too (Global Reader, Security Reader, AI Reader): reading the full security configuration still hands an attacker a tactical advantage, so read-only is not the same as low-impact.
+2. It owns a whole M365 workload with direct data impact, so it is Privileged even when Microsoft does not flag it. This covers Exchange, SharePoint, Teams, Yammer, Power Platform, Dynamics 365, Fabric, Azure DevOps, Windows 365, and Knowledge. Full control over a workload is too much blast radius for anything less.
+3. Otherwise, the level follows the plane. The Management plane and Control-plane writers become Specialized; everything else (Control-plane readers, governance, default roles, and the Data plane) becomes Enterprise.
+
+The three levels (Privileged / Specialized / Enterprise) come from Microsoft's [Securing privileged access security levels](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-security-levels). Where rule 1 is contentious, the role's own note explains the trade-off.
+
+### Recommended PIM activation policy
+
+Microsoft publishes no per-role activation values, so these take its general guidance and pin it to a level. Activation runs from 1 to 24 hours; MFA, approval, and justification are per-role switches. See [Configure Microsoft Entra role settings in PIM](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings).
+
+| Level           | Max activation | MFA | Approval | Justification | Auth context                           |
+| --------------- | -------------- | --- | -------- | ------------- | -------------------------------------- |
+| **Privileged**  | 1 hour         | Yes | Yes      | Yes           | Phishing-resistant + sign-in frequency |
+| **Specialized** | 4 hours        | Yes | Yes      | Yes           | Phishing-resistant                     |
+| **Enterprise**  | 8 hours        | Yes | No       | Yes           | Standard MFA                           |
+
+## From catalog to enforcement
+
+The **copy accessmodel json** buttons turn this page into something the scanner can act on. Each one emits a ready-to-use [access-model file](./setup-compliance.mdx) for a level: a `name`, the `securityLevel`, the `roles[]` at that level, and an `expectedConfig` that matches the recommendations above. The scanner derives the notification severity from the `securityLevel`, so severity never appears as a concept on this page. Drop the file into your repository's `AccessModel/` directory, and the next scan checks every role's live PIM policy against it. The **copy role json** button inside a row does the same for one role, and also records its `plane`.
+
+Treat the numbers as a starting point, not a verdict. They are defensible, but your tenant is yours: weigh them against your own risk posture before you enforce, and read the per-role notes where a different call makes sense.
+
+Want to watch one role go the whole way, from this table to an enforced policy? Follow the [worked example](./setup-compliance.mdx#worked-example-global-administrator).
+
+## Sources
+
+- [Enterprise Access Model](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-access-model)
+- [Securing privileged access security levels](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-security-levels)
+- [Privileged roles and permissions in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/privileged-roles-permissions)
+- [Configure Microsoft Entra role settings in PIM](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings)
+- [Microsoft Entra built-in roles reference](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference)

@@ -1,0 +1,34 @@
+{
+  "name": "Data/Workload Plane - Enterprise",
+  "description": "Read-only and end-user data roles. Access to business data or end-user facing services, but no administrative control over identity or workload configuration. PIM provides audit trail; approval overhead not warranted.",
+  "plane": "Data",
+  "securityLevel": "Enterprise",
+  "roles": [
+    { "id": "9c094953-4995-41c8-84c8-3ebb9b32c93f", "displayName": "Device Join" },
+    { "id": "2b499bcd-da44-4968-8aec-78e1674fa64d", "displayName": "Device Managers" },
+    { "id": "d405c6df-0af8-4e3b-95e4-4d06e542189e", "displayName": "Device Users" },
+    { "id": "f42252d9-5400-4d7b-b9ef-cc582dbb8577", "displayName": "Entra Backup Reader" },
+    { "id": "843318fb-79a6-4168-9e6f-aa9a07481cc4", "displayName": "Global Secure Access Log Reader" },
+    { "id": "25df335f-86eb-4119-b717-0ff02de207e9", "displayName": "Insights Analyst" },
+    { "id": "31e939ad-9672-4796-9c2e-873181342d2d", "displayName": "Insights Business Leader" },
+    { "id": "ac16e43d-7b2d-40e0-ac05-243ff356ab5b", "displayName": "Message Center Privacy Reader" },
+    { "id": "790c1fb9-7f7d-4f88-86a1-ef1f95c05c1b", "displayName": "Message Center Reader" },
+    { "id": "281fe777-fb20-4fbb-b7a3-ccebce5b0d96", "displayName": "Microsoft Hardware Warranty Specialist" },
+    { "id": "e8cef6f1-e4bd-4ea8-bc07-4b8d950f4477", "displayName": "Printer Technician" },
+    { "id": "e07494ad-1654-4dd2-922e-6f81a71bf00f", "displayName": "Purview Workload Content Reader" },
+    { "id": "4a5d8f65-41da-4de4-8968-e035b65339cf", "displayName": "Reports Reader" },
+    { "id": "8835291a-918c-4fd7-a9ce-faa49f0cf7d9", "displayName": "Search Editor" },
+    { "id": "f70938a0-fc10-4177-9e90-2178f8765737", "displayName": "Teams Communications Support Engineer" },
+    { "id": "fcf91098-03e3-41a9-b5ba-6f0ec8188a12", "displayName": "Teams Communications Support Specialist" },
+    { "id": "1076ac91-f3d9-41a7-a339-dcdf5f480acc", "displayName": "Teams Reader" },
+    { "id": "75934031-6c7e-415a-99d7-48dbd49e875e", "displayName": "Usage Summary Reports Reader" },
+    { "id": "c34f683f-4d5a-4403-affd-6615e00e3a7f", "displayName": "Workplace Device Join" }
+  ],
+  "expectedConfig": {
+    "maxActivationDuration": "PT8H",
+    "requireJustification": true,
+    "requireMFA": true,
+    "requireApproval": false,
+    "allowPermanentActive": false
+  }
+}

@@ -6,7 +6,7 @@ Add-Type -AssemblyName System.Web
 
 $latestVersion  = $env:UPSTREAM_LATEST_VERSION
 $currentVersion = $env:UPSTREAM_CURRENT_VERSION
-$repoUrl        = $env:UPSTREAM_REPO_URL
+$repoUrl        = 'https://github.com/0125joel/PIM-Monitor'
 $releaseUrl     = "$repoUrl/releases/tag/v$latestVersion"
 
 $releaseNotes = ""
@@ -31,7 +31,9 @@ if ($env:NOTIFICATION_WEBHOOK_URL -and $env:NOTIFICATION_WEBHOOK_URL -notmatch '
         @{ text = $textMsg } | ConvertTo-Json
     }
     try {
-        Invoke-RestMethod -Uri $webhookUrl -Method Post -Body $payload -ContentType "application/json"
+        Invoke-WithRetry -ScriptBlock {
+            Invoke-RestMethod -Uri $webhookUrl -Method Post -Body $payload -ContentType "application/json" | Out-Null
+        }.GetNewClosure() -OperationName "upstream update webhook"
         Write-Host "Upstream update webhook sent"
     } catch {
         Write-Warning "Upstream update webhook failed: $_"
@@ -85,10 +87,7 @@ $notesHtml<tr><td style="padding:8px 32px;">
 </html>
 "@
 
-    $rawToken = (Get-AzAccessToken -ResourceTypeName MSGraph).Token
-    $token = if ($rawToken -is [System.Security.SecureString]) {
-        [System.Net.NetworkCredential]::new('', $rawToken).Password
-    } else { $rawToken }
+    $token = Get-GraphAccessTokenString
 
     $body = @{
         message = @{

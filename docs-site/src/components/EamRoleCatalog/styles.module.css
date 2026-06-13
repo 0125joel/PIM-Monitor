@@ -1,0 +1,603 @@
+/* EAM Role Catalog - "Pipeline Amber" house style.
+   Terminal/git-porcelain aesthetic: mono fonts, hairlines, bordered mono-badges,
+   underlined no-chrome tokens. Theme-aware via --pm-* tokens. */
+
+.catalog {
+  margin: 1.5rem 0 2rem;
+  font-family: var(--pm-font-sans);
+  --sev-high-fg: var(--pm-diff-del-fg);
+  --sev-high-bg: rgba(239, 68, 68, 0.10);
+  --sev-high-bd: rgba(239, 68, 68, 0.30);
+  --sev-med-fg: #92400e;
+  --sev-med-bg: rgba(217, 119, 6, 0.12);
+  --sev-med-bd: rgba(217, 119, 6, 0.35);
+  --sev-low-fg: var(--pm-diff-add-fg);
+  --sev-low-bg: rgba(34, 197, 94, 0.08);
+  --sev-low-bd: rgba(34, 197, 94, 0.30);
+}
+[data-theme='dark'] .catalog { --sev-med-fg: #fcd34d; }
+
+/* Section labels: mono, wide tracking, trailing hairline rule. */
+.sectionLbl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pm-text-3);
+  margin: 1.25rem 0 0.7rem;
+}
+.sectionLbl::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--pm-border);
+}
+
+/* Stats: hairline grid (12-stats). */
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--pm-border);
+  border: 1px solid var(--pm-border);
+}
+.stat {
+  background: var(--pm-panel-bg);
+  padding: 16px 18px;
+}
+.statLabel {
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pm-text-3);
+}
+.statValue {
+  font-family: var(--pm-font-mono);
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-top: 8px;
+  color: var(--pm-text-1);
+}
+.lblHigh { color: var(--sev-high-fg); }
+.lblMed { color: var(--sev-med-fg); }
+.lblLow { color: var(--sev-low-fg); }
+.lblZinc { color: var(--pm-text-2); }
+
+/* Controls: terminal-feel inputs. */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.search {
+  flex: 1 1 240px;
+  min-width: 200px;
+  padding: 0.45rem 0.7rem;
+  font-family: var(--pm-font-mono);
+  font-size: 0.8rem;
+  border: 1px solid var(--pm-border-mid);
+  border-radius: 4px;
+  background: var(--pm-panel-bg);
+  color: var(--pm-text-1);
+}
+.search:focus,
+.select:focus { outline: 1px solid var(--pm-amber); outline-offset: -1px; }
+.select {
+  padding: 0.45rem 0.6rem;
+  font-family: var(--pm-font-mono);
+  font-size: 0.8rem;
+  border: 1px solid var(--pm-border-mid);
+  border-radius: 4px;
+  background: var(--pm-panel-bg);
+  color: var(--pm-text-1);
+}
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--pm-font-mono);
+  font-size: 0.75rem;
+  color: var(--pm-text-2);
+  cursor: pointer;
+}
+.toggle input { accent-color: var(--pm-amber); }
+
+/* Export bridge: buttons per the 08-buttons system. */
+.export {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1rem;
+}
+.exportLabel {
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pm-text-3);
+  margin-right: 4px;
+}
+.btn {
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border-radius: 4px;
+  font-family: var(--pm-font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.btnSecondary { background: transparent; color: var(--pm-text-2); border-color: var(--pm-border-mid); }
+.btnSecondary:hover { color: var(--pm-text-1); border-color: var(--pm-border-subtle); }
+.btnPrimary { background: var(--pm-amber); color: #0a0a0a; font-weight: 600; }
+.btnPrimary:hover { background: var(--pm-amber-light); }
+
+.resultCount {
+  font-family: var(--pm-font-mono);
+  font-size: 0.72rem;
+  color: var(--pm-text-3);
+  margin: 0.9rem 0 0.4rem;
+}
+
+/* Table: flat, hairline rules only (14-table). */
+.tableWrap { overflow-x: auto; }
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 0;
+}
+/* Fixed column widths so expanding a row's detail cell never reflows the header columns. */
+.table th:nth-child(1) { width: 34%; }
+.table th:nth-child(2) { width: 13%; }
+.table th:nth-child(3) { width: 14%; }
+.table th:nth-child(4) { width: 9%; }
+.table th:nth-child(5) { width: 18%; }
+.table th:nth-child(6) { width: 12%; }
+.roleCell { overflow-wrap: anywhere; }
+.table thead th {
+  text-align: left;
+  padding: 10px 12px;
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--pm-text-3);
+  border-bottom: 1px solid var(--pm-border);
+}
+.row {
+  cursor: pointer;
+  border-bottom: 1px solid var(--pm-border);
+  transition: background 0.1s;
+}
+.row:hover { background: var(--pm-panel-bg-alt); }
+.rowOpen { background: var(--pm-panel-bg-alt); }
+.row td { padding: 10px 12px; vertical-align: middle; color: var(--pm-text-1); }
+.roleCell {
+  font-family: var(--pm-font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--pm-text-1);
+}
+.mono { font-family: var(--pm-font-mono); font-size: 12px; color: var(--pm-text-2); }
+.center { text-align: center; }
+.expand {
+  font-family: var(--pm-font-mono);
+  font-size: 11px;
+  color: var(--pm-accent, var(--ifm-color-primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.row:hover .expand { color: var(--ifm-color-primary-dark, var(--pm-accent)); }
+
+.privYes { font-family: var(--pm-font-mono); font-size: 11px; color: var(--sev-high-fg); font-weight: 600; }
+.privNo { font-family: var(--pm-font-mono); font-size: 11px; color: var(--pm-text-3); }
+
+/* Review token: underlined mono, amber (09-chips state token). */
+.reviewTok {
+  margin-left: 10px;
+  font-family: var(--pm-font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--sev-med-fg);
+  text-decoration: underline;
+  text-decoration-color: rgba(217, 119, 6, 0.45);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+/* Bordered mono-badge (14-table .ch). */
+.badge {
+  display: inline-block;
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.badgeHigh { color: var(--sev-high-fg); background: var(--sev-high-bg); border-color: var(--sev-high-bd); }
+.badgeMed { color: var(--sev-med-fg); background: var(--sev-med-bg); border-color: var(--sev-med-bd); }
+.badgeLow { color: var(--sev-low-fg); background: var(--sev-low-bg); border-color: var(--sev-low-bd); }
+.badgeZinc { color: var(--pm-text-2); background: rgba(115, 115, 115, 0.10); border-color: var(--pm-border-mid); }
+
+/* Detail panel. */
+.detailRow td { padding: 0; background: var(--pm-panel-bg-alt); }
+.detail { padding: 1rem 1.25rem 1.25rem; border-bottom: 1px solid var(--pm-border-mid); }
+.desc { font-size: 0.85rem; color: var(--pm-text-2); margin: 0 0 1rem; line-height: 1.55; }
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.panel {
+  background: var(--pm-panel-bg);
+  border: 1px solid var(--pm-border);
+  border-radius: 4px;
+  padding: 0.75rem 0.9rem;
+}
+.panelHd {
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--pm-text-3);
+  margin-bottom: 0.6rem;
+}
+.dl { margin: 0; }
+.dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--pm-border);
+  font-size: 0.8rem;
+}
+.dl > div:last-child { border-bottom: none; }
+.dl dt { color: var(--pm-text-2); margin: 0; }
+.dl dd { margin: 0; color: var(--pm-text-1); text-align: right; font-family: var(--pm-font-mono); font-size: 0.78rem; }
+.dl code { font-size: 0.72rem; }
+
+/* Authority tokens: underlined mono, zero chrome (09-chips). */
+.tok {
+  font-family: var(--pm-font-mono);
+  font-size: 11px;
+  color: var(--pm-text-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--pm-border-mid);
+  margin-left: 0.35rem;
+}
+.tok_authoritative { color: var(--sev-low-fg); text-decoration-color: rgba(34, 197, 94, 0.4); }
+.tok_curated { color: var(--pm-text-1); text-decoration-color: var(--pm-border-subtle); }
+.tok_heuristic { color: var(--sev-med-fg); text-decoration-color: rgba(217, 119, 6, 0.4); }
+.tok_derived { color: var(--pm-text-3); text-decoration-color: var(--pm-border); }
+
+/* Note: warn alert (13-alerts). */
+.note {
+  margin-top: 1rem;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid rgba(217, 119, 6, 0.5);
+  border-left-width: 2px;
+  border-radius: 4px;
+  background: var(--pm-notif-med-bg);
+}
+.noteIcon { color: var(--pm-amber); flex-shrink: 0; margin-top: 1px; }
+.noteIcon svg { width: 14px; height: 14px; display: block; }
+.noteTitle {
+  font-family: var(--pm-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--sev-med-fg);
+  margin-bottom: 2px;
+}
+.noteBody { font-size: 0.8rem; color: var(--pm-text-2); line-height: 1.55; }
+
+.templateId {
+  margin: 0.9rem 0 0;
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pm-text-3);
+}
+.templateId code { font-size: 0.7rem; text-transform: none; letter-spacing: 0; }
+
+/* ============================================================
+   V2 additions: confidence gauge, matrix, chips, lineage, rail
+   ============================================================ */
+
+/* Confidence gauge: hairline grid, amber "now" cell on review-needed (12-stats). */
+.gaugeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--pm-border);
+  border: 1px solid var(--pm-border);
+}
+.gauge { background: var(--pm-panel-bg); padding: 14px 16px; }
+.gaugeLabel {
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pm-text-3);
+}
+.gaugeValue {
+  font-family: var(--pm-font-mono);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin: 7px 0 4px;
+  color: var(--pm-text-1);
+}
+.gaugeSub { font-family: var(--pm-font-sans); font-size: 11px; color: var(--pm-text-3); }
+.gaugeNow { background: linear-gradient(180deg, rgba(217, 119, 6, 0.10) 0%, var(--pm-panel-bg) 100%); }
+.gaugeNow .gaugeLabel { color: var(--pm-amber); }
+.gaugeNow .gaugeValue { color: var(--sev-med-fg); }
+
+/* Plane x Level matrix. */
+.matrixHint {
+  font-family: var(--pm-font-sans);
+  font-size: 12px;
+  color: var(--pm-text-2);
+  margin: 0 0 0.7rem;
+}
+.matrixHint strong { color: var(--pm-text-1); font-weight: 600; }
+.matrixWrap { overflow-x: auto; }
+.matrix {
+  border-collapse: collapse;
+  font-family: var(--pm-font-mono);
+  font-size: 13px;
+  min-width: 360px;
+}
+.matrix th,
+.matrix td {
+  border: 1px solid var(--pm-border);
+  padding: 10px 14px;
+  text-align: center;
+}
+/* Corner cell carries the axis labels so the two axes are never ambiguous. */
+.matrixCorner {
+  border: none;
+  background: transparent;
+  position: relative;
+  min-width: 96px;
+  height: 40px;
+}
+.axisLevel,
+.axisPlane {
+  position: absolute;
+  font-family: var(--pm-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pm-text-3);
+}
+.axisLevel { top: 4px; right: 6px; }
+.axisPlane { bottom: 4px; left: 6px; }
+.matrixColHd,
+.matrixRowHd {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pm-text-3);
+  cursor: pointer;
+  user-select: none;
+  background: var(--pm-panel-bg);
+}
+.matrixRowHd { text-align: left; }
+.matrixColHd:hover,
+.matrixRowHd:hover {
+  color: var(--pm-text-1);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--pm-amber);
+}
+.matrixAxisOn { color: var(--pm-amber) !important; outline: 1px solid var(--pm-amber); outline-offset: -1px; }
+.matrixCell {
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--pm-text-1);
+  position: relative;
+  transition: outline-color 0.1s, filter 0.1s;
+}
+.matrixCell:hover {
+  filter: brightness(1.06);
+  outline: 2px solid var(--pm-amber);
+  outline-offset: -2px;
+  z-index: 1;
+}
+.cellHigh { background: var(--sev-high-bg); color: var(--sev-high-fg); }
+.cellMed { background: var(--sev-med-bg); color: var(--sev-med-fg); }
+.cellZinc { background: rgba(115, 115, 115, 0.08); color: var(--pm-text-2); }
+.matrixZero { color: var(--pm-text-3); opacity: 0.5; }
+.matrixCellOn { outline: 2px solid var(--pm-amber); outline-offset: -2px; }
+.matrixTotalHd,
+.matrixTotal,
+.matrixGrand {
+  font-size: 12px;
+  color: var(--pm-text-3);
+  background: var(--pm-panel-bg);
+}
+.matrixGrand { color: var(--pm-text-1); font-weight: 600; }
+
+/* Facet chips (09-chips inspired, button form with live counts). */
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0.6rem;
+}
+.chipGroupLbl {
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pm-text-3);
+  min-width: 78px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  font-family: var(--pm-font-mono);
+  font-size: 12px;
+  color: var(--pm-text-2);
+  background: transparent;
+  border: 1px solid var(--pm-border-mid);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.chip:hover { color: var(--pm-text-1); border-color: var(--pm-border-subtle); }
+.chipOn { color: #0a0a0a; background: var(--pm-amber); border-color: var(--pm-amber); font-weight: 600; }
+.chipCount { font-size: 11px; opacity: 0.7; }
+.chipOn .chipCount { opacity: 0.85; }
+.clearBtn {
+  height: 26px;
+  padding: 0 10px;
+  font-family: var(--pm-font-mono);
+  font-size: 11px;
+  color: var(--pm-text-3);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.clearBtn:hover { color: var(--pm-text-1); }
+
+/* Sortable header cells. */
+.sortable { cursor: pointer; user-select: none; }
+.sortable:hover { color: var(--pm-text-1); }
+
+/* Sticky table header over 144 rows. Background follows the theme (Infima core var)
+   so header text keeps the right contrast: a forced dark bg made hover text vanish. */
+.table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--ifm-background-color);
+}
+/* Sort affordance: every sortable column shows a glyph, brighter on hover, amber when active. */
+.sortMark { margin-left: 6px; font-size: 11px; opacity: 0.32; }
+.sortable:hover .sortMark { opacity: 0.7; }
+.sortMarkOn { opacity: 1; color: var(--pm-amber); }
+
+/* Subtle level rail on rows (Tier 1.2): thin left border keyed to level. */
+.row { border-left: 3px solid transparent; }
+.railHigh { border-left-color: var(--sev-high-bd); }
+.railMed { border-left-color: var(--sev-med-bd); }
+.railZinc { border-left-color: var(--pm-border-mid); }
+.row td:first-child { padding-left: 12px; }
+
+/* Clickable in-row badges. */
+.badgeClickable { cursor: pointer; }
+.badgeClickable:hover { filter: brightness(1.12); }
+
+/* Escape-clause marker on isPriv (no*). */
+.privEscape {
+  font-family: var(--pm-font-mono);
+  font-size: 11px;
+  color: var(--sev-med-fg);
+  font-weight: 600;
+  cursor: help;
+}
+
+/* "has note" marker in the role cell. */
+.noteDot {
+  margin-left: 10px;
+  font-family: var(--pm-font-mono);
+  font-size: 11px;
+  color: var(--pm-text-3);
+  text-decoration: underline;
+  text-decoration-color: var(--pm-border-mid);
+  text-underline-offset: 3px;
+}
+
+/* Classification lineage (Tier 1.3). */
+.lineage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 0.9rem;
+  border: 1px solid var(--pm-border);
+  border-radius: 4px;
+  background: var(--pm-panel-bg);
+}
+.lineageHop { display: flex; flex-direction: column; gap: 2px; }
+.lineageVal { font-family: var(--pm-font-mono); font-size: 13px; font-weight: 600; color: var(--pm-text-1); }
+.lineageSub { font-family: var(--pm-font-mono); font-size: 10px; color: var(--pm-text-3); }
+.lineageArrow { color: var(--pm-text-3); font-size: 14px; }
+
+/* Why this level (Tier 3.2). */
+.why {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+.whyLbl {
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pm-text-3);
+  flex-shrink: 0;
+}
+.whyText { font-size: 0.82rem; color: var(--pm-text-2); line-height: 1.5; }
+.whyText a { color: var(--pm-accent, var(--ifm-color-primary)); }
+
+/* Per-role remediation (Tier 3.1). */
+.remediation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--pm-border);
+}
+.remediationLbl {
+  font-family: var(--pm-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pm-text-3);
+}
+.remediationHint { font-family: var(--pm-font-mono); font-size: 11px; color: var(--pm-text-3); }

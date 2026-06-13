@@ -154,8 +154,8 @@ Finally, `Get-RemovedEntities` detects folders present in `inventory/directory-r
 
 PIM-onboarded groups are discovered via `GET /beta/identityGovernance/privilegedAccess/group/resources`.
 
-> [!WARNING]
-> This endpoint is deprecated by Microsoft and will stop returning data on **October 28, 2026**. When that happens, the discovery mechanism must be replaced. The likely replacement is collecting distinct `groupId` values from `eligibilityScheduleInstances` and `assignmentScheduleInstances` (which require `$filter=groupId eq '...'` and cannot be enumerated unfiltered).
+> [!NOTE]
+> This endpoint is beta and not documented as a discovery surface, but it has no published deprecation date. (The often-cited October 28, 2026 PIM deadline applies to iteration-2 `aadRoles`/`azureResources`, not this path.) There is no tenant-wide replacement: `eligibilityScheduleInstances` and `assignmentScheduleInstances` require `$filter=groupId eq '...'` and cannot be enumerated unfiltered. The empty-response failure mode is guarded by `Test-SafeToArchive` to prevent mass false-archival.
 
 For each discovered group:
 1. Group definition fetched from `GET /groups/{id}` (v1.0).

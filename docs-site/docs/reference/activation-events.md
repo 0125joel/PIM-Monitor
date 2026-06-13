@@ -1,5 +1,6 @@
 ---
 sidebar_position: 4
+description: PIM activation and assignment events captured by PIM Monitor from the Entra audit log, including field reference and limitations.
 ---
 
 # Activation Events
@@ -59,13 +60,13 @@ Each monthly file contains a JSON array of audit log entries:
 
 The following event types indicate PIM assignments or policy changes:
 
-- **Assign** .  User assigned eligible or active role/group
-- **Remove** .  User removed from role/group
-- **Activate** .  User activated an eligible assignment
-- **Deactivate** .  User deactivated an active assignment
-- **ApproveRequest** .  Approver approved a role activation request
-- **RejectRequest** .  Approver rejected a role activation request
-- **UpdatePolicy** .  PIM policy rule updated
+- **Assign**: User assigned eligible or active role/group
+- **Remove**: User removed from role/group
+- **Activate**: User activated an eligible assignment
+- **Deactivate**: User deactivated an active assignment
+- **ApproveRequest**: Approver approved a role activation request
+- **RejectRequest**: Approver rejected a role activation request
+- **UpdatePolicy**: PIM policy rule updated
 
 ## How it Works
 
@@ -132,14 +133,14 @@ $events | Where-Object { $_.operationType -in @('ApproveRequest', 'RejectRequest
 
 ## Integration with Notifications
 
-Activation events are included in PIM Monitor notifications as **informational entries** (independent of policy/assignment diffs). This allows admins to see a full audit trail in chat notifications without triggering alerts.
+Activation events are included in PIM Monitor notifications as informational entries (independent of policy/assignment diffs). This allows admins to see a full audit trail in chat notifications without triggering alerts.
 
 ## Limitations
 
 - Fetches only events logged by the PIM service (`loggedByService eq 'PIM'`).
 - Graph API retains audit logs for up to 30 days. First scan recovers only the past 30 days.
-- Event detail depends on Graph API response . Some fields may be empty or null.
-- No real-time stream . Events are fetched during each scheduled scan.
+- Event detail depends on the Graph API response. Some fields may be empty or null.
+- No real-time stream. Events are fetched during each scheduled scan.
 
 ## Troubleshooting
 

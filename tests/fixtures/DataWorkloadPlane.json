@@ -1,0 +1,8 @@
+{
+  "name": "Data/Workload Plane - Data & Compliance",
+  "description": "Standaard beheerrollen.",
+  "severity": "Low",
+  "roles": [
+    { "id": "e8611ab8-c189-46e8-94e1-60213cd1e3ee", "displayName": "Compliance Administrator" }
+  ]
+}

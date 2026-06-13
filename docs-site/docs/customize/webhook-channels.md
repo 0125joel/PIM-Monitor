@@ -1,5 +1,6 @@
 ---
 sidebar_position: 9
+description: Send PIM Monitor notifications to Teams, Slack, Discord, or a custom endpoint. Platform-specific payload formats and field reference.
 ---
 
 # Webhook Channels & Customization
@@ -10,39 +11,40 @@ Send PIM Monitor notifications to Teams, Slack, Discord, or custom webhooks.
 
 1. **Get webhook URL** from your platform (Teams, Slack, Discord)
 2. **Set the variable**: `NOTIFICATION_WEBHOOK_URL = https://...`
-3. **Run the pipeline** — scan results appear in your chat
+3. **Run the pipeline**: scan results appear in your chat
 
-PIM Monitor **automatically detects** the webhook type by URL pattern.
+PIM Monitor automatically detects the webhook type by URL pattern. To override the detection, set `NOTIFICATION_WEBHOOK_TYPE` to `Teams`, `Slack`, `Discord`, or `Generic`. The main case for this: a Logic App URL (`*.logic.azure.com`) is detected as Teams, but a Logic App built to consume the [generic JSON payload](#generic-json-custom-webhooks) needs `NOTIFICATION_WEBHOOK_TYPE=Generic`.
 
 ## Supported Channels
 
 ### Microsoft Teams (Power Automate)
 
-**URL pattern**: `webhook.office.com`
+**URL patterns detected as Teams**:
+- `webhook.office.com`: legacy O365 incoming connector. Microsoft fully retired these in May 2026, so the URLs no longer deliver. Use a Power Automate workflow instead.
+- `*.logic.azure.com`: Power Automate workflow (current recommended path)
+- `*.azure-apim.net`: Power Automate via API Management gateway
 
-**Setup**:
-1. In Teams, go to the channel where you want notifications
-2. Click **[...]** → **Connectors** → **Configure**
-3. Search **Power Automate** → **Configure**
-4. Give it a name: "PIM Monitor"
-5. **Create** → Copy the webhook URL
+**Setup (recommended, Power Automate workflow)**:
+1. In Teams, install the **Workflows** app (Apps → search "Workflows" → Add)
+2. Choose template **Post to a channel when a webhook request is received**
+3. Pick channel → **Create** → copy the generated workflow URL
+4. Set `NOTIFICATION_WEBHOOK_URL` to that URL
 
-**Payload format**: Adaptive Card
+**Payload format**: Adaptive Card schema 1.6
 
-**Example**:
+**Card structure**:
+- Title `PIM Monitor — change detected` + tenant subtitle + one-sentence executive summary
+- FactSet with High / Medium / Low / Informational counts
+- `CHANGES` parent header → severity-styled containers (`attention` / `warning` / `good` / `default`)
+- `ACCESS MODEL` parent header → `Compliance` sub-section + `Coverage` flat list
+- Per change: bullet description (with click-through to Entra portal for roles/groups) followed by a `ColumnSet` showing `Property` / `actual` (or `was`) / `expected` (or `changed to`) with monospace cells
+- `View Diff` action at the bottom (when commit URL is inferable)
+
+**Optional High-severity mention**:
+Set `NOTIFICATION_TEAMS_MENTION` to one or more UPNs (comma-separated). When the scan finds High-severity changes, the card prefixes the executive summary with `<at>upn</at>` and includes a `msteams.entities` block so Teams renders a real @-mention (push-notifies the recipient on mobile). No mention fires for Medium/Low-only scans.
+
 ```
-┌─────────────────────────────────┐
-│ PIM Monitor                     │
-│ 2 High, 1 Medium changes       │
-│                                 │
-│ ■ Directory Roles (High)        │
-│   Global Administrator > policy │
-│                                 │
-│ ■ Auth Contexts (Medium)        │
-│   Conditional Access rule       │
-│                                 │
-│ [View diff] 2026-04-27T18:42Z   │
-└─────────────────────────────────┘
+NOTIFICATION_TEAMS_MENTION = oncall@contoso.com,security-lead@contoso.com
 ```
 
 ### Slack
@@ -56,23 +58,23 @@ PIM Monitor **automatically detects** the webhook type by URL pattern.
 4. **Add New Webhook to Workspace** → Select channel → **Allow**
 5. Copy the webhook URL
 
-**Payload format**: Slack blocks (with markdown, colors)
+**Payload format**: Slack Block Kit (`text` push-preview + `blocks`)
 
-**Example**:
-```
-📊 PIM Monitor
-━━━━━━━━━━━━━━━━━━━━━━━━━
-2 High, 1 Medium changes
+**Message structure**:
+- `header` block: `PIM Monitor — change detected`
+- `context` block: tenant name + scan timestamp
+- `section` block: one-sentence executive summary (lead by highest severity present)
+- `section` block: severity counts as fields (`High` / `Medium` / `Low` / `Informational` / `Classification`)
+- `divider` + `header` `CHANGES` (only when git changes exist)
+- Per severity: severity sub-header + one `section` per change containing description bullet and a triple-backtick codeblock of `key: was → changed to` lines
+- `divider` + `header` `ACCESS MODEL` (only when compliance or coverage findings exist)
+  - Compliance sub-sections per severity, codeblock labels `actual → expected`
+  - Coverage as a single flat list section
+- `actions` block: `View Diff` button (commit) + `Open HTML Report` button (when `REPORT_ARTIFACT=true` and the run page URL is inferable)
 
-🔴 High (2)
-• Directory Roles > policy change
-• Auth Contexts > rule update
+**Block-budget safeguard**: Slack limits messages to 50 blocks. Truncation per severity (max 15 git / 10 compliance / 10 coverage items) with `_+N more — see <HTML report|commit diff>_` overflow link. A defensive final trim ensures the message never exceeds 50 blocks.
 
-🟠 Medium (1)
-• PIM Groups > expiration adjusted
-
-[View diff] 2026-04-27 18:42 UTC
-```
+**Mentions**: not supported. Slack requires workspace-specific user/group IDs (`<@U12345>`, `<!subteam^S123>`) that cannot be derived from email/UPN without a Slack API token. If you need oncall paging, prefer Microsoft Teams (which natively supports UPN-based `<at>` mentions, configured via `NOTIFICATION_TEAMS_MENTION`).
 
 ### Discord
 
@@ -81,54 +83,103 @@ PIM Monitor **automatically detects** the webhook type by URL pattern.
 **Setup**:
 1. In Discord, go to **Server Settings** → **Integrations** → **Webhooks**
 2. **Create Webhook**
-3. Name: "PIM Monitor"
+3. Name + avatar: configure on the webhook itself in Discord (PIM Monitor does not override these)
 4. Select channel: where notifications appear
-5. **Copy Webhook URL**
+5. **Copy Webhook URL** → set `NOTIFICATION_WEBHOOK_URL`
 
-**Payload format**: Discord embed (with colors, timestamps)
+**Payload format**: multi-embed Discord webhook (one summary embed + one per severity + Access Model embeds, up to 10 total)
 
-**Example**:
-```
-╔═════════════════════════════════╗
-║ PIM Monitor                     ║
-║ Scan completed: 3 changes       ║
-╠═════════════════════════════════╣
-║ 🔴 High (2)                     ║
-║ • role policy change            ║
-║                                 ║
-║ 🟠 Medium (1)                   ║
-║ • expiration update             ║
-║                                 ║
-║ 2026-04-27 18:42:15 UTC         ║
-╚═════════════════════════════════╝
-```
+**Message structure**:
+- **Summary embed**: title `PIM Monitor — change detected`, color = highest severity present, author block shows `Tenant: <name>` when supplied, description holds the one-sentence executive summary, fields show inline counters (Total / High / Medium / Low / Informational / Classification).
+- **CHANGES embeds** (one per non-empty severity with git changes): title `CHANGES — <Severity> (N)`, color matches severity (red / amber / green / zinc per design palette). Each change is one field with the role/group name as field name and a triple-backtick codeblock value showing `property: actual -> expected` lines.
+- **ACCESS MODEL — Compliance embed** (when present): title `ACCESS MODEL — Compliance (N)`, amber accent color, description explains the `actual -> expected` format, fields list the deviating entities with codeblock diffs.
+- **ACCESS MODEL — Coverage embed** (when present): title `ACCESS MODEL — Coverage (N)`, zinc color, description holds a bullet list of unclassified role names (no per-item field consumption) followed by an inline pointer to `AccessModel/*.json`.
+- **Reports field** on the last embed (only when at least one URL is inferable): `📄 Reports` field with `[Diff](commit-url) • [HTML report](run-url)` markdown links. `Get-CommitDiffUrl` and `Get-ArtifactReportUrl` from `notifications-shared.ps1` provide the URLs; the field is suppressed entirely when neither is available.
+
+**Discord limits honoured**: max 10 embeds, max 25 fields per embed, max 1024 chars per field value. Defensive truncation per pass with `_+N more_` markers and a final clamp that drops trailing embeds if the 10-embed cap is hit.
+
+**`allowed_mentions`**: the payload always sets `allowed_mentions.parse = []`, which guarantees no `@everyone`, `@here`, or role/user pings ever fire from a change description that happened to contain such a token. There is no `NOTIFICATION_DISCORD_MENTION` env-var: Discord is the community/chat channel; use Teams (`NOTIFICATION_TEAMS_MENTION`) for on-call paging.
 
 ### Generic JSON (Custom Webhooks)
 
-**URL pattern**: Any URL NOT matching Teams/Slack/Discord
+**URL pattern**: any URL NOT matching Teams/Slack/Discord. Fallback for Logic Apps, n8n, SIEM ingest endpoints, custom integrations.
 
-For custom APIs, webhooks, or other platforms.
+**Payload contract**: versioned, schema-backed. Current version: **`1.0.0`**.
 
-**Payload format**: Plain JSON
+**JSON Schema**: [`schemas/notification-payload-v1.json`](https://github.com/intothecloud/pim-monitor/blob/main/schemas/notification-payload-v1.json). Consumers should validate against this schema in their own CI. Future breaking changes get a new file (`notification-payload-v2.json`); additive changes bump the `schemaVersion` minor.
+
+**Example payload**:
 
 ```json
 {
-  "text": "[PIM Monitor] 3 changes detected",
-  "summary": "2 High, 1 Medium",
-  "changesBySeverity": {
-    "High": [
-      {
-        "workload": "directory-roles",
-        "entity": "global-administrator",
-        "description": "policy updated",
-        "severity": "High"
-      }
-    ],
-    "Medium": [...],
-    "Low": [...],
-    "Informational": [...]
+  "$schema": "https://raw.githubusercontent.com/intothecloud/pim-monitor/main/schemas/notification-payload-v1.json",
+  "schemaVersion": "1.0.0",
+  "tenant": { "name": "Contoso" },
+  "scan": {
+    "timestamp":   "2026-05-21T11:36:24Z",
+    "commitSha":   "a1b2c3d4e5",
+    "minSeverity": "Medium"
+  },
+  "summary": {
+    "text": "3 High-severity change(s) require review in tenant Contoso.",
+    "counts": {
+      "total": 5, "high": 3, "medium": 1, "low": 1, "informational": 0, "classification": 1
+    }
+  },
+  "changes": [
+    {
+      "severity":    "High",
+      "changeType":  "added",
+      "fileType":    "git",
+      "description": "Directory Roles > Global Administrator > assignment",
+      "context":     "Global Administrator",
+      "roleId":      "62e90394-69f5-4237-9190-012177145e10"
+    }
+  ],
+  "coverage": [
+    { "context": "Attack Payload Author", "entity": "9c6df0f2-..." }
+  ],
+  "urls": {
+    "diff":   "https://github.com/.../commit/a1b2c3",
+    "report": "https://dev.azure.com/.../buildId=12345"
+  },
+  "_legacy": {
+    "text": "PIM Monitor — 5 change(s) detected",
+    "summary": "<plain-text multi-line>",
+    "changesBySeverity": { "high": 3, "medium": 1, "low": 1, "informational": 0, "total": 5 }
   }
 }
+```
+
+**Key fields**:
+- `schemaVersion`: always present. Lock your consumer to a major version.
+- `scan.timestamp` / `scan.commitSha` / `scan.minSeverity`: scan provenance.
+- `summary.text`: one-sentence human-readable summary (same wording as email/Teams/Slack).
+- `summary.counts.*`: severity counts including `classification` (coverage findings).
+- `changes[]`: up to 50 change objects (severity + changeType + fileType + description, plus optional `context` / `roleId` / `groupId`). Overflow signalled by `{ _truncated: true, remaining: N }` placeholder as the final array element.
+- `coverage[]`: up to 50 unclassified entities (`context` + optional `entity` GUID). Same truncation placeholder.
+- `urls.diff` / `urls.report`: only present when the CI platform is detectable and `REPORT_ARTIFACT=true` (report only).
+- `_legacy`: deprecated in v1.0.0, removed in v2.0.0. Mirrors the pre-formalization fields (`text`, `summary`, `changesBySeverity`) so existing consumers keep working while they migrate to the v1 top-level equivalents.
+
+**Validating in a consumer pipeline** (Node example):
+
+```bash
+npm i -D ajv ajv-formats
+node -e "
+  const Ajv = require('ajv').default; const af = require('ajv-formats');
+  const schema = require('./notification-payload-v1.json');
+  const payload = require('./incoming.json');
+  const ajv = new Ajv(); af(ajv);
+  const ok = ajv.compile(schema)(payload);
+  console.log(ok ? 'valid' : ajv.errors);
+"
+```
+
+**Validating in PowerShell** (built-in `Test-Json` since PS7):
+
+```powershell
+$payload | ConvertTo-Json -Depth 20 |
+    Test-Json -SchemaFile ./notification-payload-v1.json
 ```
 
 ## How Auto-Detection Works
@@ -154,7 +205,7 @@ function Get-WebhookType {
 }
 ```
 
-**To detect a custom service**, modify this function to add a new URL pattern:
+To detect a custom service, modify this function to add a new URL pattern:
 
 ```powershell
 elseif ($Url -match "my-custom-api\.com") {
@@ -326,8 +377,8 @@ Set `NOTIFICATION_WEBHOOK_URL` to your service's webhook URL and run the pipelin
 ### Using curl
 
 ```bash
-# Test a Teams webhook (replace with your actual URL)
-curl -X POST https://outlook.webhook.office.com/webhookb2/... \
+# Test a Teams webhook (replace with your Power Automate workflow URL)
+curl -X POST https://prod-00.westeurope.logic.azure.com/workflows/... \
   -H 'Content-Type: application/json' \
   -d '{
     "type": "message",
@@ -439,7 +490,7 @@ Payloads that exceed limits are automatically truncated with "... [more]" indica
 
 ## Related Pages
 
-- [Environment Variables](./environment-variables.md) — NOTIFICATION_WEBHOOK_URL
-- [Email Notifications](./email-notifications.md) — Email setup
-- [Notifications](./notifications.md) — General notification configuration
-- [Scan Errors](./scan-errors.md) — Scan error webhook format
+- [Environment Variables](./environment-variables.md): NOTIFICATION_WEBHOOK_URL
+- [Email Notifications](./email-notifications.md): email setup
+- [Notifications](./notifications.md): general notification configuration
+- [Scan Errors](./scan-errors.md): scan error webhook format

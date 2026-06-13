@@ -7,13 +7,16 @@
 3. [System Context](#3-system-context)
 4. [Component Overview](#4-component-overview)
 5. [Key Design Decisions](#5-key-design-decisions)
-6. [Quality Attributes](#6-quality-attributes)
-7. [Constraints](#7-constraints)
-8. [Architecture Layers](#8-architecture-layers)
-9. [State Model](#9-state-model)
-10. [Scan Run Lifecycle](#10-scan-run-lifecycle)
-11. [External Interfaces](#11-external-interfaces)
-12. [Future Phases](#12-future-phases)
+6. [Design Principles & Quality Guidelines](#6-design-principles--quality-guidelines)
+7. [Quality Attributes (NFRs)](#7-quality-attributes-nfrs)
+8. [Architectural Decision Records (ADRs)](#8-architectural-decision-records-adrs)
+9. [Security Architecture](#9-security-architecture)
+10. [Constraints](#10-constraints)
+11. [Architecture Layers](#11-architecture-layers)
+12. [State Model](#12-state-model)
+13. [Scan Run Lifecycle](#13-scan-run-lifecycle)
+14. [External Interfaces](#14-external-interfaces)
+15. [Future Phases](#15-future-phases)
 
 ---
 
@@ -79,15 +82,24 @@ PIM Monitor fills this gap with a scheduled, low-overhead scan that stores every
 
 ## 4. Component Overview
 
-| Component | File | Responsibility |
+| Component | File(s) | Responsibility |
 |---|---|---|
 | Orchestrator | `src/Scan-PimState.ps1` | Top-level scan flow, module imports, error handling |
 | Graph endpoints | `src/graphEndpoints.ps1` | URI constants and per-item URI builders |
-| Helpers | `src/helpers.ps1` | Pagination, JSON serialization, inventory I/O |
+| Helpers | `src/helpers.ps1` | Pagination, JSON serialization, inventory I/O, shared helpers |
 | Diff engine | `src/diff.ps1` | Change detection, severity classification, noise suppression |
+| Compliance | `src/compliance.ps1` | Access model compliance: tier rules, coverage, CA policy checks |
 | Git operations | `src/git.ps1` | Commit, push, rebase on conflict |
-| Notifications | `src/notifications.ps1` | Email (Graph), webhooks (Teams / Slack / Discord / generic) |
-| Pipeline definition | `monitor-pipeline.yml` | Schedule, authentication task, git commit step |
+| Notifications (shared) | `src/notifications-shared.ps1` | Diff-rendering helpers, exec summary, CI URL builders — used by all channels |
+| Notifications (email) | `src/notifications-email.ps1` | HTML body renderer + Graph sendMail |
+| Notifications (webhook) | `src/notifications-webhook.ps1` | Dispatcher: URL detection + platform delegation + generic JSON payload |
+| Notifications (Teams) | `src/notifications-webhook-teams.ps1` | Adaptive Card 1.6 payload builder |
+| Notifications (Slack) | `src/notifications-webhook-slack.ps1` | Block Kit payload builder |
+| Notifications (Discord) | `src/notifications-webhook-discord.ps1` | Embeds payload builder |
+| Notifications (HTML) | `src/notifications-html.ps1` | Standalone HTML scan report artifact |
+| Notifications (errors) | `src/notifications-error.ps1` | Separate channel for component-level scan failures |
+| Upstream check | `src/Send-UpstreamUpdate.ps1` | Notifies when a newer PIM Monitor release is available |
+| Pipeline definition | `monitor-pipeline.yml` | Schedule, authentication task, artifact publish |
 
 ---
 
@@ -131,9 +143,9 @@ Rationale:
 
 PowerShell is the implementation language because:
 - It is natively available on ubuntu-latest hosted agents (no setup step).
-- The Microsoft Graph PowerShell SDK is the Microsoft-supported first-class client.
+- `AzurePowerShell@5` provides first-class WIF token acquisition via `Get-AzAccessToken -ResourceTypeName MSGraph`.
+- Graph API is called via `Invoke-RestMethod` directly — no SDK installation or version pinning required.
 - Maester.dev has proven this model at scale for Azure DevOps-based security monitoring.
-- `AzurePowerShell@5` provides first-class WIF token acquisition.
 
 ### 5.5 Deterministic JSON
 
@@ -147,21 +159,157 @@ All inventory file writes go through `ConvertTo-DeterministicJson` (in `helpers.
 
 ---
 
-## 6. Quality Attributes
+## 6. Design Principles & Quality Guidelines
 
-| Attribute | Goal | Mechanism |
-|---|---|---|
-| Correctness | No false positives or missed changes | Deterministic JSON; full fetch (no delta) |
-| Auditability | Complete change history | Git commits; one commit per scan with ISO timestamp |
-| Security | No credentials in code or pipeline variables | Workload Identity Federation; no `CLIENT_SECRET` |
-| Reliability | Handles Graph throttling and push conflicts | Exponential backoff; push-with-rebase |
-| Maintainability | Declarative severity rules | Lookup tables in `diff.ps1`; no if/else cascades |
-| Extensibility | New API fields appear automatically | Full response storage; no `$select` filtering |
-| Observability | Pipeline logs + HTML scan report artifact | `Write-StepLog` throughout; `Export-ScanReport` |
+### 6.1 Modularity
+
+The codebase is built from **loosely coupled modules** that each have exactly one responsibility:
+
+```
+monitor-pipeline.yml
+        |
+        v
+Scan-PimState.ps1          (orchestrator — no business logic)
+        |
+        +-- graphEndpoints.ps1         (URI construction only)
+        |
+        +-- helpers.ps1                (I/O, JSON, pagination)
+        |
+        +-- diff.ps1                   (change detection, severity)
+        |
+        +-- compliance.ps1             (access model evaluation)
+        |
+        +-- git.ps1                    (commit + push)
+        |
+        +-- notifications-shared.ps1   (shared rendering helpers)
+        |
+        +-- notifications-email.ps1
+        +-- notifications-webhook.ps1  (dispatcher)
+        +-- notifications-webhook-teams.ps1
+        +-- notifications-webhook-slack.ps1
+        +-- notifications-webhook-discord.ps1
+        +-- notifications-html.ps1
+        +-- notifications-error.ps1
+```
+
+**Guidelines:**
+- Modules communicate only via function parameters and return values — never via shared mutable global state.
+- The orchestrator (`Scan-PimState.ps1`) composes modules; individual modules do not call each other. The one exception is `diff.ps1` calling `ConvertTo-DeterministicJson` from `helpers.ps1`, which is why `helpers.ps1` is always sourced first.
+- New data sources (e.g. security alerts, pending requests — see [Future Phases](#15-future-phases)) can be added as their own fetch/diff path without modifying existing modules.
+
+**Notification scaling rule — one channel = one file:**
+
+When adding a new webhook target (Mattermost, PagerDuty, n8n, etc.):
+1. Create `src/notifications-webhook-<platform>.ps1` with `Build-<Platform>Payload`.
+2. Add a URL-pattern match to `Get-WebhookType` in `notifications-webhook.ps1`.
+3. Add a `switch` case in `Send-WebhookNotification` and `notifications-error.ps1`.
+4. Dot-source the new file in `Scan-PimState.ps1` before `notifications-webhook.ps1`.
+
+Never add a second payload builder to an existing channel file. The cost of one extra file is dwarfed by the cost of editing a 700-line file where unrelated builders share a namespace.
+
+### 6.2 Clean Code
+
+| Principle | Application in PIM Monitor |
+|---|---|
+| **Meaningful Names** | `Compare-PolicyRules` not `Check-Policy`; `Get-InventorySlug` not `Slugify`; `Group-ChangesBySeverity` not `Sort-Changes` |
+| **Approved Verbs** | PowerShell approved verbs throughout: `Get-`, `Compare-`, `Save-`, `Publish-`, `Send-`, `Export-`, `Build-`, `Move-`, `Test-`, `Convert-` |
+| **Small Functions** | Functions do one thing; complex operations are split into named helper functions |
+| **DRY** | Shared diff-rendering helpers (`Format-DiffValue`, `Get-ChangeDiffRows`) live in `notifications-shared.ps1` and are called by all channels — never duplicated as inline closures |
+| **StrictMode** | `Set-StrictMode -Version Latest` enforced throughout; null-conditional `?.` is used with explicit null-check fallbacks for multi-level property chains |
+| **Error Handling** | Never `catch { }` (empty catch). Every caught error is logged and appended to `$scanErrors` |
+
+**Naming conventions:**
+
+```powershell
+# Files
+diff.ps1                          # {concern}.ps1
+notifications-webhook-teams.ps1   # notifications-{channel}-{platform}.ps1
+
+# Functions (Verb-Noun, PowerShell approved verb)
+Compare-PolicyRules
+Get-InventorySlug
+ConvertTo-DeterministicJson
+Test-IsPimGroupWrapper
+
+# Variables
+$scanErrors                       # camelCase for local/script scope
+$script:DiffIgnoreProperties      # $script: prefix for module-level state
+$script:SeverityRank              # $script: prefix for module-level lookup tables
+```
+
+### 6.3 No Silent Failure
+
+Every component failure is captured — never swallowed.
+
+- Each module appends failures to the shared `$scanErrors` collection in the orchestrator.
+- A single role's policy fetch failing does not abort the scan. The error is collected and `Send-ScanErrorNotification` fires at the end of the run, independently of the change notification.
+- Empty catch blocks (`catch { }`) are forbidden. A swallowed error is invisible in pipeline logs and defeats the monitoring purpose of the tool.
+- Partial success is valid: if 143 of 144 roles succeed, the scan commits the 143 and reports the failure for the 144th.
 
 ---
 
-## 7. Constraints
+## 7. Quality Attributes (NFRs)
+
+| Attribute | Goal | How Achieved |
+|---|---|---|
+| **Correctness** | No false positives, no missed changes | Deterministic JSON; full fetch (no delta); `-in .Keys` instead of `.ContainsKey()` for `OrderedDictionary` compatibility (PS 7.3+) |
+| **Idempotency** | Two successive runs with no tenant changes produce no git commit and no notification | Byte-for-byte identical JSON output via `ConvertTo-DeterministicJson`; git commit only when staged changes exist |
+| **Auditability** | Complete change history, queryable externally | One git commit per scan with ISO timestamp; `git log` and `git diff` expose the full timeline; ADO Git REST API queryable by PIM Manager |
+| **Security** | No credentials in code or pipeline variables | Workload Identity Federation; OIDC token never stored; no `CLIENT_SECRET` |
+| **Reliability** | Handles Graph throttling and push conflicts | Exponential backoff with jitter (`Invoke-WithRetry`); push-with-rebase on conflict |
+| **Maintainability** | Declarative severity rules; modular notification channels | Lookup tables in `diff.ps1`; one file per channel; shared helpers in `notifications-shared.ps1` |
+| **Extensibility** | New API fields appear automatically; new channels added without touching existing files | Full response storage (no `$select`); one-channel-one-file rule |
+| **Observability** | Pipeline logs show scan progress at each step | Timestamped `Write-Host` throughout; `Export-ScanReport` HTML artifact; `Send-ScanErrorNotification` for component failures |
+
+---
+
+## 8. Architectural Decision Records (ADRs)
+
+Key decisions documented for future maintainers:
+
+| # | Decision | Status | Rationale |
+|---|---|---|---|
+| ADR-001 | **Azure DevOps Pipelines** over Azure Functions | ✅ Accepted | No extra infrastructure; enterprise familiarity; WIF native in `AzurePowerShell@5` |
+| ADR-002 | **Git as state store** (no external DB) | ✅ Accepted | Audit trail for free; no Blob/Cosmos setup; queryable via ADO Git REST API |
+| ADR-003 | **Full fetch + diff** over delta queries | ✅ Accepted | Self-healing on missed runs; no delta token persistence; data volume is small |
+| ADR-004 | **PowerShell** over Bash/Python | ✅ Accepted | Native on ubuntu-latest; `AzurePowerShell@5` WIF integration; proven by Maester.dev |
+| ADR-005 | **`ConvertTo-DeterministicJson`** for all inventory writes | ✅ Accepted | Prevents false-positive git diffs from Graph API property order changes |
+| ADR-006 | **One notification channel = one file** | ✅ Accepted | Each channel evolves independently; avoids 700-line multi-builder files |
+| ADR-007 | **`ConvertFrom-Json -AsHashtable`** returns `OrderedDictionary` in PS 7.3+ | ⚠️ Risk Accepted | Use `-in $dict.Keys` instead of `$dict.ContainsKey($k)` everywhere dicts originate from JSON parsing |
+| ADR-008 | **No Microsoft.Graph SDK**; plain `Invoke-RestMethod` | ✅ Accepted | Eliminates install/cache pipeline step; `Az.Accounts` token via `Get-AzAccessToken` works directly |
+| ADR-009 | **`Set-StrictMode -Version Latest`** throughout | ✅ Accepted | Catches undefined variables and null-access at runtime rather than silently returning `$null` |
+| ADR-010 | **`ThrottleLimit 5` + per-thread `Invoke-WithRetry`**, no shared backpressure | ✅ Accepted | Data volume is small; ThrottleLimit was empirically tuned down from 8 to 5 to reduce sustained Graph 429s. Sharing backpressure state across isolated `-Parallel` runspaces requires synchronization primitives that add complexity and risk to the critical fetch path. If structural 429-throttling persists despite ThrottleLimit 5 (visible as repeated retry-wait lines in pipeline logs or scan durations exceeding 5 minutes), revisit with a coordinated semaphore or lower ThrottleLimit. |
+
+---
+
+## 9. Security Architecture
+
+### Data Classification
+
+| Data | Sensitivity | Storage | Lifetime |
+|---|---|---|---|
+| Graph API access token | High | Memory only (pipeline agent) | Single scan run |
+| Inventory files (PIM state) | Medium | Git repository | Permanent (audit history) |
+| Webhook URL | Medium | Pipeline secret variable | Permanent |
+| Notification email address | Low | Pipeline variable | Permanent |
+
+Inventory files contain PIM role assignments and policy configurations — not access tokens, passwords, or personal data beyond display names and UPNs already present in your Entra tenant.
+
+### Security Principles
+
+1. **No client secrets.** Authentication is via Workload Identity Federation. The OIDC token is short-lived (10 minutes), issued by Azure DevOps, and never stored anywhere.
+2. **Least privilege.** The App Registration holds read-only permissions for all PIM data. `Mail.Send` is the only write permission and can be scoped to a single sender mailbox via an [application access policy](https://learn.microsoft.com/en-us/graph/auth-limit-mailbox-access).
+3. **No data exfiltration.** The only outbound writes are: git push to the same repository, email via Graph `sendMail`, and HTTP POST to the configured webhook URL. No third-party services are contacted.
+4. **No agent-local secrets.** Pipeline variables marked as secret are masked in logs. The scan script never logs token values or webhook URLs.
+
+### Data in Transit
+
+- **HTTPS only.** All Graph API calls and webhook POSTs are HTTPS. Git push uses HTTPS with the ADO service connection credential.
+- **No data stored on agents.** Hosted agents are ephemeral; all state lives in the git repository.
+
+---
+
+## 10. Constraints
 
 - **PowerShell 7.x required.** `Set-StrictMode -Version Latest` is enforced. The `?.` null-conditional operator and `-AsHashtable` on `ConvertFrom-Json` are 7.x features.
 - **`AzurePowerShell@5` task.** Authentication is tied to this task type; changing to a different task type requires reworking token acquisition.
@@ -171,7 +319,7 @@ All inventory file writes go through `ConvertTo-DeterministicJson` (in `helpers.
 
 ---
 
-## 8. Architecture Layers
+## 11. Architecture Layers
 
 ```
 monitor-pipeline.yml         (pipeline schedule + task definitions)
@@ -183,20 +331,34 @@ Scan-PimState.ps1            (orchestrator — scan loop, error handling)
         |
         +-- helpers.ps1           (Get-AllGraphItems, ConvertTo-DeterministicJson,
         |                          Save-InventoryFile, New-InventoryFolder,
-        |                          Get-InventorySlug)
+        |                          Get-InventorySlug, Get-ObjectKeys,
+        |                          Get-AssignmentEndDateTime, Test-IsPimGroupWrapper)
         |
         +-- diff.ps1              (Compare-InventoryFolder, Compare-PolicyRules,
         |                          Compare-Assignments, Compare-FlatProperties,
         |                          Find-ExpiringAssignments, Test-ChangeIsExpected,
         |                          Group-ChangesBySeverity)
         |
+        +-- compliance.ps1        (Get-ComplianceViolations, Get-GroupComplianceViolations,
+        |                          Get-AuthContextPolicyCompliance,
+        |                          Get-CoverageViolations, Get-GroupCoverageViolations)
+        |
         +-- git.ps1               (Publish-InventoryChanges, Get-StagedChanges,
         |                          Get-InventoryFileFromGit)
         |
-        +-- notifications.ps1     (Send-EmailNotification, Send-WebhookNotification,
-                                   Format-ChangeSummaryHtml, Format-ChangeSummaryText,
-                                   Build-TeamsPayload, Build-SlackPayload,
-                                   Build-DiscordPayload, Export-ScanReport)
+        +-- notifications-shared.ps1   (Format-DiffValue, Test-DiffScalar,
+        |                               Get-DiffPropertyRows, Get-ChangeDiffRows,
+        |                               Get-ExecutiveSummaryLine, Format-ChangeSummaryText,
+        |                               Get-CommitDiffUrl, Get-ArtifactReportUrl)
+        |
+        +-- notifications-email.ps1         (Build-EmailChangeHtml, Send-EmailNotification)
+        +-- notifications-webhook.ps1       (Get-WebhookType, Send-WebhookNotification,
+        |                                    Build-GenericPayload)
+        +-- notifications-webhook-teams.ps1  (Build-TeamsPayload)
+        +-- notifications-webhook-slack.ps1  (Build-SlackPayload)
+        +-- notifications-webhook-discord.ps1 (Build-DiscordPayload)
+        +-- notifications-html.ps1           (Build-HtmlReport, Export-ScanReport)
+        +-- notifications-error.ps1          (Send-ScanErrorNotification)
 ```
 
 Each module has a single responsibility. The orchestrator composes them; individual modules do not call each other.
@@ -206,7 +368,7 @@ Each module has a single responsibility. The orchestrator composes them; individ
 
 ---
 
-## 9. State Model
+## 12. State Model
 
 ### Inventory structure
 
@@ -224,6 +386,9 @@ inventory/
 │       └── assignments.json   (member/owner × permanent/eligible/active)
 ├── authentication-contexts/   (lookup: resolve claimValue → displayName)
 │   └── {slug}/
+│       └── definition.json
+├── conditional-access/        (CA policies targeting authentication contexts)
+│   └── {policy-slug}/
 │       └── definition.json
 ├── administrative-units/      (lookup: resolve directoryScopeId → displayName)
 │   └── {slug}/
@@ -250,6 +415,7 @@ inventory/
 ### Slug derivation
 
 Folder names are derived from `displayName` via `Get-InventorySlug`:
+- NFD-normalized, then non-ASCII characters removed (diacritics stripped: "Café" → "cafe").
 - Lowercased.
 - Non-word characters (except spaces and hyphens) removed.
 - Spaces and consecutive hyphens collapsed to a single hyphen.
@@ -259,24 +425,26 @@ Example: `"Global Administrator"` → `"global-administrator"`.
 
 ---
 
-## 10. Scan Run Lifecycle
+## 13. Scan Run Lifecycle
 
 1. **Module import.** `Scan-PimState.ps1` dot-sources all modules in dependency order.
-2. **Token acquisition.** `Get-AzAccessToken -ResourceTypeName MSGraph` via the `AzurePowerShell@5` task context.
-3. **Lookup fetches.** Authentication contexts and administrative units fetched and inventoried.
+2. **Token acquisition.** `Get-AzAccessToken -ResourceTypeName MSGraph` via the `AzurePowerShell@5` task context. Token is unwrapped from `SecureString` via `NetworkCredential`.
+3. **Lookup fetches.** Authentication contexts, Conditional Access policies, and administrative units fetched and inventoried.
 4. **Activation events.** PIM audit log events since the last recorded event appended to the current month file.
-5. **Directory Roles.** All role definitions fetched; policies and assignments fetched in parallel per role (ThrottleLimit 3). Results post-processed sequentially for diff and write.
+5. **Directory Roles.** All role definitions fetched; policies and assignments fetched in parallel per role (ThrottleLimit 5). Results post-processed sequentially for diff and write.
 6. **PIM Groups.** All PIM-onboarded groups discovered; policies and assignments fetched per group sequentially.
 7. **Expiring assignments.** All assignment sets scanned for entries expiring within `EXPIRING_WINDOW_DAYS` (default 14).
-8. **Expected-change filtering.** Changes matching entries in `expected-changes.json` are suppressed; expired entries cleaned up.
-9. **Severity grouping.** `Group-ChangesBySeverity` aggregates all changes into High / Medium / Low / Informational buckets.
-10. **HTML report** (optional). Written to `$BUILD_ARTIFACTSTAGINGDIRECTORY` when `REPORT_ARTIFACT=true`.
+8. **Expected-change filtering.** Changes matching entries in `expected-changes.json` are suppressed; expired and consumed entries cleaned up.
+9. **Access model compliance.** When `AccessModel/` folder is present: role and group compliance violations evaluated against tier definitions; CA policy compliance evaluated against auth context requirements. Violations added to the change set.
+10. **Severity grouping.** `Group-ChangesBySeverity` aggregates all changes into High / Medium / Low / Informational buckets.
 11. **Git commit.** `Publish-InventoryChanges` stages `inventory/`, commits with `scan: {timestamp}`, pushes to `origin HEAD:main`.
-12. **Notifications.** Email and/or webhook sent if changes meet the minimum severity threshold.
+12. **HTML report** (optional). Written to `$BUILD_ARTIFACTSTAGINGDIRECTORY` when `REPORT_ARTIFACT=true`.
+13. **Notifications.** Email and/or webhook sent if changes meet the minimum severity threshold.
+14. **Scan error notification.** If `$scanErrors` is non-empty, `Send-ScanErrorNotification` fires independently of step 13.
 
 ---
 
-## 11. External Interfaces
+## 14. External Interfaces
 
 | Interface | Direction | Protocol | Purpose |
 |---|---|---|---|
@@ -288,7 +456,7 @@ Example: `"Global Administrator"` → `"global-administrator"`.
 
 ---
 
-## 12. Future Phases
+## 15. Future Phases
 
 | Phase | Feature | Notes |
 |---|---|---|

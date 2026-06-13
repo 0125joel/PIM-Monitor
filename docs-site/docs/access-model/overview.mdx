@@ -1,0 +1,210 @@
+---
+sidebar_position: 1
+slug: /access-model
+title: Access Model and Desired-State PIM Policy Compliance
+sidebar_label: Access Model
+description: An optional, opt-in layer that classifies Entra directory roles by Enterprise Access Model plane and enforces desired-state PIM policy compliance.
+keywords:
+  - Enterprise Access Model
+  - PIM policy compliance
+  - desired-state configuration
+  - Entra directory roles
+  - privileged access security levels
+  - role classification
+---
+
+import JsonLd from '@site/src/components/JsonLd';
+
+export const howToSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'Enforce desired-state PIM policy compliance with the PIM Monitor access model',
+  description:
+    'Classify Microsoft Entra directory roles by Enterprise Access Model plane and enforce a target PIM activation policy per role.',
+  step: [
+    {
+      '@type': 'HowToStep',
+      name: 'Look up each role',
+      text: 'Find each role in the EAM Role Catalog to get its plane, recommended severity, and recommended PIM policy.',
+      url: 'https://pimmonitor.com/docs/access-model/eam-role-catalog',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Author access-model files',
+      text: 'Create JSON files in the AccessModel/ directory, one per group of roles, defining severity and expectedConfig.',
+      url: 'https://pimmonitor.com/docs/access-model/setup-compliance',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Run a scan',
+      text: 'PIM Monitor compares each role live policy against your expectedConfig and reports drift.',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Act on the alerts',
+      text: 'Resolve compliance violations by fixing the policy in Entra or suppressing a known deviation, and classify or exclude any uncovered roles.',
+    },
+  ],
+};
+
+export const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Do I need the access model to use PIM Monitor?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. The access model is an optional, opt-in layer. Core change detection works without it. You only need it if you want desired-state PIM policy compliance per role.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How do I turn the access model on or off?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'There is no variable or feature flag. The folder is the switch: create an AccessModel/ directory in the repository root with at least one JSON file to enable it, and delete the folder to disable it.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What is the difference between a compliance check and a coverage check?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'A compliance check fires when a role in an access-model file with an expectedConfig has a live policy that deviates from it, and lands in the normal High, Medium, or Low section. A coverage check fires when an inventory role appears in no access-model file, and lands in a separate Classification section. Compliance is operational, coverage is governance backlog.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What are the three EAM planes?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Control plane covers identity and authentication infrastructure (Privileged, High severity). Management plane covers workload administration such as Exchange, Intune, and SharePoint (Specialized, Medium severity). Data plane covers mostly read-only, limited-blast-radius roles (Enterprise, Low severity).',
+      },
+    },
+  ],
+};
+
+# Access Model
+
+<JsonLd schema={[howToSchema, faqSchema]} />
+
+The access model is an optional layer on top of PIM Monitor's core scanning. It lets you declare, per role, how strict the PIM policy should be, and then flags any role whose live policy drifts from that target or that you have not classified yet.
+
+You only need it if you want desired-state compliance. Core change detection works without it.
+
+## Turn it on or off
+
+There is no variable and no feature flag. The folder is the switch:
+
+- **Enable:** create an `AccessModel/` directory in the repository root and add at least one JSON file.
+- **Disable:** delete the folder.
+
+If `AccessModel/` is absent, everything on these pages is skipped and PIM Monitor behaves as if the feature does not exist.
+
+## The 4-step path
+
+1. **Look up each role** in the [EAM Role Catalog](./eam-role-catalog.mdx). It tells you the role's plane, its recommended severity, and a recommended PIM policy.
+2. **Author access-model files** in `AccessModel/`, one per group of roles (typically one per plane). The catalog's **Copy AccessModel JSON** buttons generate these for you. See [Setup & Compliance](./setup-compliance.mdx).
+3. **Run a scan.** PIM Monitor compares each role's live policy against your `expectedConfig` and reports drift.
+4. **Act on the two kinds of alert** below.
+
+For a fully worked example of one role, see [Setup & Compliance](./setup-compliance.mdx#worked-example-global-administrator).
+
+## The two checks
+
+Every scan runs two independent checks. Keeping them apart is the key to reading the notifications:
+
+| Check | Triggers when | Shows up in | What to do |
+|---|---|---|---|
+| **Compliance** | A role is in an access-model file with an `expectedConfig`, but its live policy deviates | The normal High / Medium / Low sections, at the file's `severity` | Fix the policy in Entra, or [suppress](./setup-compliance.mdx#advanced-suppressing-a-known-deviation) the known deviation |
+| **Coverage** | A role is in the inventory but appears in no access-model file | A separate Classification section | [Classify the role](./setup-compliance.mdx) or [exclude it](./coverage-exclusions.md) |
+
+Compliance is operational (something is wrong now). Coverage is governance backlog (something is not yet classified). They are deliberately rendered in different places so you can triage at a glance.
+
+## One role, three labels
+
+The hardest part of EAM is that a role carries three related-but-distinct labels. This table reconciles them:
+
+| EAM plane | SPA level | Severity |
+|---|---|---|
+| **Control** (identity and auth infrastructure) | Privileged | High |
+| **Management** (workload admin: Exchange, Intune, SharePoint, ...) | Specialized | Medium |
+| **Data** (mostly read-only, limited blast radius) | Enterprise | Low |
+
+The catalog derives the SPA level from the plane, and the level sets both the severity and the recommended PIM policy:
+
+- **Privileged** (severity High): 1h activation, MFA, approval, justification, phishing-resistant + sign-in frequency
+- **Specialized** (severity Medium): 4h activation, MFA, approval, justification, phishing-resistant
+- **Enterprise** (severity Low): 8h activation, MFA, justification, standard MFA
+
+Severity follows the level, not the plane directly, and mirrors Microsoft's three security levels as a clean gradient: Privileged maps to High, Specialized to Medium, Enterprise to Low. So a plain Management-plane workload admin is Medium, while a role pushed to Privileged (by `isPrivileged` or the escape clause below) is High, and a read-only Data-plane role is Low.
+
+Two rules push a role to Privileged regardless of its plane:
+
+- **isPrivileged**: any role Microsoft flags `isPrivileged = true` is Privileged.
+- **Blast-radius escape clause**: workload admins with full service control and direct data impact (Exchange, SharePoint, Teams, Power Platform, Dynamics 365, Fabric, Azure DevOps, Windows 365, Yammer, Knowledge) are treated as Privileged even though `isPrivileged = No`, because controlling every mailbox or every site is a privileged-level blast radius.
+
+The important mental model: classifying a role produces two separate outputs.
+
+- A **severity**, which decides *where a deviation lands* in the notification. You write this in the file's `severity` field.
+- A **recommended policy**, which decides *how strict* the role's PIM settings should be. You write this in `expectedConfig`.
+
+The catalog gives you both per role; you do not have to derive them yourself.
+
+
+<details>
+<summary>If you are migrating from the legacy Tier 0/1/2 model</summary>
+
+The legacy AD tier model was designed to *prevent* privilege escalation between on-prem asset tiers: identity systems (Tier 0), workloads and member servers (Tier 1), and end-user devices (Tier 2). EAM keeps that goal but reframes it around access planes: what a role *controls*, on-prem and cloud alike. PIM Monitor's scope is privileged access, so the variable you classify per role is the plane. The plane sets the recommended SPA level, and the level sets the severity.
+
+| Legacy tier | EAM plane | SPA level | Severity |
+|---|---|---|---|
+| **Tier 0** (identity, highest impact) | Control | Privileged | High |
+| **Tier 1** (workload admin) | Management | Specialized | Medium |
+| **Tier 1** (per-workload, read-only) | Data | Enterprise | Low |
+| **Tier 2** (end users, devices) | User / App access pathways | n/a | Out of scope |
+
+Severity follows the level, not the plane: Privileged maps to High, Specialized to Medium, Enterprise to Low. Most Tier 1 workload-admin roles are Specialized, so they land at Medium, unless `isPrivileged` or the blast-radius escape clause pushes them to Privileged (High).
+
+This is orientation, not a one-to-one rename. Reclassify each role from the [EAM Role Catalog](./eam-role-catalog.mdx) rather than porting its old tier label. Two specifics:
+
+- **Specialized** is an SPA level, not an EAM plane, and has no legacy-tier equivalent; see [One role, three labels](#one-role-three-labels) above. Specialized roles are Medium.
+- Legacy **Tier 2** (user workstations and devices) became the **User access** and **App access** pathways, not a plane. These are end-user and API access, outside PIM Monitor's privileged-role scope.
+
+See [Microsoft's Enterprise Access Model](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-access-model) for the strategic context.
+
+</details>
+
+## One optional setting
+
+| Variable | Default | Description |
+|---|---|---|
+| `EAM_COVERAGE_SCOPE` | `privileged` | `privileged` = only check roles with `isPrivileged=true` for coverage; `all` = check every inventory role. Applies to directory roles only, never to groups. |
+
+## Frequently asked questions
+
+### Do I need the access model to use PIM Monitor?
+
+No. The access model is an optional, opt-in layer. Core change detection works without it. You only need it if you want desired-state PIM policy compliance per role.
+
+### How do I turn the access model on or off?
+
+There is no variable or feature flag. The folder is the switch: create an `AccessModel/` directory in the repository root with at least one JSON file to enable it, and delete the folder to disable it.
+
+### What is the difference between a compliance check and a coverage check?
+
+A compliance check fires when a role in an access-model file with an `expectedConfig` has a live policy that deviates from it, and lands in the normal High, Medium, or Low section. A coverage check fires when an inventory role appears in no access-model file, and lands in a separate Classification section. Compliance is operational; coverage is governance backlog.
+
+### What are the three EAM planes?
+
+Control plane covers identity and authentication infrastructure (Privileged, High severity). Management plane covers workload administration such as Exchange, Intune, and SharePoint (Specialized, Medium severity). Data plane covers mostly read-only, limited-blast-radius roles (Enterprise, Low severity).
+
+## Where to next
+
+- [EAM Role Catalog](./eam-role-catalog.mdx): look up plane, level, and recommended policy per role
+- [Setup & Compliance](./setup-compliance.mdx): author files, enforce `expectedConfig`, worked example
+- [Coverage & Exclusions](./coverage-exclusions.md): handle unclassified roles
+- [PIM Groups](./pim-groups.md): classify PIM-enabled groups
+- [Auth Context CA Compliance](./auth-context-compliance.md): verify the CA policies behind activation auth contexts

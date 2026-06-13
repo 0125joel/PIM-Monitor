@@ -1,0 +1,42 @@
+{
+  "name": "Control Plane - Enterprise",
+  "description": "Roles on the Control Plane that are read-only, governance, or default user roles. Microsoft Graph isPrivileged = false, Control Plane reader or governance category. PIM provides audit trail; approval overhead not warranted.",
+  "plane": "Control",
+  "securityLevel": "Enterprise",
+  "roles": [
+    { "id": "adb2368d-a9be-41b5-8667-d96778e081b0", "displayName": "Agent ID Developer" },
+    { "id": "6b942400-691f-4bf0-9d12-d8a254a2baf5", "displayName": "Agent Registry Administrator" },
+    { "id": "ffd52fa5-98dc-465c-991d-fc073eb59f8f", "displayName": "Attribute Assignment Reader" },
+    { "id": "8424c6f0-a189-499e-bbd0-26c1753c96d4", "displayName": "Attribute Definition Administrator" },
+    { "id": "1d336d2c-4ae8-42ef-9711-b3604ce3fc2c", "displayName": "Attribute Definition Reader" },
+    { "id": "5b784334-f94b-471a-a387-e7219fc49ca2", "displayName": "Attribute Log Administrator" },
+    { "id": "9c99539d-8186-4804-835f-fd51ef9e2dcd", "displayName": "Attribute Log Reader" },
+    { "id": "fc8ad4e2-40e4-4724-8317-bcda7503ecbf", "displayName": "Customer Delegated Admin Relationship Administrator" },
+    { "id": "5c4f9dcd-47dc-4cf7-8c9a-9e4207cbfc91", "displayName": "Customer LockBox Access Approver" },
+    { "id": "88d8e3e3-8f55-4a1e-953a-9b9898b8876b", "displayName": "Directory Readers" },
+    { "id": "d35481f7-cda1-4fa2-8344-5a21f7f3724d", "displayName": "Entra Customer Lockbox Approver" },
+    { "id": "dd13091a-6207-4fc0-82ba-3641e056ab95", "displayName": "Extended Directory User Administrator" },
+    { "id": "0f971eea-41eb-4569-a71e-57bb8a3eff1e", "displayName": "External ID User Flow Attribute Administrator" },
+    { "id": "95e79109-95c0-4d8e-aee3-d01accf2d47b", "displayName": "Guest Inviter" },
+    { "id": "10dae51f-b6af-4016-8d66-8c2a99b929b3", "displayName": "Guest User" },
+    { "id": "92ed04bf-c94a-4b82-9729-b799a7a4c178", "displayName": "Organizational Branding Administrator" },
+    { "id": "e48398e2-f4bb-4074-8f31-4586725e205b", "displayName": "Organizational Messages Approver" },
+    { "id": "024906de-61e5-49c8-8572-40335f1e0e10", "displayName": "People Administrator" },
+    { "id": "af78dc32-cf4d-46f9-ba4e-4428526346b5", "displayName": "Permissions Management Administrator" },
+    { "id": "2af84b1e-32c8-42b7-82bc-daa82404023b", "displayName": "Restricted Guest User" },
+    { "id": "112ca1a2-15ad-4102-995e-45b0bc479a6a", "displayName": "Tenant Creator" },
+    { "id": "1981f584-96e9-4a6f-95b0-f522373f8fae", "displayName": "Tenant Governance Administrator" },
+    { "id": "e0a4caa6-fe82-443f-b92f-d87341d17b2e", "displayName": "Tenant Governance Reader" },
+    { "id": "b8e31d83-1534-480f-9b10-0338ded51b7e", "displayName": "Tenant Governance Relationship Administrator" },
+    { "id": "124577f8-48ed-456a-839f-13b419002e33", "displayName": "Tenant Governance Relationship Reader" },
+    { "id": "a0b1b346-4d3e-4e8b-98f8-753987be4970", "displayName": "User" },
+    { "id": "27460883-1df1-4691-b032-3b79643e5e63", "displayName": "User Experience Success Manager" }
+  ],
+  "expectedConfig": {
+    "maxActivationDuration": "PT8H",
+    "requireJustification": true,
+    "requireMFA": true,
+    "requireApproval": false,
+    "allowPermanentActive": false
+  }
+}

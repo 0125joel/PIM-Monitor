@@ -9,6 +9,12 @@ function ConvertTo-DeterministicJson {
         with an 'id' field are sorted by id. This ensures inventory files produce identical
         output across runs regardless of Graph API property ordering.
 
+        Deliberate boundary: arrays of objects WITHOUT an 'id' field and non-string scalar
+        arrays keep their original order. Sorting those would corrupt semantically ordered
+        data (e.g., approval stages in policy rules, where array position is the escalation
+        order). If Graph ever reorders such an array between scans, that shows up as a diff;
+        accept that over silently rewriting meaningful order.
+
     .PARAMETER InputObject
         The object to serialize. Accepts pipeline input. Null is allowed.
 
@@ -42,6 +48,7 @@ function ConvertTo-DeterministicJson {
                         $items = @($items | Sort-Object)
                     }
                 }
+                # unary comma prevents PowerShell from unwrapping single-element arrays
                 return , $items
             }
 
@@ -158,16 +165,31 @@ function Invoke-WithRetry {
         catch {
             $attempt++
             if ($attempt -ge $MaxAttempts) { throw }
-            $isRetryable = ($_ -match '429') -or ($_ -match 'Too Many Requests') -or ($_ -match '5\d\d')
+
+            # Classify on the actual HTTP status code when available. Matching the message
+            # string alone misfires: error messages embed URIs and GUIDs, and any digit run
+            # like "429" or "5xx" inside those would make a permanent 403/404 "retryable".
+            $statusCode = $null
+            try {
+                $response = $_.Exception.PSObject.Properties['Response']?.Value
+                if ($response) { $statusCode = [int]$response.StatusCode }
+            } catch { Write-Debug "Failed to read response status code" }
+
+            $isRetryable = if ($statusCode) {
+                ($statusCode -eq 429) -or ($statusCode -ge 500 -and $statusCode -le 599)
+            } else {
+                # Fallback for exceptions without a Response (word boundaries reduce GUID false matches)
+                ($_ -match '\b429\b') -or ($_ -match 'Too Many Requests') -or ($_ -match '\b5\d\d\b')
+            }
             if (-not $isRetryable) { throw }
 
             $retryAfter = $null
             try {
                 $ra = $_.Exception.Response.Headers.GetValues('Retry-After') | Select-Object -First 1
                 if ($ra -and $ra -match '^\d+$') { $retryAfter = [int]$ra }
-            } catch {}
+            } catch { Write-Debug "Failed to parse Retry-After header" }
             if (-not $retryAfter -or $retryAfter -le 0) {
-                try { $retryAfter = [int]$_.Exception.Response.Headers.RetryAfter?.Delta?.TotalSeconds } catch {}
+                try { $retryAfter = [int]$_.Exception.Response.Headers.RetryAfter?.Delta?.TotalSeconds } catch { Write-Debug "Failed to extract RetryAfter delta" }
             }
 
             $base     = if ($retryAfter -and $retryAfter -gt 0) { $retryAfter } else { [math]::Pow(2, $attempt + 1) }
@@ -238,7 +260,9 @@ function Get-InventorySlug {
         [string] $Name
     )
 
-    return $Name.ToLowerInvariant() `
+    # NFD decomposition folds diacritics before the ASCII-only filter, so "Café" → "cafe" not "caf".
+    $normalized = $Name.Normalize([System.Text.NormalizationForm]::FormD) -replace '\p{M}', ''
+    return $normalized.ToLowerInvariant() `
         -replace '[^a-z0-9\s-]', '' `
         -replace '\s+', '-' `
         -replace '-+', '-' `
@@ -262,7 +286,7 @@ function New-InventoryFolder {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
-        [ValidateSet("directory-roles", "pim-groups", "authentication-contexts", "administrative-units", "activation-events")]
+        [ValidateSet("directory-roles", "pim-groups", "authentication-contexts", "administrative-units", "activation-events", "conditional-access")]
         [string] $Workload,
 
         [Parameter(Mandatory)]
@@ -311,7 +335,7 @@ function Save-InventoryFile {
         [string] $FolderPath,
 
         [Parameter(Mandatory)]
-        [ValidatePattern("^(definition|policy|assignments|pending-approvals|security-alerts|\d{4}-\d{2})\.json$")]
+        [ValidatePattern("^(definition|policy|assignments|config|pending-approvals|security-alerts|\d{4}-\d{2})\.json$")]
         [string] $FileName
     )
 
@@ -363,4 +387,227 @@ function Move-ToArchive {
         Move-Item -Path $FolderPath -Destination $archiveDest -Force
         Write-Host "  Archived: $workload/$slug -> archive/$workload/${slug}_${dateSuffix}"
     }
+}
+
+<#
+.SYNOPSIS
+    Retrieves a pipeline environment variable, handling ADO unresolved macro references.
+
+.DESCRIPTION
+    Azure DevOps sets unresolved variables as literal $(VAR_NAME) strings when the variable
+    is absent from both YAML and UI. This helper returns null for those cases, otherwise
+    returns the environment variable value.
+
+.PARAMETER Name
+    Name of the environment variable to retrieve.
+
+.EXAMPLE
+    $email = Get-PipelineEnvVar -Name 'NOTIFICATION_EMAIL'
+#>
+function Get-PipelineEnvVar {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string] $Name
+    )
+
+    $value = [System.Environment]::GetEnvironmentVariable($Name)
+    if ($value -and $value -notmatch '^\$\(') {
+        return $value
+    }
+    return $null
+}
+
+<#
+.SYNOPSIS
+    Unwraps a SecureString access token from Get-AzAccessToken.
+
+.DESCRIPTION
+    Az.Accounts 5.x returns .Token as SecureString; newer versions may return plain string.
+    This helper safely converts SecureString to plain text using NetworkCredential,
+    with fallback for future versions that return plain string.
+
+.EXAMPLE
+    $token = Get-GraphAccessTokenString
+#>
+function Get-GraphAccessTokenString {
+    [CmdletBinding()]
+    param()
+
+    $rawToken = (Get-AzAccessToken -ResourceTypeName MSGraph).Token
+    if ($rawToken -is [System.Security.SecureString]) {
+        return [System.Net.NetworkCredential]::new('', $rawToken).Password
+    }
+    return $rawToken
+}
+
+<#
+.SYNOPSIS
+    Logs a timestamped step message to the host.
+
+.DESCRIPTION
+    Writes a message prefixed with the current UTC timestamp in ISO 8601 format.
+    Used by pipeline orchestrators to mark major scan phases.
+
+.PARAMETER Message
+    The step message to log.
+
+.EXAMPLE
+    Write-StepLog "Fetching role definitions from Graph API"
+#>
+function Write-StepLog {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string] $Message
+    )
+
+    $ts = Get-Date -AsUTC -Format "yyyy-MM-ddTHH:mm:ssZ"
+    Write-Host "[$ts] $Message"
+}
+
+<#
+.SYNOPSIS
+    Converts a PSObject or IDictionary to a hashtable.
+
+.DESCRIPTION
+    Safely converts any object with properties/keys to a hashtable. If the object is already
+    a hashtable, returns it as-is. For PSObjects, extracts NoteProperty values. For IDictionaries,
+    copies all key-value pairs.
+
+.PARAMETER InputObject
+    The object to convert.
+
+.EXAMPLE
+    $hash = ConvertTo-Hashtable -InputObject $psObject
+#>
+function ConvertTo-Hashtable {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        $InputObject
+    )
+
+    if ($InputObject -is [System.Collections.Hashtable]) {
+        return $InputObject
+    }
+
+    $result = @{}
+    if ($InputObject -is [System.Collections.IDictionary]) {
+        foreach ($key in $InputObject.Keys) {
+            $result[$key] = $InputObject[$key]
+        }
+    } else {
+        foreach ($prop in ($InputObject | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name)) {
+            $result[$prop] = $InputObject.$prop
+        }
+    }
+    return $result
+}
+
+# Properties ignored when diffing any inventory object — present in every Graph response
+# but carry no semantic meaning for change detection (sourcing-order: must be before diff.ps1).
+$script:DiffIgnoreProperties = [System.Collections.Generic.HashSet[string]]::new(
+    [string[]]@(
+        '@odata.context', '@odata.type', '@odata.id',
+        'id', 'templateId', 'target',
+        'createdDateTime', 'modifiedDateTime', 'createdUsing',
+        'lastModifiedDateTime', 'lastModifiedBy'
+    ),
+    [System.StringComparer]::OrdinalIgnoreCase
+)
+
+function Get-ObjectKeys {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)] $InputObject)
+    if ($InputObject -is [System.Collections.IDictionary]) { return @($InputObject.Keys) }
+    return @($InputObject | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name)
+}
+
+function Get-AssignmentEndDateTime {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)] $Assignment)
+    $si  = $Assignment.PSObject.Properties['scheduleInfo']?.Value
+    if ($null -eq $si)  { return $null }
+    $exp = $si.PSObject.Properties['expiration']?.Value
+    if ($null -eq $exp) { return $null }
+    return $exp.PSObject.Properties['endDateTime']?.Value
+}
+
+function Get-AccessIdPrefix {
+    # Returns "<accessId> " (e.g. "member ") for PIM Group assignments, or "" for role assignments.
+    [CmdletBinding()]
+    param([Parameter(Mandatory)] $Assignment)
+    $accessId = $Assignment.PSObject.Properties['accessId']?.Value
+    if ($accessId) { return "$accessId " }
+    return ''
+}
+
+function Find-InventorySlugById {
+    <#
+    .SYNOPSIS
+        Resolves the inventory folder slug for an entity by its object id.
+
+    .DESCRIPTION
+        Scans the definition.json files under a workload folder and returns the folder
+        name (slug) whose definition carries the given id. Used when an entity's display
+        name (and therefore its slug) could not be fetched, so the existing folder can
+        still be protected from false archival.
+
+    .PARAMETER WorkloadPath
+        Inventory folder for the workload (e.g. inventory/pim-groups).
+
+    .PARAMETER EntityId
+        The Graph object id to look for.
+
+    .EXAMPLE
+        $slug = Find-InventorySlugById -WorkloadPath (Join-Path $inventoryRoot "pim-groups") -EntityId $groupId
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string] $WorkloadPath,
+
+        [Parameter(Mandatory)]
+        [string] $EntityId
+    )
+
+    if (-not (Test-Path $WorkloadPath)) { return $null }
+
+    foreach ($folder in (Get-ChildItem -Path $WorkloadPath -Directory)) {
+        $definitionPath = Join-Path -Path $folder.FullName -ChildPath "definition.json"
+        if (-not (Test-Path $definitionPath)) { continue }
+        try {
+            $definition = Get-Content -Path $definitionPath -Raw -Encoding utf8 | ConvertFrom-Json
+            $id = $definition.PSObject.Properties['id']?.Value
+            if ($id -eq $EntityId) { return $folder.Name }
+        }
+        catch {
+            continue
+        }
+    }
+
+    return $null
+}
+
+function Test-DictKeyExists {
+    # Checks if a key exists in a dictionary. Works for Hashtable and OrderedDictionary (ConvertFrom-Json -AsHashtable).
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] $Dictionary,
+        [Parameter(Mandatory)] $Key
+    )
+    return $Key -in $Dictionary.Keys
+}
+
+function Test-IsPimGroupWrapper {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)] $Object)
+    if ($Object -is [System.Collections.IDictionary]) {
+        return ($Object['member'] -is [System.Collections.IDictionary]) -or
+               ($Object['owner']  -is [System.Collections.IDictionary])
+    }
+    # PSCustomObject from JSON deserialization
+    return (Test-ObjectHasKey -Object $Object -Key 'member') -or
+           (Test-ObjectHasKey -Object $Object -Key 'owner')
 }

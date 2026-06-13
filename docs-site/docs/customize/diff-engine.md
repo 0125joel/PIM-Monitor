@@ -1,5 +1,6 @@
 ---
 sidebar_position: 4
+description: "Tune PIM Monitor's diff engine: which properties trigger alerts, how severity is assigned, and how to extend the classification rules."
 ---
 
 # Diff engine
@@ -8,7 +9,7 @@ For a technical explanation of how the diff engine works internally, see [Refere
 
 ## Filter fields from diff output
 
-`$script:DiffIgnoreProperties` in `src/diff.ps1` controls which API fields are hidden in the diff preview — in emails, webhooks, and the HTML scan report. Fields in this list are skipped when rendering what changed; they do not affect change detection itself.
+`$script:DiffIgnoreProperties` in `src/diff.ps1` controls which API fields are hidden in the diff preview, in emails, webhooks, and the HTML scan report. Fields in this list are skipped when rendering what changed; they do not affect change detection itself.
 
 Edit the array in `src/diff.ps1`:
 
@@ -30,17 +31,17 @@ $script:DiffIgnoreProperties = [System.Collections.Generic.HashSet[string]]::new
 |---|---|
 | `@odata.context`, `@odata.type`, `@odata.id` | OData protocol metadata, never user-controlled |
 | `id`, `templateId` | API-assigned identifiers, not configuration |
-| `target` | Structural rule scope (`caller`/`level`) — identifies the rule, not its settings |
+| `target` | Structural rule scope (`caller`/`level`): identifies the rule, not its settings |
 | `createdDateTime`, `modifiedDateTime`, `createdUsing` | System-managed timestamps |
 | `lastModifiedDateTime`, `lastModifiedBy` | Audit trail fields, not configuration |
 
-**To hide an additional field** — add its name to the array:
+To hide an additional field, add its name to the array:
 
 ```powershell
 'id', 'templateId', 'target', 'myNoiseField',
 ```
 
-**To make a field visible again** — remove it from the array. The field will then appear as a red/green diff line in notifications whenever it changes.
+To make a field visible again, remove it from the array. The field will then appear as a red/green diff line in notifications whenever it changes.
 
 :::note
 Field matching is case-insensitive. Adding `'displayName'` also silences `DisplayName`.

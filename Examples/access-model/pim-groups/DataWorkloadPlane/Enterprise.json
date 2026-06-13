@@ -1,0 +1,29 @@
+{
+  "name": "Data/Workload Plane Groups - Enterprise",
+  "description": "Groups that gate read-only or low-impact data access. Classification follows the Clean Source principle: a group is Data/Workload Plane/Enterprise if membership grants access only to reports, read-only portals, or end-user data without administrative control over workloads or identity. Examples: groups granting access to compliance reports, usage dashboards, or limited read access to business applications.",
+  "plane": "Data",
+  "securityLevel": "Enterprise",
+  "groups": [
+    {
+      "id": "00000000-0000-0000-0000-000000000030",
+      "displayName": "JIT-ComplianceReporting-Readers",
+      "notes": "Group granting read access to compliance dashboards and usage reports. No write or configuration access."
+    }
+  ],
+  "expectedConfig": {
+    "member": {
+      "maxActivationDuration": "PT8H",
+      "requireJustification": true,
+      "requireMFA": true,
+      "requireApproval": false,
+      "allowPermanentActive": false
+    },
+    "owner": {
+      "maxActivationDuration": "PT4H",
+      "requireJustification": true,
+      "requireMFA": true,
+      "requireApproval": true,
+      "allowPermanentActive": false
+    }
+  }
+}

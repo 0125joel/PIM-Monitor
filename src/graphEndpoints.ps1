@@ -1,30 +1,25 @@
-<#
-.SYNOPSIS
-    Centralized Graph API endpoint configuration for PIM Monitor.
-
-.DESCRIPTION
-    All Graph API URIs in one place. Separates v1.0 from beta, documents why
-    beta is needed, and provides URI-builder functions for per-item endpoints.
-
-    Import: . (Join-Path $PSScriptRoot "graphEndpoints.ps1")
-    Usage:  $uri = Get-RolePolicyUri -RoleId $roleId
-#>
-
-# Base URLs
-
 $script:GraphV1   = "https://graph.microsoft.com/v1.0"
 $script:GraphBeta = "https://graph.microsoft.com/beta"
 
 $script:GraphEndpoints = @{
     # Beta: required for isPrivileged, allowedPrincipalTypes, version
     RoleDefinitions         = "$script:GraphBeta/roleManagement/directory/roleDefinitions"
+    # $select intentional: response is used only for $tenantDisplayName in notifications, never written to inventory.
+    # "No $select" principle applies to inventory-bound calls only.
     Organization            = "$script:GraphV1/organization?`$select=displayName,id"
     AuthenticationContexts  = "$script:GraphV1/identity/conditionalAccess/authenticationContextClassReferences"
+
+    # Beta: conditions.applications.includeAuthenticationContextClassReferences is beta-only
+    ConditionalAccessPolicies = "$script:GraphBeta/identity/conditionalAccess/policies"
     AdministrativeUnits     = "$script:GraphV1/directory/administrativeUnits"
 
-    # DEPRECATED: Oct 28, 2026 — when removed, use eligibilityScheduleInstances/assignmentScheduleInstances
-    # filtered by groupId for per-group fetches. Those endpoints REQUIRE $filter=groupId eq '...'
-    # and cannot be used for discovery without a known groupId.
+    # PIM-for-Groups discovery. Iteration-3 (current) namespace; no published deprecation date.
+    # NOTE: the Oct 28, 2026 PIM deprecation applies to iteration-2 /beta/privilegedAccess/aadRoles +
+    # /azureResources, which this project does not use — not to this identityGovernance/.../group path.
+    # This endpoint is beta and not documented as a discovery surface, so treat it as a latent risk:
+    # there is no tenant-wide replacement (eligibilityScheduleInstances/assignmentScheduleInstances and
+    # roleManagementPolicyAssignments all REQUIRE a groupId/scopeId filter). An empty/changed response
+    # is guarded by Test-SafeToArchive in the orchestrator to prevent mass false-archival.
     GroupResources = "$script:GraphBeta/identityGovernance/privilegedAccess/group/resources"
 }
 

@@ -1,0 +1,18 @@
+{
+  "name": "Data/Workload Plane - Privileged",
+  "description": "Data-plane roles marked as Privileged by Microsoft Graph isPrivileged = true. These roles provide read access to data or configurations that Microsoft considers sensitive enough to warrant strict PIM enforcement despite the read-only nature.",
+  "plane": "Data",
+  "securityLevel": "Privileged",
+  "roles": [
+    { "id": "1fe13547-53f6-408d-ac04-7f8eed167b38", "displayName": "AI Reader" }
+  ],
+  "expectedConfig": {
+    "maxActivationDuration": "PT1H",
+    "requireJustification": true,
+    "requireMFA": true,
+    "authContext": "phish-resistant-sif",
+    "requireApproval": true,
+    "allowPermanentEligible": false,
+    "allowPermanentActive": false
+  }
+}

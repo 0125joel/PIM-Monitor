@@ -1,0 +1,38 @@
+{
+  "name": "Control Plane Groups - Privileged",
+  "description": "Groups that gate access to identity infrastructure. Classification follows the Clean Source principle: a group is Control Plane/Privileged if membership grants Control Plane/Privileged access. Examples: groups assigned to Global Administrator, Privileged Role Administrator, Conditional Access Administrator, or similar directory roles. Also: break-glass groups, PAW admin groups, and any group whose membership transitively reaches Control Plane access.",
+  "plane": "Control",
+  "securityLevel": "Privileged",
+  "groups": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "displayName": "PAW-Tier0-Admins",
+      "notes": "Members receive Global Administrator or Privileged Role Administrator access. Role-assignable group recommended."
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "displayName": "Break-Glass-Emergency-Access",
+      "notes": "Break-glass accounts group. Permanent active membership for emergency accounts only; all other members eligible."
+    }
+  ],
+  "expectedConfig": {
+    "member": {
+      "maxActivationDuration": "PT1H",
+      "requireJustification": true,
+      "requireMFA": true,
+      "authContext": "phish-resistant-sif",
+      "requireApproval": true,
+      "allowPermanentEligible": false,
+      "allowPermanentActive": false
+    },
+    "owner": {
+      "maxActivationDuration": "PT1H",
+      "requireJustification": true,
+      "requireMFA": true,
+      "authContext": "phish-resistant-sif",
+      "requireApproval": true,
+      "allowPermanentEligible": false,
+      "allowPermanentActive": false
+    }
+  }
+}

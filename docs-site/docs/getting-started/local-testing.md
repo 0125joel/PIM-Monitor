@@ -1,5 +1,6 @@
 ---
 sidebar_position: 3
+description: Run PIM Monitor locally against a real tenant without committing changes. Validate your setup before deploying to a pipeline.
 ---
 
 # Local Testing
@@ -78,7 +79,7 @@ If nothing changed:
 [2026-04-20T15:35:00Z] PIM Monitor scan complete
 ```
 
-If something changed, you will see the detected changes and their severity.
+If something changed, the detected changes and their severity appear in the output.
 
 ## Check git state (optional)
 
@@ -103,7 +104,7 @@ You are running Windows PowerShell 5.x (the version built into Windows). Install
 - **macOS:** `brew install powershell`
 - **Linux:** [PowerShell installation docs](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-linux)
 
-Make sure you launch **pwsh** (PowerShell 7), not **powershell** (Windows PowerShell 5).
+Make sure you launch `pwsh` (PowerShell 7), not `powershell` (Windows PowerShell 5).
 
 ---
 

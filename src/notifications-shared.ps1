@@ -4,14 +4,40 @@
 
 .DESCRIPTION
     Centralized severity ranking and change formatting functions used by all notification channels
-    (email, webhook, HTML reports). Dot-source before other notification modules.
-
-    Requires: $script:DiffIgnoreProperties (HashSet[string]) from diff.ps1 — must be dot-sourced first.
+    (email, webhook, HTML reports). Dot-source after helpers.ps1.
 #>
 
 Add-Type -AssemblyName System.Web
 
 $script:SeverityRank = @{ High = 3; Medium = 2; Low = 1; Informational = 0 }
+$script:SeverityOrder = @('High', 'Medium', 'Low', 'Informational')
+
+# Compliance fileTypes — shared by all notification renderers (email, Teams, Slack, Discord, HTML report).
+# Items with these fileTypes render under the Access Model > Compliance sub-section with actual/expected
+# diff labels. Everything else renders under CHANGES with was/changed to labels.
+$script:ComplianceFileTypes = [System.Collections.Generic.HashSet[string]]::new(
+    [string[]]@('access-model-compliance', 'access-model-coverage', 'group-compliance', 'group-coverage', 'auth-context-policy-compliance'),
+    [System.StringComparer]::OrdinalIgnoreCase
+)
+
+<#
+.SYNOPSIS
+    Returns the branch the scan runs on, for building repo links.
+
+.DESCRIPTION
+    Mirrors the branch resolution in Publish-InventoryChanges (git.ps1): ADO sets
+    BUILD_SOURCEBRANCHNAME, GHA sets GITHUB_REF_NAME, fallback 'main'. Keeping both
+    resolutions identical guarantees notification links point at the branch the
+    scan commit was actually pushed to.
+#>
+function Get-ScanBranchName {
+    [CmdletBinding()]
+    param()
+
+    if ($env:BUILD_SOURCEBRANCHNAME) { return $env:BUILD_SOURCEBRANCHNAME }
+    if ($env:GITHUB_REF_NAME)        { return $env:GITHUB_REF_NAME }
+    return 'main'
+}
 
 <#
 .SYNOPSIS
@@ -38,7 +64,9 @@ function Get-CommitDiffUrl {
     if ($env:BUILD_REPOSITORY_URI) {
         # Strip any username@ prefix ADO injects (e.g. https://user@dev.azure.com/...)
         $baseUri = $env:BUILD_REPOSITORY_URI -replace 'https://[^@]+@', 'https://'
-        return "$baseUri/commit/${CommitSha}?refName=refs%2Fheads%2Fmain"
+        $branch = Get-ScanBranchName
+        $refName = [uri]::EscapeDataString("refs/heads/$branch")
+        return "$baseUri/commit/${CommitSha}?refName=$refName"
     }
     elseif ($env:GITHUB_SERVER_URL -and $env:GITHUB_REPOSITORY) {
         # GitHub: GITHUB_SERVER_URL=https://github.com, GITHUB_REPOSITORY=owner/repo
@@ -47,6 +75,389 @@ function Get-CommitDiffUrl {
     else {
         return $null
     }
+}
+
+<#
+.SYNOPSIS
+    Constructs a deep-link to a single inventory file in the repo at a given commit.
+
+.DESCRIPTION
+    Mirrors Get-CommitDiffUrl: detects Azure DevOps or GitHub from environment
+    variables and builds a tree-view URL to a specific path. Returns $null
+    when the platform cannot be determined or required inputs are missing.
+
+.PARAMETER RelativePath
+    Repo-relative path, e.g. "inventory/directory-roles/global-administrator/policy.json".
+
+.PARAMETER CommitSha
+    The commit SHA to anchor the link to. Optional; falls back to default branch.
+#>
+function Get-InventoryFileUrl {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string] $RelativePath,
+        [string] $CommitSha
+    )
+
+    if ([string]::IsNullOrWhiteSpace($RelativePath)) { return $null }
+    $safePath = ($RelativePath -split '/' | ForEach-Object { [uri]::EscapeDataString($_) }) -join '/'
+
+    if ($env:BUILD_REPOSITORY_URI) {
+        $baseUri = $env:BUILD_REPOSITORY_URI -replace 'https://[^@]+@', 'https://'
+        $version = if ($CommitSha) { "GC$CommitSha" } else { "GB$(Get-ScanBranchName)" }
+        return "$baseUri`?path=/$safePath&version=$([uri]::EscapeDataString($version))"
+    }
+    elseif ($env:GITHUB_SERVER_URL -and $env:GITHUB_REPOSITORY) {
+        $ref = if ($CommitSha) { $CommitSha } else { Get-ScanBranchName }
+        return "$($env:GITHUB_SERVER_URL)/$($env:GITHUB_REPOSITORY)/blob/$ref/$safePath"
+    }
+    return $null
+}
+
+<#
+.SYNOPSIS
+    Builds a Build Results URL for the current pipeline run, when REPORT_ARTIFACT is enabled.
+
+.DESCRIPTION
+    Returns a URL where reviewers can find the HTML scan report artifact. Detects Azure
+    DevOps and GitHub Actions from environment variables. Returns $null when REPORT_ARTIFACT
+    is not 'true' or when required env vars are missing — callers must handle null.
+
+    Used by notification builders to add an "Open HTML Report" button when applicable.
+#>
+function Get-ArtifactReportUrl {
+    [CmdletBinding()]
+    param()
+
+    # Honour the same gate as the artifact-emit step. If the operator did not enable
+    # report generation, the URL would 404 and we should not advertise it.
+    if ($env:REPORT_ARTIFACT -ne 'true') { return $null }
+
+    if ($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI -and $env:SYSTEM_TEAMPROJECT -and $env:BUILD_BUILDID) {
+        $org     = $env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI.TrimEnd('/')
+        $project = [uri]::EscapeDataString($env:SYSTEM_TEAMPROJECT)
+        return "$org/$project/_build/results?buildId=$($env:BUILD_BUILDID)&view=artifacts&pathAsName=false&type=publishedArtifacts"
+    }
+    elseif ($env:GITHUB_SERVER_URL -and $env:GITHUB_REPOSITORY -and $env:GITHUB_RUN_ID) {
+        return "$($env:GITHUB_SERVER_URL)/$($env:GITHUB_REPOSITORY)/actions/runs/$($env:GITHUB_RUN_ID)"
+    }
+    return $null
+}
+
+<#
+.SYNOPSIS
+    Constructs a file-anchored diff URL for a specific file within a commit.
+
+.DESCRIPTION
+    Like Get-InventoryFileUrl, but anchors to the diff of that specific file
+    within the commit page, rather than the file tree view.
+    GitHub: appends #diff-{sha256(path)} anchor (matches GitHub's current diff anchor scheme).
+    Azure DevOps: uses ?path=...&_a=compare to open file-diff view.
+
+.PARAMETER RelativePath
+    Repo-relative path, e.g. "inventory/directory-roles/global-administrator/policy.json".
+
+.PARAMETER CommitSha
+    The commit SHA to anchor the diff to.
+#>
+function Get-FileDiffUrl {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string] $CommitSha,
+        [Parameter(Mandatory)]
+        [string] $RelativePath
+    )
+
+    if ([string]::IsNullOrWhiteSpace($RelativePath)) { return $null }
+    $safePath = ($RelativePath -split '/' | ForEach-Object { [uri]::EscapeDataString($_) }) -join '/'
+
+    if ($env:BUILD_REPOSITORY_URI) {
+        $baseUri = $env:BUILD_REPOSITORY_URI -replace 'https://[^@]+@', 'https://'
+        return "$baseUri/commit/$CommitSha`?path=/$safePath&_a=compare"
+    }
+    elseif ($env:GITHUB_SERVER_URL -and $env:GITHUB_REPOSITORY) {
+        $sha256    = [System.Security.Cryptography.SHA256]::Create()
+        $bytes     = [System.Text.Encoding]::UTF8.GetBytes($RelativePath)
+        $hash      = $sha256.ComputeHash($bytes)
+        $sha256.Dispose()
+        $hexAnchor = -join ($hash | ForEach-Object { $_.ToString('x2') })
+        return "$($env:GITHUB_SERVER_URL)/$($env:GITHUB_REPOSITORY)/commit/$CommitSha#diff-$hexAnchor"
+    }
+    return $null
+}
+
+<#
+.SYNOPSIS
+    Maps a severity label to a 24-bit RGB integer (Discord embed color format).
+
+.DESCRIPTION
+    Values follow the PIM Monitor design palette (see docs/Design/visual-style-guide.md).
+    Unknown severities fall back to the Informational zinc. Used by Discord
+    embeds and any future channel that consumes integer colors.
+#>
+function Get-SeverityColorInt {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] [string] $Severity
+    )
+
+    switch ($Severity) {
+        'High'          { return 15684676 } # #EF4444 red
+        'Medium'        { return 14251270 } # #D97706 amber
+        'Low'           { return  2278750 } # #22C55E green
+        'Informational' { return  7566195 } # #737373 zinc-light
+        'Coverage'      { return  5395026 } # #525252 zinc-mid
+        'AccessModel'   { return 14251270 } # brand amber for parent
+        default         { return  7566195 } # zinc-light
+    }
+}
+
+<#
+.SYNOPSIS
+    Builds a one-sentence executive summary of a scan's outcome.
+
+.DESCRIPTION
+    Shared across email, Teams, Slack so wording stays consistent. The first non-zero
+    severity bucket dictates the lead phrase. Tenant clause is appended when supplied.
+#>
+function Get-ExecutiveSummaryLine {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] $ChangesBySeverity,
+        [string] $TenantName
+    )
+
+    $hi  = $ChangesBySeverity.High.Count
+    $med = $ChangesBySeverity.Medium.Count
+    $lo  = $ChangesBySeverity.Low.Count
+    $inf = $ChangesBySeverity.Informational.Count
+    $cov = if ($ChangesBySeverity['Coverage']) { $ChangesBySeverity.Coverage.Count } else { 0 }
+    $tot = $hi + $med + $lo + $inf + $cov
+
+    $tenantClause = if ($TenantName) { " in tenant $TenantName" } else { '' }
+
+    if ($hi -gt 0) {
+        return "$hi High-severity change(s) require review$tenantClause."
+    }
+    if ($med -gt 0) {
+        return "$med Medium-severity change(s) detected$tenantClause."
+    }
+    if ($lo -gt 0 -or $inf -gt 0 -or $cov -gt 0) {
+        return "$tot change(s) detected$tenantClause; none at High severity."
+    }
+    return "Scan complete$tenantClause; no qualifying changes."
+}
+
+<#
+.SYNOPSIS
+    Formats a single value for inclusion in a diff line.
+
+.DESCRIPTION
+    Shared scalar/dict/array formatter used by every notification renderer
+    (email, Teams, Slack, Discord). Returns a short, human-readable string.
+    Null becomes '(none)', booleans render lowercase, dictionaries with a
+    'displayName' key collapse to that name, long JSON is truncated.
+#>
+function Format-DiffValue {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline)] $Value,
+        [hashtable] $AuthContextLookup = @{}
+    )
+
+    if ($null -eq $Value) { return '(none)' }
+    if ($Value -is [bool])   { return $(if ($Value) { 'true' } else { 'false' }) }
+    if ($Value -is [string]) {
+        # Resolve CA auth context claim IDs (e.g. "c2") to display names when a lookup is available.
+        if ($AuthContextLookup -and $AuthContextLookup.Count -gt 0 -and $Value -in $AuthContextLookup.Keys) {
+            return "$($AuthContextLookup[$Value]) ($Value)"
+        }
+        return $Value
+    }
+    if ($Value -is [System.Collections.IDictionary]) {
+        if ($Value.Contains('displayName')) { return [string]$Value['displayName'] }
+        $json = $Value | ConvertTo-Json -Depth 2 -Compress
+        if ($json.Length -gt 120) { return $json.Substring(0, 100) + '...' }
+        return $json
+    }
+    if ($Value -is [System.Collections.IEnumerable]) {
+        $arr = @($Value); if ($arr.Count -eq 0) { return '(empty)' }
+        $result = ($arr | ForEach-Object { if ($_ -is [string]) { $_ } else { $_ | ConvertTo-Json -Depth 2 -Compress } }) -join ', '
+        if ($result.Length -gt 120) { return $result.Substring(0, 100) + '...' }
+        return $result
+    }
+    $json = $Value | ConvertTo-Json -Depth 3 -Compress
+    if ($json.Length -gt 120) { return $json.Substring(0, 100) + '...' }
+    return $json
+}
+
+<#
+.SYNOPSIS
+    Returns $true when a value is a primitive (string/bool/number).
+#>
+function Test-DiffScalar {
+    [CmdletBinding()]
+    param($Value)
+    return $Value -is [string] -or $Value -is [bool] -or $Value -is [int] -or $Value -is [long] -or $Value -is [double]
+}
+
+<#
+.SYNOPSIS
+    Recursively expands a property pair into rows for a diff renderer.
+
+.DESCRIPTION
+    Walks dictionary structures and yields one hashtable per leaf change:
+    @{ Key = 'a.b.c'; Actual = '...'; New = '...' }.
+    Dictionaries with no per-key change are skipped. Used by every notification
+    builder so the diff semantics stay identical across channels.
+#>
+function Get-DiffPropertyRows {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] [string] $Key,
+        $OldValue,
+        $NewValue
+    )
+
+    $diffMode  = $null -ne $OldValue -and $null -ne $NewValue
+    $oldIsDict = $OldValue -is [System.Collections.IDictionary]
+    $newIsDict = $NewValue -is [System.Collections.IDictionary]
+
+    if ($oldIsDict -or $newIsDict) {
+        $oldDict = if ($oldIsDict) { $OldValue } else { [ordered]@{} }
+        $newDict = if ($newIsDict) { $NewValue } else { [ordered]@{} }
+        $allSubs = @(@($oldDict.Keys) + @($newDict.Keys)) | Sort-Object -Unique
+        $rows    = [System.Collections.Generic.List[object]]::new()
+        foreach ($sk in $allSubs) {
+            $sov = if ($sk -in $oldDict.Keys) { $oldDict[$sk] } else { $null }
+            $snv = if ($sk -in $newDict.Keys) { $newDict[$sk] } else { $null }
+            if ($diffMode -and (ConvertTo-DeterministicJson -InputObject $sov) -eq (ConvertTo-DeterministicJson -InputObject $snv)) { continue }
+            foreach ($r in @(Get-DiffPropertyRows -Key "$Key.$sk" -OldValue $sov -NewValue $snv)) { $rows.Add($r) }
+        }
+        return $rows.ToArray()
+    }
+    if ($diffMode)            { return ,@{ Key = $Key; Actual = (Format-DiffValue $OldValue); New = (Format-DiffValue $NewValue) } }
+    if ($null -ne $NewValue)  { return ,@{ Key = $Key; Actual = '(none)';                     New = (Format-DiffValue $NewValue) } }
+    if ($null -ne $OldValue)  { return ,@{ Key = $Key; Actual = (Format-DiffValue $OldValue); New = '(removed)' } }
+    return @()
+}
+
+<#
+.SYNOPSIS
+    Collects up to $MaxRows diff rows for a single change object.
+
+.DESCRIPTION
+    Reads $change.old and $change.new, JSON-roundtrips them to hashtables so
+    enumeration is stable, skips ignored properties, and returns at most
+    $MaxRows rows. Shared by webhook payload builders.
+#>
+function Get-ChangeDiffRows {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] $Change,
+        [int] $MaxRows = 5
+    )
+
+    $ignore = [System.Collections.Generic.HashSet[string]]::new($script:DiffIgnoreProperties, [System.StringComparer]::OrdinalIgnoreCase)
+    $rows   = [System.Collections.Generic.List[object]]::new()
+
+    if ($null -ne $Change.old -and $null -ne $Change.new) {
+        if ((Test-DiffScalar $Change.old) -and (Test-DiffScalar $Change.new)) {
+            return ,@{ Key = 'value'; Actual = (Format-DiffValue $Change.old); New = (Format-DiffValue $Change.new) }
+        }
+        try {
+            $oh = $Change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+            $nh = $Change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+            foreach ($k in (@(@($oh.Keys) + @($nh.Keys)) | Sort-Object -Unique)) {
+                if ($rows.Count -ge $MaxRows) { break }
+                if ($ignore.Contains($k)) { continue }
+                $ov = if ($k -in $oh.Keys) { $oh[$k] } else { $null }
+                $nv = if ($k -in $nh.Keys) { $nh[$k] } else { $null }
+                if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
+                foreach ($r in @(Get-DiffPropertyRows -Key $k -OldValue $ov -NewValue $nv)) {
+                    if ($rows.Count -ge $MaxRows) { break }
+                    $rows.Add($r)
+                }
+            }
+        } catch {}
+    } elseif ($null -ne $Change.new) {
+        try {
+            $nh = $Change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+            foreach ($k in ($nh.Keys | Sort-Object)) {
+                if ($rows.Count -ge $MaxRows) { break }
+                if ($ignore.Contains($k)) { continue }
+                foreach ($r in @(Get-DiffPropertyRows -Key $k -OldValue $null -NewValue $nh[$k])) {
+                    if ($rows.Count -ge $MaxRows) { break }
+                    $rows.Add($r)
+                }
+            }
+        } catch {}
+    } elseif ($null -ne $Change.old) {
+        try {
+            $oh = $Change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
+            foreach ($k in ($oh.Keys | Sort-Object)) {
+                if ($rows.Count -ge $MaxRows) { break }
+                if ($ignore.Contains($k)) { continue }
+                foreach ($r in @(Get-DiffPropertyRows -Key $k -OldValue $oh[$k] -NewValue $null)) {
+                    if ($rows.Count -ge $MaxRows) { break }
+                    $rows.Add($r)
+                }
+            }
+        } catch {}
+    }
+    return $rows.ToArray()
+}
+
+<#
+.SYNOPSIS
+    Maps a change object to the v1 generic-webhook payload form.
+
+.DESCRIPTION
+    Returns a hashtable with the essential fields per change (severity,
+    changeType, fileType, description, optional context/roleId/groupId).
+    Null/empty optional fields are omitted so the JSON stays minimal.
+    Used by Build-GenericPayload; intentionally not channel-specific.
+#>
+function ConvertTo-ChangePayloadObject {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)] $Change)
+
+    $obj = [ordered]@{
+        severity    = [string]$Change.severity
+        changeType  = [string]$Change['changeType']
+        fileType    = [string]$Change['fileType']
+        description = [string]$Change.description
+    }
+    if ($Change['context']) { $obj['context'] = [string]$Change['context'] }
+    if ($Change['roleId'])  { $obj['roleId']  = [string]$Change['roleId'] }
+    if ($Change['groupId']) { $obj['groupId'] = [string]$Change['groupId'] }
+    return $obj
+}
+
+<#
+.SYNOPSIS
+    Builds the scan-metadata block (timestamp + commit + minSeverity) for the
+    v1 generic-webhook payload.
+
+.DESCRIPTION
+    Timestamp is generated at call time (ISO 8601 UTC). CommitSha is omitted
+    when not supplied so the JSON does not carry empty strings.
+#>
+function Get-ScanMetadata {
+    [CmdletBinding()]
+    param(
+        [string] $CommitSha,
+        [string] $MinSeverity = 'Medium'
+    )
+
+    $meta = [ordered]@{
+        timestamp   = Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ'
+        minSeverity = $MinSeverity
+    }
+    if ($CommitSha) { $meta['commitSha'] = $CommitSha }
+    return $meta
 }
 
 <#
@@ -87,7 +498,7 @@ function Format-ChangeSummaryText {
     $lines += "PIM Monitor — change report"
     $lines += ""
 
-    foreach ($severity in @('High', 'Medium', 'Low', 'Informational')) {
+    foreach ($severity in $script:SeverityOrder) {
         if (-not $ChangesBySeverity[$severity]) { continue }
         if ($script:SeverityRank[$severity] -lt $script:SeverityRank[$MinSeverity]) { continue }
 
@@ -98,267 +509,47 @@ function Format-ChangeSummaryText {
         $lines += ""
     }
 
+    $covItems = @()
+    if ($ChangesBySeverity['Coverage']) { $covItems = @($ChangesBySeverity.Coverage) }
+    if ($covItems.Count -gt 0) {
+        $lines += "Access Model Coverage ($($covItems.Count)):"
+        $lines += "  Roles not in any access model definition — add to AccessModel/*.json or AccessModel/coverage-exclusions.json:"
+        foreach ($item in ($covItems | Sort-Object { $_['context'] })) {
+            $lines += "  — $($item['context'])"
+        }
+        $lines += ""
+    }
+
     return $lines -join "`n"
 }
 
 <#
 .SYNOPSIS
-    Builds an HTML table of changes for inclusion in email or reports.
+    Counts changes by severity from a grouped changes hashtable.
+
+.DESCRIPTION
+    Extracts High, Medium, Low, and Informational counts from a ChangesBySeverity hashtable
+    for use in summary statistics. Handles missing severity buckets gracefully.
 
 .PARAMETER ChangesBySeverity
-    Output of Group-ChangesBySeverity.
+    Hashtable with High, Medium, Low, Informational, Coverage, and Total keys.
 
-.PARAMETER MinSeverity
-    Lowest severity to include in the table (default Medium).
-
-.PARAMETER CommitUrl
-    Optional URL to link to the scan commit.
+.EXAMPLE
+    $counts = Get-ChangeCounts -ChangesBySeverity $changesBySeverity
+    "Changes: H=$($counts.High) M=$($counts.Medium) L=$($counts.Low) I=$($counts.Informational)"
 #>
-function Format-ChangeSummaryHtml {
+function Get-ChangeCounts {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)] $ChangesBySeverity,
-        [ValidateSet('High', 'Medium', 'Low', 'Informational')]
-        [string] $MinSeverity = 'Medium',
-        [string] $CommitUrl,
-        [hashtable] $AuthContextLookup = @{}
+        [Parameter(Mandatory)]
+        [hashtable] $ChangesBySeverity
     )
 
-    # Design system tokens
-    $sevBorder     = @{ High = '#ef4444'; Medium = '#d97706'; Low = '#22c55e'; Informational = '#737373' }
-    $sevBgLight    = @{ High = '#fef2f2'; Medium = '#fffbeb'; Low = '#f0fdf4'; Informational = '#f9fafb' }
-    $sevLabelLight = @{ High = '#b91c1c'; Medium = '#92400e'; Low = '#166534'; Informational = '#374151' }
-
-    $timestamp = Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ'
-    $hi  = $ChangesBySeverity.High.Count
-    $med = $ChangesBySeverity.Medium.Count
-    $lo  = $ChangesBySeverity.Low.Count
-    $inf = $ChangesBySeverity.Informational.Count
-    $tot = $ChangesBySeverity.Total
-
-    # Stat row: only colorize counts that are > 0; mute zeros
-    $hiColor  = if ($hi  -gt 0) { '#b91c1c' } else { '#a3a3a3' }
-    $medColor = if ($med -gt 0) { '#92400e' } else { '#a3a3a3' }
-    $loColor  = if ($lo  -gt 0) { '#166534' } else { '#a3a3a3' }
-    # Shared rendering helpers (hoisted — avoid re-creating per change item)
-    $monoBase     = "font-family:'Courier New','Lucida Console',monospace;font-size:11px;line-height:1.9;"
-    $diffDivStyle = "padding:4px 14px 10px;border-top:1px solid #d4d4d4;"
-
-    $diffIgnore = [System.Collections.Generic.HashSet[string]]::new(
-        $script:DiffIgnoreProperties,
-        [System.StringComparer]::OrdinalIgnoreCase
-    )
-
-    # Format a field value for display. Resolves known auth context IDs (e.g. "c1") to
-    # "Display Name (c1)" using the lookup built from the authentication-contexts inventory.
-    $fmtVal = {
-        param($v)
-        if ($null -eq $v) { return '(none)' }
-        if ($v -is [bool])   { return $(if ($v) { 'true' } else { 'false' }) }
-        if ($v -is [string]) {
-            if ($AuthContextLookup.Count -gt 0 -and $AuthContextLookup.ContainsKey($v)) {
-                return "$($AuthContextLookup[$v]) ($v)"
-            }
-            return $v
-        }
-        if ($v -is [System.Collections.IDictionary]) {
-            if ($v.Contains('displayName')) { return [string]$v['displayName'] }
-            return $v | ConvertTo-Json -Depth 2 -Compress
-        }
-        if ($v -is [System.Collections.IEnumerable]) {
-            $arr = @($v)
-            if ($arr.Count -eq 0) { return '(empty)' }
-            return ($arr | ForEach-Object {
-                if ($_ -is [string]) { $_ } else { $_ | ConvertTo-Json -Depth 2 -Compress }
-            }) -join ', '
-        }
-        return $v | ConvertTo-Json -Depth 3 -Compress
+    return @{
+        High          = @($ChangesBySeverity['High']).Count
+        Medium        = @($ChangesBySeverity['Medium']).Count
+        Low           = @($ChangesBySeverity['Low']).Count
+        Informational = @($ChangesBySeverity['Informational']).Count
     }
-
-    $renderPropertyBlock = {
-        param([string]$key, $oldVal, $newVal, [string]$oldLabel = 'actual', [string]$newLabel = 'expected')
-
-        $isComplexVal = { param($v) -not ($null -eq $v -or $v -is [string] -or $v -is [bool] -or $v -is [int] -or $v -is [long] -or $v -is [double]) }
-
-        if ($oldVal -is [System.Collections.IDictionary] -and $newVal -is [System.Collections.IDictionary]) {
-            $blocks = @()
-            foreach ($sk in (@(@($oldVal.Keys) + @($newVal.Keys)) | Sort-Object -Unique)) {
-                $sov = if ($oldVal.ContainsKey($sk)) { $oldVal[$sk] } else { $null }
-                $snv = if ($newVal.ContainsKey($sk)) { $newVal[$sk] } else { $null }
-                if ((ConvertTo-DeterministicJson -InputObject $sov) -eq (ConvertTo-DeterministicJson -InputObject $snv)) { continue }
-                if ((& $isComplexVal $sov) -or (& $isComplexVal $snv)) { continue }
-                $flatKey = [System.Web.HttpUtility]::HtmlEncode("$key.$sk")
-                $sove    = [System.Web.HttpUtility]::HtmlEncode((& $fmtVal $sov))
-                $snve    = [System.Web.HttpUtility]::HtmlEncode((& $fmtVal $snv))
-                $blocks += "<div style=`"$monoBase color:#737373;margin-top:8px`">Property: $flatKey</div>"
-                $blocks += "<div style=`"$monoBase color:#dc2626`">${oldLabel}: $sove</div>"
-                $blocks += "<div style=`"$monoBase color:#16a34a`">${newLabel}: $snve</div>"
-            }
-            if ($blocks.Count -gt 0) {
-                $blocks -join ''
-                return
-            }
-        }
-
-        $ke  = [System.Web.HttpUtility]::HtmlEncode($key)
-        $ove = [System.Web.HttpUtility]::HtmlEncode((& $fmtVal $oldVal))
-        $nve = [System.Web.HttpUtility]::HtmlEncode((& $fmtVal $newVal))
-        "<div style=`"$monoBase color:#737373;margin-top:8px`">Property: $ke</div>" +
-        "<div style=`"$monoBase color:#dc2626`">${oldLabel}: $ove</div>" +
-        "<div style=`"$monoBase color:#16a34a`">${newLabel}: $nve</div>"
-    }
-
-    $isScalar = { param($v) $v -is [string] -or $v -is [bool] -or $v -is [int] -or $v -is [long] -or $v -is [double] }
-
-    # Renders a single change entry as a collapsible <details> table row.
-    # $oldLabel / $newLabel are passed explicitly so each rendering pass controls labels independently.
-    $renderChangeItem = {
-        param($change, $bc, $bg, [string]$oldLabel, [string]$newLabel)
-
-        $desc        = [System.Web.HttpUtility]::HtmlEncode($change.description)
-        $diffContent = ''
-
-        if ($null -ne $change.old -and $null -ne $change.new) {
-            if ((& $isScalar $change.old) -and (& $isScalar $change.new)) {
-                $ove = [System.Web.HttpUtility]::HtmlEncode((& $fmtVal $change.old))
-                $nve = [System.Web.HttpUtility]::HtmlEncode((& $fmtVal $change.new))
-                $html = "<div style=`"$monoBase color:#dc2626`">${oldLabel}: $ove</div>" +
-                        "<div style=`"$monoBase color:#16a34a`">${newLabel}: $nve</div>"
-                $diffContent = "<div style=`"$diffDivStyle`">$html</div>"
-            } else {
-                try {
-                    $oh = $change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                    $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                    $lines = @()
-                    foreach ($k in (@(@($oh.Keys) + @($nh.Keys)) | Sort-Object -Unique)) {
-                        if ($diffIgnore.Contains($k)) { continue }
-                        $ov = if ($oh.ContainsKey($k)) { $oh[$k] } else { $null }
-                        $nv = if ($nh.ContainsKey($k)) { $nh[$k] } else { $null }
-                        if ((ConvertTo-DeterministicJson -InputObject $ov) -eq (ConvertTo-DeterministicJson -InputObject $nv)) { continue }
-                        $lines += & $renderPropertyBlock $k $ov $nv $oldLabel $newLabel
-                    }
-                    if ($lines.Count -gt 0) {
-                        $diffContent = "<div style=`"$diffDivStyle`">$($lines -join '')</div>"
-                    }
-                } catch { Write-Warning "HTML diff rendering failed for '$($change.description)': $_" }
-            }
-        } elseif ($null -ne $change.new) {
-            try {
-                $nh = $change.new | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                $lines = @()
-                foreach ($k in ($nh.Keys | Sort-Object)) {
-                    if ($diffIgnore.Contains($k)) { continue }
-                    $ke  = [System.Web.HttpUtility]::HtmlEncode($k)
-                    $nve = [System.Web.HttpUtility]::HtmlEncode((& $fmtVal $nh[$k]))
-                    $lines += "<div style=`"$monoBase color:#16a34a`">${ke}: ${nve}</div>"
-                }
-                if ($lines.Count -gt 0) {
-                    $diffContent = "<div style=`"$diffDivStyle`">$($lines -join '')</div>"
-                }
-            } catch { Write-Warning "HTML diff rendering failed for '$($change.description)': $_" }
-        } elseif ($null -ne $change.old) {
-            try {
-                $oh = $change.old | ConvertTo-Json -Depth 5 | ConvertFrom-Json -AsHashtable
-                $lines = @()
-                foreach ($k in ($oh.Keys | Sort-Object)) {
-                    if ($diffIgnore.Contains($k)) { continue }
-                    $ke  = [System.Web.HttpUtility]::HtmlEncode($k)
-                    $ove = [System.Web.HttpUtility]::HtmlEncode((& $fmtVal $oh[$k]))
-                    $lines += "<div style=`"$monoBase color:#dc2626`">${ke}: ${ove}</div>"
-                }
-                if ($lines.Count -gt 0) {
-                    $diffContent = "<div style=`"$diffDivStyle`">$($lines -join '')</div>"
-                }
-            } catch { Write-Warning "HTML diff rendering failed for '$($change.description)': $_" }
-        }
-
-        $detailsStyle = "border-left:3px solid $bc;background-color:$bg;border-radius:0 3px 3px 0;color:#1a1a1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;"
-        $sumStyle     = "padding:10px 14px;cursor:pointer;display:block;list-style:none;line-height:1.5;color:#1a1a1a;"
-
-        $changeType = $change['changeType']
-        $addTypes   = @('added', 'created', 'rule_added', 'policy_added', 'new_property')
-        $delTypes   = @('removed', 'deleted', 'rule_removed', 'policy_removed', 'removed_property')
-        $sigilChar  = if ($addTypes -contains $changeType) { '+' } elseif ($delTypes -contains $changeType) { '&#8722;' } else { 'M' }
-        $sigilColor = if ($addTypes -contains $changeType) { '#16a34a' } elseif ($delTypes -contains $changeType) { '#dc2626' } else { '#d97706' }
-        $sigilStyle = "font-weight:700;display:inline-block;width:1em;text-align:center;color:$sigilColor;"
-
-        $headerHtml = if ($change.context) {
-            $ctx       = [System.Web.HttpUtility]::HtmlEncode($change.context)
-            $shortDesc = [System.Web.HttpUtility]::HtmlEncode(($change.description -replace '\s*\([^)]*\)\s*$', ''))
-            "<span style=`"display:block;font-size:14px;font-weight:600`">$ctx</span>" +
-            "<span style=`"display:block;font-size:12px;color:#525252;margin-top:2px`"><span style=`"$sigilStyle`">$sigilChar</span> $shortDesc</span>"
-        } else {
-            "<span style=`"display:block;font-size:13px`"><span style=`"$sigilStyle`">$sigilChar</span> $desc</span>"
-        }
-
-        "<tr><td style=`"padding:2px 32px;`">" +
-        "<details style=`"$detailsStyle`"><summary style=`"$sumStyle`">$headerHtml</summary>" +
-        $diffContent +
-        "</details></td></tr>"
-    }
-
-    $rows = @()
-    foreach ($severity in @('High', 'Medium', 'Low', 'Informational')) {
-        if ($script:SeverityRank[$severity] -lt $script:SeverityRank[$MinSeverity]) { continue }
-        $bucket = $ChangesBySeverity.$severity
-        if (-not $bucket -or $bucket.Count -eq 0) { continue }
-
-        $bc  = $sevBorder[$severity]
-        $bg  = $sevBgLight[$severity]
-        $lc  = $sevLabelLight[$severity]
-
-        $labelStyle = "font-family:'Courier New','Lucida Console',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:$lc;"
-        $rows += "<tr><td style=`"padding:24px 32px 8px;`"><div style=`"$labelStyle`">$severity ($($bucket.Count))</div></td></tr>"
-
-        foreach ($change in @($bucket | Sort-Object { $_['changeType'] })) {
-            $rows += & $renderChangeItem $change $bc $bg 'was' 'changed to'
-        }
-        $rows += '<tr><td style="padding:6px 0;"></td></tr>'
-    }
-
-    $sectionsHtml = $rows -join ''
-
-    $commitHtml = ''
-    if ($CommitUrl) {
-        $safeUrl  = [System.Web.HttpUtility]::HtmlAttributeEncode($CommitUrl)
-        $btnStyle = "display:inline-block;font-family:'Courier New','Lucida Console',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#d97706;text-decoration:none;border:1px solid #d97706;border-radius:3px;padding:6px 14px;"
-        $commitHtml = "<tr><td style=`"padding:8px 32px 0;`"><a href=`"$safeUrl`" style=`"$btnStyle`">View diff</a></td></tr>"
-    }
-
-    return @"
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light">
-<meta name="supported-color-schemes" content="light">
-</head>
-<body style="margin:0;padding:0;background-color:#fafafa;">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fafafa;"><tr><td align="center" style="padding:24px 16px;">
-<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#ffffff;border:1px solid #e5e5e5;border-radius:4px;">
-<tr><td style="padding:28px 32px 20px;">
-  <div style="font-family:'Courier New','Lucida Console',monospace;font-size:20px;font-weight:600;letter-spacing:-0.01em;color:#d97706;">pim/monitor</div>
-  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:11px;color:#a3a3a3;margin-top:4px;letter-spacing:0.12em;text-transform:uppercase;">change report</div>
-</td></tr>
-<tr><td style="padding:14px 32px;background-color:#fafafa;border-top:1px solid #e5e5e5;border-bottom:1px solid #e5e5e5;">
-  <table cellpadding="0" cellspacing="0" border="0"><tr>
-    <td style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#525252;">Total <b style="color:#0a0a0a;">$tot</b></td>
-    <td style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;color:$hiColor;">High $hi</td>
-    <td style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;color:$medColor;">Medium $med</td>
-    <td style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;color:$loColor;">Low $lo</td>
-    <td style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#525252;">Info $inf</td>
-  </tr></table>
-  <div style="font-family:'Courier New','Lucida Console',monospace;font-size:10px;color:#a3a3a3;margin-top:8px;letter-spacing:0.06em;">$timestamp</div>
-</td></tr>
-$sectionsHtml
-$commitHtml
-<tr><td style="padding:20px 32px 24px;border-top:1px solid #e5e5e5;">
-  <div style="font-family:'Courier New','Lucida Console',monospace;font-size:10px;color:#a3a3a3;letter-spacing:0.06em;">PIM Monitor · automated scan notification</div>
-</td></tr>
-</table>
-</td></tr></table>
-</body>
-</html>
-"@
 }
+

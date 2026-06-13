@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "workload": "directory-roles",
+      "entity": "global-administrator",
+      "fileType": "policy",
+      "ruleId": "Expiration_EndUser_Assignment",
+      "reason": "SEC-1234: Reducing max activation duration from 8h to 1h per new security baseline",
+      "expiresUtc": "2026-05-15T18:00:00Z"
+    }
+  ]
+}

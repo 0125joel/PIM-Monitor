@@ -1,0 +1,11 @@
+{
+  "name": "Management Plane - Workload Admins",
+  "description": "Rollen met uitgebreide privilèges.",
+  "severity": "Medium",
+  "roles": [
+    { "id": "8329153b-31d0-4727-b945-745eb3bc5f31", "displayName": "Domain Name Administrator" }
+  ],
+  "expectedConfig": {
+    "requireMFA": true
+  }
+}

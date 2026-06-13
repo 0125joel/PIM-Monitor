@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "workload": "directory-roles",
+      "entity": "exchange-administrator",
+      "fileType": "access-model-compliance",
+      "ruleId": "requireApproval",
+      "reason": "Temporary deviation — approval requirement being phased out by 2026-05-30 (ticket #INC-5678)",
+      "expiresUtc": "2026-05-30T23:59:59Z"
+    }
+  ]
+}

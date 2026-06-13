@@ -13,9 +13,6 @@ permissions:
   id-token: write
   contents: write
 
-env:
-  MSGRAPH_VERSION: "2.35.1"
-
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -25,20 +22,35 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Restore Microsoft.Graph module cache
-        id: cache-modules
-        uses: actions/cache@v4
         with:
-          path: ~/.local/share/powershell/Modules
-          key: MSGraph-${{ env.MSGRAPH_VERSION }}-${{ runner.os }}
+          # Full history: the concurrent-push recovery (fetch + rebase in git.ps1) needs a
+          # merge-base, which the default depth-1 checkout does not contain.
+          fetch-depth: 0
 
-      - name: Install Microsoft.Graph module
-        if: steps.cache-modules.outputs.cache-hit != 'true'
-        shell: pwsh
+      - name: Check for upstream version updates
+        id: upstreamcheck
+        shell: bash
+        continue-on-error: true
         run: |
-          Install-Module -Name Microsoft.Graph -RequiredVersion "${{ env.MSGRAPH_VERSION }}" `
-            -Scope CurrentUser -Force -SkipPublisherCheck -Repository PSGallery
+          LATEST_TAG=$(curl -sf --max-time 10 \
+            "https://api.github.com/repos/0125joel/PIM-Monitor/releases/latest" \
+            | jq -r '.tag_name // empty' 2>/dev/null || echo "")
+          LATEST_VERSION="${LATEST_TAG#v}"
+          CURRENT_VERSION=$(grep -oP '\d+\.\d+\.\d+' "VERSION" | head -1)
+
+          if [ -z "$LATEST_VERSION" ] || [ -z "$CURRENT_VERSION" ]; then
+            echo "Could not determine version for upstream check"
+            echo "update_available=false" >> "$GITHUB_OUTPUT"
+          elif [ "$LATEST_VERSION" != "$CURRENT_VERSION" ] && \
+               [ "$(printf '%s\n' "$CURRENT_VERSION" "$LATEST_VERSION" | sort -V | head -1)" = "$CURRENT_VERSION" ]; then
+            echo "::warning::PIM Monitor $LATEST_VERSION is available (running $CURRENT_VERSION). See https://github.com/0125joel/PIM-Monitor/releases/tag/v$LATEST_VERSION"
+            echo "update_available=true" >> "$GITHUB_OUTPUT"
+            echo "latest_version=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
+            echo "current_version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+          else
+            echo "No upstream update available (running $CURRENT_VERSION, latest $LATEST_VERSION)"
+            echo "update_available=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Authenticate to Azure
         uses: azure/login@v2
@@ -55,8 +67,12 @@ jobs:
           NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
           NOTIFICATION_MAIL_FROM: ${{ secrets.NOTIFICATION_MAIL_FROM }}
           NOTIFICATION_WEBHOOK_URL: ${{ secrets.NOTIFICATION_WEBHOOK_URL }}
+          NOTIFICATION_WEBHOOK_TYPE: ${{ vars.NOTIFICATION_WEBHOOK_TYPE }}
           NOTIFICATION_MIN_SEVERITY: ${{ vars.NOTIFICATION_MIN_SEVERITY }}
           EXPIRING_WINDOW_DAYS: ${{ vars.EXPIRING_WINDOW_DAYS }}
+          EAM_COVERAGE_SCOPE: ${{ vars.EAM_COVERAGE_SCOPE }}
+          NOTIFICATION_TEAMS_MENTION: ${{ vars.NOTIFICATION_TEAMS_MENTION }}
+          FAIL_ON_COMPONENT_ERROR: ${{ vars.FAIL_ON_COMPONENT_ERROR }}
           REPORT_ARTIFACT: ${{ vars.REPORT_ARTIFACT }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -71,33 +87,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Check for upstream updates
-        id: upstream-check
-        continue-on-error: true
-        run: |
-          LATEST_TAG=$(curl -sf --max-time 10 \
-            "https://api.github.com/repos/0125joel/PIM-Monitor/releases/latest" \
-            | jq -r '.tag_name // empty' 2>/dev/null || echo "")
-          LATEST_VERSION="${LATEST_TAG#v}"
-          CURRENT_VERSION=$(grep -oP '\d+\.\d+\.\d+' "$GITHUB_WORKSPACE/VERSION" | head -1)
-
-          if [ -n "$LATEST_VERSION" ] && [ -n "$CURRENT_VERSION" ] && \
-             [ "$LATEST_VERSION" != "$CURRENT_VERSION" ] && \
-             [ "$(printf '%s\n' "$CURRENT_VERSION" "$LATEST_VERSION" | sort -V | head -1)" = "$CURRENT_VERSION" ]; then
-            echo "update_available=true" >> $GITHUB_OUTPUT
-            echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
-            echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          else
-            echo "update_available=false" >> $GITHUB_OUTPUT
-          fi
-
+      # Runs even if the scan step failed: the upstream-update notice is independent of scan results.
+      # Reuses the Az session established by azure/login above (Send-UpstreamUpdate's email path needs it).
       - name: Notify upstream update available
-        if: steps.upstream-check.outputs.update_available == 'true' && vars.NOTIFY_UPSTREAM_UPDATE != 'false'
+        if: ${{ always() && steps.upstreamcheck.outputs.update_available == 'true' && vars.NOTIFY_UPSTREAM_UPDATE != 'false' }}
         shell: pwsh
         run: ./src/Send-UpstreamUpdate.ps1
         env:
           NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
           NOTIFICATION_MAIL_FROM: ${{ secrets.NOTIFICATION_MAIL_FROM }}
           NOTIFICATION_WEBHOOK_URL: ${{ secrets.NOTIFICATION_WEBHOOK_URL }}
-          UPSTREAM_LATEST_VERSION: ${{ steps.upstream-check.outputs.latest_version }}
-          UPSTREAM_CURRENT_VERSION: ${{ steps.upstream-check.outputs.current_version }}
+          UPSTREAM_LATEST_VERSION: ${{ steps.upstreamcheck.outputs.latest_version }}
+          UPSTREAM_CURRENT_VERSION: ${{ steps.upstreamcheck.outputs.current_version }}

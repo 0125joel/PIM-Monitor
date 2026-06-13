@@ -1,16 +1,7 @@
-<#
-.SYNOPSIS
-    Diff engine for PIM Monitor — compares inventory files and classifies changes.
-
-.DESCRIPTION
-    Uses a rule-based severity classification system. Severity is determined by:
-    1. Which file changed (definition, policy, assignments)
-    2. The type of change (created, updated, deleted)
-    3. For policy updates: which specific rule IDs changed
-
-    The classification rules are declarative — extend by adding entries to the
-    lookup tables, not by writing new if/else branches.
-#>
+# Requires helpers.ps1 to be sourced first (ConvertTo-DeterministicJson is used in Test-ObjectEqual).
+if (-not (Get-Command ConvertTo-DeterministicJson -ErrorAction SilentlyContinue)) {
+    throw "diff.ps1 requires helpers.ps1 to be sourced first (ConvertTo-DeterministicJson not found)."
+}
 
 $script:PolicyRuleSeverity = [ordered]@{
     "Enablement_EndUser_Assignment"              = "High"
@@ -26,15 +17,6 @@ $script:PolicyRuleSeverity = [ordered]@{
 
 $script:DefaultPolicyRuleSeverity = "Medium"
 
-$script:DiffIgnoreProperties = [System.Collections.Generic.HashSet[string]]::new(
-    [string[]]@(
-        '@odata.context', '@odata.type', '@odata.id',
-        'id', 'templateId', 'target',
-        'createdDateTime', 'modifiedDateTime', 'createdUsing',
-        'lastModifiedDateTime', 'lastModifiedBy'
-    ),
-    [System.StringComparer]::OrdinalIgnoreCase
-)
 
 $script:PropertySeverity = [ordered]@{
     "rolePermissions"        = "High"
@@ -167,10 +149,7 @@ function Compare-PolicyRules {
 
     # PIM Groups wrap two policy assignments (member + owner) in one file.
     # Detect the wrapper and recurse into each sub-policy.
-    $isWrapped = (Test-ObjectHasKey -Object $NewPolicy -Key 'member') -or
-                 (Test-ObjectHasKey -Object $NewPolicy -Key 'owner')   -or
-                 (Test-ObjectHasKey -Object $OldPolicy -Key 'member') -or
-                 (Test-ObjectHasKey -Object $OldPolicy -Key 'owner')
+    $isWrapped = (Test-IsPimGroupWrapper -Object $NewPolicy) -or (Test-IsPimGroupWrapper -Object $OldPolicy)
     if ($isWrapped) {
         foreach ($accessId in @('member', 'owner')) {
             $oldSub = if (Test-ObjectHasKey -Object $OldPolicy -Key $accessId) { $OldPolicy.$accessId } else { $null }
@@ -240,7 +219,7 @@ function Compare-PolicyRules {
 
     # Detect changed and removed rules
     foreach ($ruleId in $oldByRuleId.Keys) {
-        if (-not $newByRuleId.ContainsKey($ruleId)) {
+        if (-not ($ruleId -in $newByRuleId.Keys)) {
             # Rule removed
             $changes += @{
                 severity    = Get-PolicyRuleSeverity -RuleId $ruleId
@@ -270,7 +249,7 @@ function Compare-PolicyRules {
 
     # Detect added rules
     foreach ($ruleId in $newByRuleId.Keys) {
-        if (-not $oldByRuleId.ContainsKey($ruleId)) {
+        if (-not ($ruleId -in $oldByRuleId.Keys)) {
             $changes += @{
                 severity    = Get-PolicyRuleSeverity -RuleId $ruleId
                 ruleId      = $ruleId
@@ -469,9 +448,8 @@ function Compare-Assignments {
 
         # Detect removed assignments
         foreach ($key in $oldById.Keys) {
-            if (-not $newById.ContainsKey($key)) {
-                $accessLabel = $oldById[$key].PSObject.Properties['accessId']?.Value
-                $typePrefix  = if ($accessLabel) { "$accessLabel " } else { '' }
+            if (-not ($key -in $newById.Keys)) {
+                $typePrefix = Get-AccessIdPrefix -Assignment $oldById[$key]
                 $changes += @{
                     severity    = "Low"
                     category    = $category
@@ -486,7 +464,7 @@ function Compare-Assignments {
 
         # Detect added and changed assignments
         foreach ($key in $newById.Keys) {
-            if (-not $oldById.ContainsKey($key)) {
+            if (-not ($key -in $oldById.Keys)) {
                 # New assignment — unknown category types fall back to DefaultCategorySeverity
                 $severity = switch ($category) {
                     "permanent" { "High" }
@@ -496,15 +474,12 @@ function Compare-Assignments {
                 }
 
                 # Check for permanent (no expiration) — always high
-                $scheduleInfo = $newById[$key].PSObject.Properties['scheduleInfo']?.Value
-                $expiration   = if ($null -ne $scheduleInfo) { $scheduleInfo.PSObject.Properties['expiration']?.Value } else { $null }
-                $endDateTime  = if ($null -ne $expiration)   { $expiration.PSObject.Properties['endDateTime']?.Value  } else { $null }
+                $endDateTime = Get-AssignmentEndDateTime -Assignment $newById[$key]
                 if ($null -eq $endDateTime -and $category -ne "permanent") {
                     $severity = "High"
                 }
 
-                $accessLabel = $newById[$key].PSObject.Properties['accessId']?.Value
-                $typePrefix  = if ($accessLabel) { "$accessLabel " } else { '' }
+                $typePrefix = Get-AccessIdPrefix -Assignment $newById[$key]
                 $changes += @{
                     severity    = $severity
                     category    = $category
@@ -518,8 +493,7 @@ function Compare-Assignments {
             else {
                 # Both exist — check for changes
                 if (-not (Test-ObjectEqual -Left $oldById[$key] -Right $newById[$key])) {
-                    $accessLabel = $newById[$key].PSObject.Properties['accessId']?.Value
-                    $typePrefix  = if ($accessLabel) { "$accessLabel " } else { '' }
+                    $typePrefix = Get-AccessIdPrefix -Assignment $newById[$key]
                     $changes += @{
                         severity    = "Medium"
                         category    = $category
@@ -552,13 +526,13 @@ function Compare-Assignments {
             if ($change.changeType -ne $changeType -or -not $change[$dataKey]) { continue }
             $key = Get-AssignmentKey -Assignment $change[$dataKey]
             if (-not $key) { continue }
-            if (-not $byKey.ContainsKey($key)) { $byKey[$key] = @{} }
+            if (-not ($key -in $byKey.Keys)) { $byKey[$key] = @{} }
             $byKey[$key][$change.category] = $change
         }
 
         foreach ($key in $byKey.Keys) {
             $byCategory = $byKey[$key]
-            if (-not ($byCategory.ContainsKey('active') -and $byCategory.ContainsKey('permanent'))) { continue }
+            if (-not (('active' -in $byCategory.Keys) -and ('permanent' -in $byCategory.Keys))) { continue }
 
             $activeChange    = $byCategory['active']
             $permanentChange = $byCategory['permanent']
@@ -593,7 +567,7 @@ function Compare-Assignments {
     }
 
     if ($toRemove.Count -gt 0) {
-        $changes = @($changes | Where-Object { -not $toRemove.Contains($_) }) + @($toAdd)
+        $changes = [object[]](@($changes | Where-Object { -not $toRemove.Contains($_) }) + @($toAdd))
     }
 
     return $changes
@@ -862,15 +836,31 @@ function Compare-InventoryFolder {
             "policy" {
                 # Rule-level analysis
                 $ruleChanges = Compare-PolicyRules -OldPolicy $oldData -NewPolicy $newDataForFile -Context $EntityName
+                foreach ($rc in $ruleChanges) {
+                    if (-not $rc['fileType']) { $rc['fileType'] = $fileType }
+                }
                 $changes += $ruleChanges
             }
 
             "assignments" {
                 # Entry-level analysis
                 $assignmentChanges = Compare-Assignments -OldAssignments $oldData -NewAssignments $newDataForFile -Context $EntityName
+                foreach ($ac in $assignmentChanges) {
+                    if (-not $ac['fileType']) { $ac['fileType'] = $fileType }
+                }
                 $changes += $assignmentChanges
             }
         }
+    }
+
+    # Stamp workload + entity on every entry. Test-ChangeIsExpected matches on these keys,
+    # and the renderers (HTML file links, email anchors) read them; without this stamp every
+    # documented expected-changes suppression silently fails to match inventory diffs.
+    $workload = Split-Path -Leaf (Split-Path -Parent $FolderPath)
+    $slug     = Split-Path -Leaf $FolderPath
+    foreach ($change in $changes) {
+        if (-not $change['workload']) { $change['workload'] = $workload }
+        if (-not $change['entity'])   { $change['entity']   = $slug }
     }
 
     return $changes
@@ -910,12 +900,16 @@ function Get-RemovedEntities {
         [System.StringComparer]::OrdinalIgnoreCase
     )
 
+    $workload = Split-Path -Leaf $WorkloadPath
+
     foreach ($folder in $existingFolders) {
         if (-not $currentSlugSet.Contains($folder.Name)) {
             $changes += @{
                 severity    = "High"
                 fileType    = "definition"
                 changeType  = "deleted"
+                workload    = $workload
+                entity      = $folder.Name
                 description = "Entity removed from PIM: $($folder.Name)"
                 old         = $folder.FullName
                 new         = $null
@@ -925,6 +919,45 @@ function Get-RemovedEntities {
     }
 
     return $changes
+}
+
+function Test-SafeToArchive {
+    <#
+    .SYNOPSIS
+        Guards against mass false-archival when a discovery call returns an empty collection.
+
+    .DESCRIPTION
+        Discovery endpoints can return an empty result without throwing (for example, a beta
+        endpoint that changes shape or starts returning nothing). In that case Get-RemovedEntities
+        would flag every existing inventory folder as removed and the workload would be archived
+        wholesale. This guard returns $false only when discovery found zero entities while the
+        inventory still holds folders — the signature of a broken discovery rather than a genuine
+        bulk removal. Callers should skip archival and raise a scan error instead.
+
+        A discovered count above zero, or an empty/absent workload folder, is always safe.
+
+    .PARAMETER DiscoveredCount
+        Number of entities returned by the discovery call (the raw fetch count, before per-entity
+        processing). Zero means discovery found nothing.
+
+    .PARAMETER WorkloadPath
+        Inventory folder for the workload (e.g. inventory/pim-groups).
+
+    .EXAMPLE
+        if (Test-SafeToArchive -DiscoveredCount $groupIds.Count -WorkloadPath $path) { ... }
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [int] $DiscoveredCount,
+
+        [Parameter(Mandatory)]
+        [string] $WorkloadPath
+    )
+
+    if ($DiscoveredCount -gt 0)         { return $true }
+    if (-not (Test-Path $WorkloadPath)) { return $true }
+    return (@(Get-ChildItem -Path $WorkloadPath -Directory).Count -eq 0)
 }
 
 <#
@@ -944,6 +977,10 @@ function Get-RemovedEntities {
 .PARAMETER WindowDays
     Number of days ahead to scan (default: 14, from env var EXPIRING_WINDOW_DAYS).
 
+.PARAMETER Workload
+    Inventory workload the assignments belong to (e.g., "directory-roles").
+    Stamped on each change entry so expected-changes suppression can match it.
+
 .RETURNS
     Array of change entries with severity='Medium', changeType='expiring'
 #>
@@ -954,7 +991,9 @@ function Find-ExpiringAssignments {
         [hashtable] $Assignments,
 
         [ValidateRange(1, 365)]
-        [int] $WindowDays = 14
+        [int] $WindowDays = 14,
+
+        [string] $Workload
     )
 
     $changes = @()
@@ -968,9 +1007,7 @@ function Find-ExpiringAssignments {
             if (-not $categoryAssignments) { continue }
 
             foreach ($assignment in $categoryAssignments) {
-                $scheduleInfo = $assignment.PSObject.Properties['scheduleInfo']?.Value
-                $expiration   = if ($null -ne $scheduleInfo) { $scheduleInfo.PSObject.Properties['expiration']?.Value } else { $null }
-                $endDateTime  = if ($null -ne $expiration)   { $expiration.PSObject.Properties['endDateTime']?.Value  } else { $null }
+                $endDateTime = Get-AssignmentEndDateTime -Assignment $assignment
                 if (-not $endDateTime) {
                     continue
                 }
@@ -985,12 +1022,16 @@ function Find-ExpiringAssignments {
                             $principal.displayName
                         }
                         else {
-                            $principal.PSObject.Properties['mail']?.Value ?? $assignment.PSObject.Properties['principalId']?.Value
+                            # $principal may be $null — guard before accessing PSObject.Properties (StrictMode throws on $null.PSObject)
+                            $mailName = if ($principal) { $principal.PSObject.Properties['mail']?.Value } else { $null }
+                            $mailName ?? $assignment.PSObject.Properties['principalId']?.Value
                         }
 
-                        $changes += @{
+                        $entry = @{
                             severity       = "Medium"
                             changeType     = "expiring"
+                            fileType       = "assignments"
+                            entity         = $entityId
                             daysRemaining  = [math]::Round($daysRemaining)
                             description    = "Assignment expiring in $([math]::Round($daysRemaining)) days ($category): $principalName"
                             category       = $category
@@ -998,6 +1039,8 @@ function Find-ExpiringAssignments {
                             expiryTime     = $expiryTime
                             isAlert        = $true
                         }
+                        if ($Workload) { $entry['workload'] = $Workload }
+                        $changes += $entry
                     }
                 }
                 catch {
@@ -1041,15 +1084,16 @@ function Test-ChangeIsExpected {
         return $false
     }
 
-    $changeWorkload  = $Change.PSObject.Properties['workload']?.Value?.ToLower() ?? ""
-    $changeEntity    = $Change.PSObject.Properties['entity']?.Value?.ToLower() ?? ""
-    $changeFileType  = $Change.PSObject.Properties['fileType']?.Value?.ToLower() ?? ""
-    $changeRuleId    = $Change.PSObject.Properties['ruleId']?.Value
+    $changeWorkload  = ($Change['workload'] ?? "").ToLower()
+    $changeEntity    = ($Change['entity'] ?? "").ToLower()
+    $changeFileType  = ($Change['fileType'] ?? "").ToLower()
+    $changeRuleId    = $Change['ruleId']
 
     foreach ($expectation in $Expectations) {
-        if ($expectation.expiresUtc) {
+        $expExpiresUtc = $expectation.PSObject.Properties['expiresUtc']?.Value
+        if ($expExpiresUtc) {
             try {
-                $expiryTime = [datetime]::Parse($expectation.expiresUtc, [System.Globalization.CultureInfo]::InvariantCulture)
+                $expiryTime = [datetime]::Parse($expExpiresUtc, [System.Globalization.CultureInfo]::InvariantCulture)
                 if ((Get-Date -AsUTC) -gt $expiryTime) {
                     continue
                 }
@@ -1060,20 +1104,24 @@ function Test-ChangeIsExpected {
             }
         }
 
-        if ($expectation.workload -and $expectation.workload.ToLower() -ne $changeWorkload) {
+        $expWorkload = $expectation.PSObject.Properties['workload']?.Value
+        if ($expWorkload -and $expWorkload.ToLower() -ne $changeWorkload) {
             continue
         }
 
-        if ($expectation.entity -and $expectation.entity.ToLower() -ne $changeEntity) {
+        $expEntity = $expectation.PSObject.Properties['entity']?.Value
+        if ($expEntity -and $expEntity.ToLower() -ne $changeEntity) {
             continue
         }
 
-        if ($expectation.fileType -and $expectation.fileType.ToLower() -ne $changeFileType) {
+        $expFileType = $expectation.PSObject.Properties['fileType']?.Value
+        if ($expFileType -and $expFileType.ToLower() -ne $changeFileType) {
             continue
         }
 
-        if ($expectation.ruleId) {
-            if ($changeRuleId -and $changeRuleId.ToLower() -eq $expectation.ruleId.ToLower()) {
+        $expRuleId = $expectation.PSObject.Properties['ruleId']?.Value
+        if ($expRuleId) {
+            if ($changeRuleId -and $changeRuleId.ToLower() -eq $expRuleId.ToLower()) {
                 return $true
             }
             continue
@@ -1087,15 +1135,17 @@ function Test-ChangeIsExpected {
 
 <#
 .SYNOPSIS
-    Aggregates changes into severity buckets, separating alerts from informational entries.
+    Aggregates changes into severity buckets, with coverage entries split out separately.
 
 .PARAMETER Changes
-    Flat array of change entries (each must have a 'severity' key and optional 'isAlert' flag).
+    Flat array of change entries (each must have a 'severity' key).
 
 .RETURNS
-    Hashtable: @{ High = @(...), Medium = @(...), Low = @(...), Informational = @(...), Total = [int] }
+    Hashtable: @{ High = @(...), Medium = @(...), Low = @(...), Informational = @(...), Coverage = @(...), Total = [int] }
 
-    Informational entries are those without 'isAlert' flag (e.g., activation events).
+    Coverage holds access-model-coverage and group-coverage entries (rendered as a separate
+    section, not as severity buckets). All other entries are bucketed on their 'severity'
+    key; anything without a recognized severity lands in Informational.
 #>
 function Group-ChangesBySeverity {
     [CmdletBinding()]
@@ -1105,14 +1155,30 @@ function Group-ChangesBySeverity {
         [array] $Changes
     )
 
-    $grouped = @{
-        High          = @($Changes | Where-Object { $_.severity -eq "High"   -and $_.PSObject.Properties['fileType']?.Value -ne 'tier-coverage' })
-        Medium        = @($Changes | Where-Object { $_.severity -eq "Medium" -and $_.PSObject.Properties['fileType']?.Value -ne 'tier-coverage' })
-        Low           = @($Changes | Where-Object { $_.severity -eq "Low"    -and $_.PSObject.Properties['fileType']?.Value -ne 'tier-coverage' })
-        Informational = @($Changes | Where-Object { $_.severity -notin @("High", "Medium", "Low") -and $_.PSObject.Properties['fileType']?.Value -ne 'tier-coverage' })
-        Coverage      = @($Changes | Where-Object { $_.PSObject.Properties['fileType']?.Value -eq 'tier-coverage' })
-        Total         = $Changes.Count
+    $hi  = [System.Collections.Generic.List[object]]::new()
+    $med = [System.Collections.Generic.List[object]]::new()
+    $low = [System.Collections.Generic.List[object]]::new()
+    $inf = [System.Collections.Generic.List[object]]::new()
+    $cov = [System.Collections.Generic.List[object]]::new()
+
+    foreach ($c in $Changes) {
+        # Change entries are hashtables; use direct key access, not PSObject.Properties.
+        $ft = $c['fileType']
+        if ($ft -eq 'access-model-coverage' -or $ft -eq 'group-coverage') { $cov.Add($c); continue }
+        switch ($c['severity']) {
+            'High'   { $hi.Add($c) }
+            'Medium' { $med.Add($c) }
+            'Low'    { $low.Add($c) }
+            default  { $inf.Add($c) }
+        }
     }
 
-    return $grouped
+    return @{
+        High          = $hi.ToArray()
+        Medium        = $med.ToArray()
+        Low           = $low.ToArray()
+        Informational = $inf.ToArray()
+        Coverage      = $cov.ToArray()
+        Total         = $Changes.Count
+    }
 }

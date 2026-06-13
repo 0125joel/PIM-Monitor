@@ -14,6 +14,7 @@ inventory/
 ├── directory-roles/
 ├── pim-groups/
 ├── authentication-contexts/
+├── conditional-access/
 ├── administrative-units/
 ├── activation-events/
 └── archive/
@@ -225,6 +226,43 @@ inventory/authentication-contexts/{slug}/
 
 Resolves `claimValue` references in policy rules like `AuthenticationContext_EndUser_Assignment`.
 
+The `config.json` file in each auth context folder is operator-defined and never written by the scan pipeline. See [Auth Context CA Compliance](../access-model/auth-context-compliance.md) for the supported fields.
+
+## Conditional Access
+
+CA policies that reference at least one auth context claim are stored here. Only policies with `conditions.applications.includeAuthenticationContextClassReferences` set are stored. All other CA policies are out of scope.
+
+```
+inventory/conditional-access/{slug}/
+└── definition.json
+```
+
+```json
+{
+  "id": "policyId",
+  "displayName": "PIM - Phishing-resistant MFA + SIF",
+  "state": "enabled",
+  "conditions": {
+    "applications": {
+      "includeAuthenticationContextClassReferences": ["c2"]
+    }
+  },
+  "grantControls": {
+    "authenticationStrength": {
+      "id": "00000000-0000-0000-0000-000000000003"
+    }
+  },
+  "sessionControls": {
+    "signInFrequency": {
+      "isEnabled": true,
+      "frequencyInterval": "everyTime"
+    }
+  }
+}
+```
+
+**Note:** The `includeAuthenticationContextClassReferences` field is only available on the beta endpoint. PIM Monitor uses `$GraphBeta/identity/conditionalAccess/policies` for this workload.
+
 ### administrative-units
 
 ```
@@ -244,7 +282,7 @@ Resolves `directoryScopeId` in assignments scoped to an AU instead of the full t
 
 ## Archive
 
-When a role or group disappears from PIM — removed, offboarded, or renamed to a different slug — its inventory folder is not deleted. PIM Monitor moves it to `inventory/archive/{workload}/{slug}_{date}`:
+When a role or group disappears from PIM (removed, offboarded, or renamed to a different slug), its inventory folder is not deleted. PIM Monitor moves it to `inventory/archive/{workload}/{slug}_{date}`:
 
 ```
 inventory/archive/
@@ -264,11 +302,11 @@ The date suffix is the UTC date of the scan that first detected the removal.
 
 ### What is preserved
 
-The full folder contents — definition, policy, and assignments — are moved as-is. This means:
+The full folder contents (definition, policy, and assignments) are moved as-is. This means:
 
-- The **last known state** of the entity is readable on disk without touching git history.
-- The **git history** of the original folder is preserved. `git log inventory/directory-roles/old-role-name/` still shows all changes the entity went through before it was removed.
-- **Notifications** fire for the removal: it is recorded as a `High` severity change entry and sent via email or webhook if configured.
+- The last known state of the entity is readable on disk without touching git history.
+- The git history of the original folder is preserved. `git log inventory/directory-roles/old-role-name/` still shows all changes the entity went through before it was removed.
+- Notifications fire for the removal: it is recorded as a `High` severity change entry and sent via email or webhook if configured.
 
 ### Renamed roles
 

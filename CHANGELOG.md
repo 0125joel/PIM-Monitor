@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.4.0](https://github.com/0125joel/PIM-Monitor/compare/v0.3.0...v0.4.0) (2026-06-13)
+
+
+### Features
+
+* add EAM access model with compliance engine, curated role catalog, and per-level severity classification
+* add CA policy compliance check for authentication contexts via authContext field on access model files
+* add NOTIFICATION_WEBHOOK_TYPE support and split webhook notifications into per-channel modules (Teams, Slack, Discord)
+* overhaul notifications with email-style hierarchy shared across all channels
+* add HTML scan report dual-view (severity / entity), evidence links, and print stylesheet
+* add FAIL_ON_COMPONENT_ERROR option for optional hard-fail on component errors during scan
+* switch upstream version check to the GitHub releases API
+* add notification payload JSON schema (v1) for webhook consumers
+* add Pester test suite covering change-entry contract, module load order, StrictMode safety, and notification channel structure
+* add structured data and SEO improvements to the documentation site
+
+
+### Bug Fixes
+
+* guard against mass false-archival when PIM group discovery returns an empty response
+* stamp workload, entity, and fileType on change entries so expected-changes suppression actually matches
+* add auth-context-policy-compliance to compliance types for correct alert rendering
+* harden StrictMode safety in property access and null handling across diff and notification helpers
+* keep Policy.Read.All for Conditional Access policy reads (ConditionalAccess app permission is insufficient)
+* update fileType references from tier to access-model across scripts and documentation
+* hide the inactive view and highlight the active tab in the HTML report toggle
+
 ## [0.3.0](https://github.com/0125joel/PIM-Monitor/compare/v0.2.1...v0.3.0) (2026-05-09)
 
 

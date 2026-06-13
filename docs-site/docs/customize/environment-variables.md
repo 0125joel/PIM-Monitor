@@ -11,23 +11,26 @@ Complete reference of all environment variables that PIM Monitor recognizes.
 
 | Variable | Type | Default | Valid values | Purpose |
 |----------|------|---------|--------------|---------|
-| `NOTIFY_UPSTREAM_UPDATE` | Variable | Enabled | `false` to disable | Send notification when GitHub has newer commits |
+| `NOTIFY_UPSTREAM_UPDATE` | Variable | Enabled | `false` to disable | Send notification when a newer release is published upstream |
 | `NOTIFICATION_EMAIL` | Secret | Unset | Email address | Email recipient for notifications |
 | `NOTIFICATION_MAIL_FROM` | Secret | Unset | Service principal UPN | Sender mailbox |
 | `NOTIFICATION_WEBHOOK_URL` | Secret | Unset | HTTPS URL | Teams/Slack/Discord/Custom webhook |
+| `NOTIFICATION_TEAMS_MENTION` | Variable | Unset | Comma-separated UPNs | @-mention recipients in Teams card; fires only on High-severity changes |
 | `NOTIFICATION_MIN_SEVERITY` | Variable | `Medium` | High, Medium, Low, Informational | Minimum severity to notify |
 | `EXPIRING_WINDOW_DAYS` | Variable | `14` | Integer (7, 14, 30, etc.) | Days ahead to flag expiring assignments |
 | `REPORT_ARTIFACT` | Variable | Unset | `true` | Generate HTML scan report artifact |
-| `MSGRAPH_VERSION` | Variable | `2.35.1` | Semantic version | Microsoft.Graph PowerShell module version |
+| `EAM_COVERAGE_SCOPE` | Variable | `privileged` | `privileged`, `all` | Scope for unclassified role detection (Enterprise Access Model) |
+| `FAIL_ON_COMPONENT_ERROR` | Variable | Unset | `true` | Fail the pipeline run (non-zero exit) when one or more components error, instead of exiting green |
+
 
 ## Pipeline Control Variables
 
 ### **NOTIFY_UPSTREAM_UPDATE**
-- **Where to set**: Azure DevOps → Pipelines → Variables
-- **What it does**: Controls whether a webhook/email notification is sent when the pipeline detects that the public GitHub repository has commits not yet present in your local copy. The pipeline log warning is always written regardless of this setting.
+- **Where to set**: Azure DevOps → Pipelines → Variables | GitHub Actions → Variables
+- **What it does**: Controls whether a webhook/email notification is sent when the pipeline detects that the upstream GitHub repository has a newer release than the `VERSION` file in your copy. The pipeline log warning is always written regardless of this setting.
 - **Default**: Enabled (leave the variable unset)
 - **To disable**: Set `NOTIFY_UPSTREAM_UPDATE` = `false` in pipeline variables
-- **Applies to**: Azure DevOps pipeline only. GitHub Actions users run directly from GitHub and always have the latest version.
+- **Applies to**: Both Azure DevOps and GitHub Actions. Both runtimes run from a checked-out copy of the repo and can drift behind upstream releases, so both perform the version check.
 - **See also**: [Pipeline Configuration](./pipeline.md)
 
 ## Notification Variables
@@ -47,15 +50,36 @@ Complete reference of all environment variables that PIM Monitor recognizes.
 - **See also**: [Email Notifications](./email-notifications.md)
 
 ### **NOTIFICATION_WEBHOOK_URL**
-- **Where to set**: Azure DevOps → Pipelines → Variables | GitHub Actions → Secrets
+- **Where to set**: Azure DevOps → Pipelines → Variables (**mark as secret**) | GitHub Actions → Secrets
+- **Security note**: A webhook URL is a bearer credential. Anyone with it can post to your channel, so always store it as a secret variable, not a plain variable.
 - **What it does**: Sends change notifications to a webhook endpoint
 - **Supported platforms**: Teams (Power Automate), Slack, Discord, custom JSON endpoints
 - **Auto-detection**: URL pattern determines payload format:
-  - `webhook.office.com` → Teams Adaptive Card
+  - `webhook.office.com` → Teams Adaptive Card (legacy O365 connector, fully retired by Microsoft May 2026 and no longer delivering, migrate to Power Automate)
+  - `*.logic.azure.com`, `*.azure-apim.net` → Teams Adaptive Card (Power Automate workflow, recommended)
   - `hooks.slack.com` → Slack blocks
   - `discord.com/api/webhooks` → Discord embed
   - Other → Generic JSON
 - **See also**: [Webhook Channels](./webhook-channels.md)
+
+### **NOTIFICATION_WEBHOOK_TYPE**
+- **Where to set**: Azure DevOps → Pipelines → Variables | GitHub Actions → Variables (not secret)
+- **What it does**: Overrides the URL-based payload auto-detection
+- **Valid values**: `Teams`, `Slack`, `Discord`, `Generic`
+- **Default**: unset (auto-detection by URL pattern)
+- **When to use**: `*.logic.azure.com` URLs are detected as Teams. A Logic App that consumes the [generic JSON schema](./webhook-channels.md) instead of forwarding to Teams needs `NOTIFICATION_WEBHOOK_TYPE=Generic` to receive the documented payload rather than an Adaptive Card.
+- **Behavior**: An unrecognized value is ignored with a pipeline warning; auto-detection then applies. The override also applies to scan error notifications.
+- **See also**: [Webhook Channels](./webhook-channels.md)
+
+### **NOTIFICATION_TEAMS_MENTION**
+- **Where to set**: Azure DevOps → Pipelines → Variables | GitHub Actions → Variables
+- **What it does**: Comma-separated list of UPNs to @-mention in the Teams Adaptive Card when a scan finds **High-severity** changes. The card prefixes the executive summary with `<at>upn</at>` and includes a `msteams.entities` block, so Teams pushes a real mention notification (mobile push, channel highlight).
+- **Example**: `oncall@contoso.com,security-lead@contoso.com`
+- **Behavior**:
+  - Only fires when at least one High-severity change is present in the scan
+  - No effect when used without `NOTIFICATION_WEBHOOK_URL`
+  - No effect on Slack, Discord, or generic webhooks
+- **Requirements**: UPNs must be addressable in the Teams tenant the workflow targets
 
 ### **NOTIFICATION_MIN_SEVERITY**
 - **Where to set**: Azure DevOps → Pipelines → Variables | GitHub Actions → Variables (not secret)
@@ -93,27 +117,35 @@ Complete reference of all environment variables that PIM Monitor recognizes.
   - Stored in `BUILD_ARTIFACTSTAGINGDIRECTORY` (Azure DevOps) or artifacts folder (GitHub Actions)
   - Report includes severity breakdown, detailed change listing, and diffs
   - Cannot be disabled once enabled: no `false` value needed
+  - When enabled, the Slack notification adds an **Open HTML Report** button linking to the pipeline run page (Azure DevOps Build Results or GitHub Actions run). Teams gets the same treatment in a future phase.
 - **Requirements**: Azure DevOps artifact staging directory must be available
 - **See also**: [Reporting & Artifacts](./reporting.md)
 
-## Module Management Variables
+### **EAM_COVERAGE_SCOPE**
+- **Where to set**: Azure DevOps → Pipelines → Variables | GitHub Actions → Variables
+- **What it does**: Controls which **directory roles** are checked for access-model classification during the coverage check
+- **Default**: `privileged` (only roles where `isPrivileged=true` in Entra ID)
+- **Valid values**:
+  - `privileged`: only built-in privileged roles are flagged as unclassified
+  - `all`: every role in the inventory is checked, including non-privileged roles
+- **Requires**: An `AccessModel/` directory in the repository root; if absent, this variable has no effect
+- **Note**: This variable only affects directory roles. PIM Groups are always checked in full, regardless of this setting. See [Access Model: PIM Groups](../access-model/pim-groups.md) for group classification.
+- **See also**: [Access Model and Desired-State Compliance](../access-model/overview.mdx)
 
-### **MSGRAPH_VERSION**
-- **Where to set**: `monitor-pipeline.yml` (Azure DevOps) or `.github/workflows/scan.yml` (GitHub Actions)
-- **What it does**: Pins the Microsoft.Graph PowerShell module version
-- **Default**: `2.35.1`
-- **Format**: Semantic versioning (e.g., `2.35.0`, `2.36.1`)
+### **FAIL_ON_COMPONENT_ERROR**
+- **Where to set**: Azure DevOps → Pipelines → Variables | GitHub Actions → Variables
+- **What it does**: Controls how the pipeline reports a scan in which one or more components failed (for example, the PIM Groups fetch threw while directory roles succeeded)
+- **Valid values**: `true` (case-sensitive; anything else is treated as disabled)
+- **Default**: Unset (disabled)
 - **Behavior**:
-  - Pipeline caches this version; changing it invalidates the cache
-  - Automatic re-download on version change
-  - Ensures reproducible runs across all agents
-- **When to change**: Only when Microsoft Graph API behavior changes require a newer version
-- **Notes**: Do NOT set as a pipeline variable; edit the YAML directly
-- **See also**: [Pipeline Configuration](./pipeline.md)
+  - Disabled (default): the scan is resilient. It commits what succeeded, sends the scan-error notification, and exits with success. The pipeline run shows green even though a component failed.
+  - Enabled: after the scan-error notification is sent, the script exits non-zero so the pipeline run shows as failed. Use this when you want a degraded scan to be visible in the pipeline itself, not only through notifications.
+  - Token-acquisition failure always fails the run regardless of this setting.
+- **See also**: [Notifications](./notifications.md)
 
 ## Platform-Specific Variables (Auto-populated)
 
-These are automatically set by Azure DevOps or GitHub Actions. You do NOT set them manually.
+These are set automatically by Azure DevOps or GitHub Actions. Do not set them manually.
 
 ### **Azure DevOps**
 - `BUILD_REPOSITORY_URI`: Repository URL (used to build diff links in notifications)
@@ -134,7 +166,7 @@ These are automatically set by Azure DevOps or GitHub Actions. You do NOT set th
    - **Name**: `NOTIFICATION_EMAIL`
    - **Value**: `security-team@contoso.com`
    - **Scope**: Pipeline
-   - **Keep value secret** ✓ (for credentials only)
+   - **Keep value secret** (for credentials only)
 
 4. Repeat for each variable
 

@@ -184,6 +184,23 @@ Dit is de hoofdtaak. De `azureSubscription`-waarde moet exact overeenkomen met d
 
 Wordt alleen uitgevoerd wanneer `REPORT_ARTIFACT=true`.
 
+### Stap 7: Op upstream-versie-updates controleren
+
+```bash
+LATEST_TAG=$(curl -sf "https://api.github.com/repos/0125joel/PIM-Monitor/releases/latest" \
+  | jq -r '.tag_name // empty')
+CURRENT_VERSION=$(grep -oP '\d+\.\d+\.\d+' "$(Build.SourcesDirectory)/VERSION")
+# Vergelijken: als LATEST > CURRENT, zet UPSTREAM_UPDATE_AVAILABLE=true
+```
+
+Deze stap controleert of er een nieuwere versie van PIM Monitor beschikbaar is op GitHub:
+1. Leest uw `VERSION` bestand (wat u draait)
+2. Roept de GitHub API aan om de nieuwste release op te halen
+3. Vergelijkt semantic versions
+4. Stelt `UPSTREAM_UPDATE_AVAILABLE` in als er een update beschikbaar is
+
+Uitschakelen: stel pipelinevariabele `NOTIFY_UPSTREAM_UPDATE=false` in.
+
 ---
 
 ## 6. Pipelinevariabelen-referentie

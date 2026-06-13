@@ -1,5 +1,7 @@
-const sidebars = {
-  docsSidebar: [
+import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
+
+const sidebars: SidebarsConfig = {
+  guideSidebar: [
     {
       type: 'doc',
       id: 'intro',
@@ -23,13 +25,18 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Reference',
+      label: 'How it works',
       items: [
         'reference/inventory-structure',
         'reference/graph-endpoints',
         'reference/diff-engine',
         'reference/activation-events',
       ],
+    },
+    {
+      type: 'doc',
+      id: 'contributing',
+      label: 'Contributing',
     },
   ],
   customizeSidebar: [
@@ -80,11 +87,14 @@ const sidebars = {
         'customize/expected-changes',
       ],
     },
-    {
-      type: 'doc',
-      id: 'contributing',
-      label: 'Contributing',
-    },
+  ],
+  accessModelSidebar: [
+    'access-model/overview',
+    'access-model/eam-role-catalog',
+    'access-model/setup-compliance',
+    'access-model/coverage-exclusions',
+    'access-model/pim-groups',
+    'access-model/auth-context-compliance',
   ],
 };
 

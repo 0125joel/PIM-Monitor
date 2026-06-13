@@ -1,5 +1,6 @@
 ---
 sidebar_position: 6
+description: Detect PIM assignments approaching their expiration date. Configure the alert window and review cycle for eligible assignments.
 ---
 
 # Expiring Assignments Detection
@@ -8,7 +9,7 @@ Configure early warning for PIM assignments approaching expiration.
 
 ## What It Does
 
-PIM Monitor periodically scans for assignments expiring within a configurable window. When found, they're flagged as `Informational` severity changes in the scan report.
+PIM Monitor periodically scans for assignments expiring within a configurable window. When found, they're flagged as `Medium` severity changes in the scan report.
 
 **Example**:
 - Window: 14 days
@@ -47,10 +48,10 @@ Set `EXPIRING_WINDOW_DAYS` in your pipeline variables:
 
 For each PIM assignment (Directory Roles and PIM Groups):
 
-1. **Check if assignment has expiration date** — Assignments without an end date are skipped
-2. **Compare expiration against today + window** — If expiring within window, flag it
-3. **Classify as Medium severity** — Expiring assignments warrant review before they lapse
-4. **Include in scan report** — Listed under Medium changes
+1. **Check if assignment has expiration date**: assignments without an end date are skipped
+2. **Compare expiration against today + window**: if expiring within window, flag it
+3. **Classify as Medium severity**: expiring assignments warrant review before they lapse
+4. **Include in scan report**: listed under Medium changes
 
 ### Types of Assignments Checked
 
@@ -83,12 +84,12 @@ Expiring assignments are classified as `Medium` severity, so they are included a
 
 | Setting | Include expiring? | Example output |
 |---------|---|---|
-| `High` | ❌ No | Only critical changes |
-| `Medium` | ✅ Yes (default) | Security + config changes, including expiring |
-| `Low` | ✅ Yes | All changes except metadata |
-| `Informational` | ✅ Yes | All changes including metadata |
+| `High` | No | Only critical changes |
+| `Medium` | Yes (default) | Security + config changes, including expiring |
+| `Low` | Yes | All changes except metadata |
+| `Informational` | Yes | All changes including metadata |
 
-Expiring assignment notifications are **on by default** — no threshold change needed.
+Expiring assignment notifications are on by default, so you do not need to change the threshold.
 
 ### Separate Reports
 
@@ -130,17 +131,7 @@ If you intentionally expire assignments and don't want notifications:
 
 Set up a schedule to review expiring assignments:
 
-**Bi-weekly (14-day window)**:
-- Every Monday: Review scan report for expiring assignments
-- Tuesday: Plan renewals if needed
-- Wednesday: Execute renewals in PIM Manager
-- Thursday scan: Updates reflect new expiration dates
-
-**Monthly (30-day window)**:
-- First of month: Review scan report
-- Plan bulk renewals
-- Execute renewal batch
-- Next scan: Confirms updates
+Set up a review cadence that matches your renewal SLA. With a 14-day window, a weekly check is enough. With 30 days, monthly is fine.
 
 ## Customizing Expiration Detection
 
@@ -220,8 +211,8 @@ function Find-ExpiringAssignments {
 
 ## Related Pages
 
-- [Environment Variables](./environment-variables.md) — EXPIRING_WINDOW_DAYS details
-- [Pipeline Configuration](./pipeline.md) — Where EXPIRING_WINDOW_DAYS is set
-- [Notifications](./notifications.md) — NOTIFICATION_MIN_SEVERITY and severity threshold
-- [Severity Rules](./severity-rules.md) — How changes are classified
-- [Expected Changes](./expected-changes.md) — Suppressing known-good expirations
+- [Environment Variables](./environment-variables.md): EXPIRING_WINDOW_DAYS details
+- [Pipeline Configuration](./pipeline.md): where EXPIRING_WINDOW_DAYS is set
+- [Notifications](./notifications.md): NOTIFICATION_MIN_SEVERITY and severity threshold
+- [Severity Rules](./severity-rules.md): how changes are classified
+- [Expected Changes](./expected-changes.md): suppressing known-good expirations

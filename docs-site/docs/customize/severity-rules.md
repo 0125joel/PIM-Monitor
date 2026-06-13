@@ -58,7 +58,7 @@ Definition properties are classified via `$script:PropertySeverity` in `src/diff
 
 ```powershell
 $script:PropertySeverity = [ordered]@{
-    # High — security-critical
+    # High: security-critical
     "rolePermissions"        = "High"
     "isPrivileged"           = "High"
     "isEnabled"              = "High"
@@ -67,7 +67,7 @@ $script:PropertySeverity = [ordered]@{
     "membershipRule"         = "High"   # PIM groups: dynamic membership
     "isAvailable"            = "High"   # auth contexts
 
-    # Medium — worth reviewing
+    # Medium: worth reviewing
     "allowedPrincipalTypes"      = "Medium"
     "inheritsPermissionsFrom"    = "Medium"
     "assignmentMode"             = "Medium"
@@ -76,7 +76,7 @@ $script:PropertySeverity = [ordered]@{
     "expirationDateTime"         = "Medium"
     "groupTypes"                 = "Medium"
 
-    # Informational — metadata, no action required
+    # Informational: metadata, no action required
     "displayName"            = "Informational"
     "description"            = "Informational"
     "version"                = "Informational"

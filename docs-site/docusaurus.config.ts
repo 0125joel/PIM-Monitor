@@ -18,6 +18,12 @@ const config: Config = {
     locales: ['en'],
   },
 
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'throw',
+    },
+  },
+
   plugins: [
     [
       require.resolve('@easyops-cn/docusaurus-search-local'),
@@ -25,6 +31,21 @@ const config: Config = {
         hashed: true,
         docsRouteBasePath: '/docs',
         highlightSearchTermsOnTargetPage: true,
+        indexBlog: false,
+      },
+    ],
+    '@stackql/docusaurus-plugin-structured-data',
+    [
+      '@signalwire/docusaurus-plugin-llms-txt',
+      {
+        siteTitle: 'PIM Monitor',
+        siteDescription:
+          'PIM Monitor is an open-source pipeline that continuously monitors Microsoft Entra ID Privileged Identity Management (PIM). It diffs the live state of directory roles, eligibility and assignment schedules, PIM policies, and group membership against versioned inventory files, commits every change as a git audit trail, classifies changes by severity, and sends notifications. An optional Access Model layer enforces desired-state PIM policy compliance per role against the Enterprise Access Model.',
+        depth: 2,
+        content: {
+          includePages: true,
+          enableLlmsFullTxt: true,
+        },
       },
     ],
   ],
@@ -35,7 +56,8 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/joel-prins/PIM-Monitor/tree/main/docs-site',
+          editUrl: 'https://github.com/joel-prins/PIM-Monitor/tree/main/docs-site/docs',
+          showLastUpdateTime: true,
         },
         blog: false,
         theme: {
@@ -57,40 +79,12 @@ const config: Config = {
         content: 'PIM, Privileged Identity Management, Entra ID, Azure AD, monitoring, audit trail, security, compliance',
       },
       {
-        name: 'og:title',
-        content: 'PIM Monitor',
-      },
-      {
-        name: 'og:description',
-        content: 'Continuous monitoring of Microsoft Entra ID PIM state with git-based audit trail',
-      },
-      {
-        name: 'og:image',
-        content: 'https://pimmonitor.com/img/logo-dark-wordmark.png',
-      },
-      {
         name: 'og:type',
         content: 'website',
       },
       {
-        name: 'og:url',
-        content: 'https://pimmonitor.com',
-      },
-      {
         name: 'twitter:card',
         content: 'summary_large_image',
-      },
-      {
-        name: 'twitter:title',
-        content: 'PIM Monitor',
-      },
-      {
-        name: 'twitter:description',
-        content: 'Continuous monitoring of Microsoft Entra ID PIM state with git-based audit trail',
-      },
-      {
-        name: 'twitter:image',
-        content: 'https://pimmonitor.com/img/logo-dark-wordmark.png',
       },
       {
         name: 'robots',
@@ -98,6 +92,39 @@ const config: Config = {
       },
     ],
     image: 'img/logo-dark-wordmark.png',
+    structuredData: {
+      excludedRoutes: ['/search'],
+      verbose: false,
+      featuredImageDimensions: {
+        width: 1200,
+        height: 627,
+      },
+      authors: {},
+      organization: {
+        name: 'PIM Monitor',
+        description:
+          'Open-source pipeline for continuous monitoring of Microsoft Entra ID Privileged Identity Management (PIM), with a git-based audit trail and desired-state policy compliance.',
+        sameAs: [
+          'https://github.com/joel-prins/PIM-Monitor',
+          'https://pimmanager.com',
+        ],
+      },
+      website: {
+        datePublished: '2025-01-01',
+        inLanguage: 'en-US',
+      },
+      webpage: {
+        datePublished: '2025-01-01',
+        inLanguage: 'en-US',
+      },
+      breadcrumbLabelMap: {
+        docs: 'Docs',
+        'access-model': 'Access Model',
+        'getting-started': 'Getting Started',
+        customize: 'Customize',
+        reference: 'Reference',
+      },
+    },
     navbar: {
       logo: {
         alt: 'PIM Monitor',
@@ -112,15 +139,21 @@ const config: Config = {
         },
         {
           type: 'docSidebar',
-          sidebarId: 'docsSidebar',
+          sidebarId: 'guideSidebar',
           position: 'left',
-          label: 'Docs',
+          label: 'Guide',
         },
         {
           type: 'docSidebar',
           sidebarId: 'customizeSidebar',
           position: 'left',
           label: 'Customize',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'accessModelSidebar',
+          position: 'left',
+          label: 'Access Model',
         },
         {
           href: 'https://github.com/joel-prins/PIM-Monitor',

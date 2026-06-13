@@ -1,0 +1,247 @@
+---
+sidebar_position: 3
+title: Access Model Setup and PIM Policy Compliance
+sidebar_label: Setup and Compliance
+description: Author access-model files, define expectedConfig, and enforce desired-state PIM policy compliance for Entra directory roles.
+keywords:
+  - access-model files
+  - expectedConfig
+  - PIM policy enforcement
+  - desired-state compliance
+  - maxActivationDuration
+  - requireApproval
+---
+
+import JsonLd from '@site/src/components/JsonLd';
+
+export const howToSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'Author an access-model file and enforce a PIM policy for a directory role',
+  description:
+    'Classify a Microsoft Entra directory role and enforce a target PIM activation policy, using Global Administrator as a worked example.',
+  step: [
+    {
+      '@type': 'HowToStep',
+      name: 'Read the catalog row',
+      text: 'Look up the role in the EAM Role Catalog to get its plane, security level, severity, and recommended PIM policy.',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Author the access-model file',
+      text: 'Create a JSON file in AccessModel/ with name, severity, a roles array, and an expectedConfig describing the target policy.',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Run a scan',
+      text: 'PIM Monitor compares the live policy against expectedConfig and reports a compliance violation at the file severity if it deviates.',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Respond',
+      text: 'Restore the setting in Entra, or suppress the deviation until a deadline if the change is intentional and temporary.',
+    },
+  ],
+};
+
+export const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Can I classify a role without enforcing a policy?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. Omit the expectedConfig field entirely to put the role under coverage and assign it a severity without checking its policy.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Does expectedConfig have to list every policy field?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. expectedConfig is sparse: only the fields you include are checked, and missing fields mean no constraint. Unknown fields produce a warning but do not break the scan.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How do I silence a deviation I know about?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Add an entry to expected-changes.json in the repository root with workload, entity, fileType access-model-compliance, the ruleId that deviated, a reason, and an expiresUtc deadline. The suppression lapses automatically after that date.',
+      },
+    },
+  ],
+};
+
+# Setup and Compliance
+
+<JsonLd schema={[howToSchema, faqSchema]} />
+
+This page shows how to classify directory roles and enforce a target PIM policy. For the concepts and the on/off switch, see the [Overview](./overview.mdx).
+
+The fastest way in: open the [EAM Role Catalog](./eam-role-catalog.mdx), use a **Copy AccessModel JSON** button to get a ready-made file, drop it in `AccessModel/`, and scan. The rest of this page explains what that file contains so you can adjust it.
+
+## Worked example: Global Administrator
+
+This walks one role end to end.
+
+**1. Read the catalog row.** Global Administrator sits on the Control plane, at the Privileged level. The catalog recommends: 1 hour activation, MFA, approval, justification, and a phishing-resistant auth context. Control-plane roles get High severity.
+
+**2. Put it in an access-model file.** Create `AccessModel/ControlPlane.json`:
+
+```json
+{
+  "name": "Control Plane - Identity Infrastructure",
+  "description": "Roles with direct tenant-admin impact.",
+  "severity": "High",
+  "roles": [
+    { "id": "62e90394-69f5-4237-9190-012177145e10", "displayName": "Global Administrator" }
+  ],
+  "expectedConfig": {
+    "maxActivationDuration": "PT1H",
+    "requireMFA": true,
+    "requireApproval": true,
+    "requireJustification": true,
+    "allowPermanentEligible": false,
+    "allowPermanentActive": false
+  }
+}
+```
+
+**3. Scan.** If the live policy matches, nothing happens. If, say, approval is switched off in Entra, the next scan reports a High compliance violation:
+
+```
+[High] Global Administrator (directory-roles)
+  requireApproval   expected: true   actual: false
+```
+
+**4. Respond.** Either restore approval in Entra, or, if the change is intentional and temporary, [suppress it](#advanced-suppressing-a-known-deviation).
+
+That is the whole loop. Everything below is detail on step 2.
+
+## File format
+
+One file per group of roles, usually one per plane.
+
+```json
+{
+  "name": "Control Plane - Identity Infrastructure",
+  "severity": "High",
+  "roles": [
+    { "id": "62e90394-69f5-4237-9190-012177145e10", "displayName": "Global Administrator" }
+  ],
+  "expectedConfig": { "...": "..." }
+}
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `name` | Yes | Display name used in notifications (typically the plane name) |
+| `severity` | Yes | `High`, `Medium`, or `Low`. Applied to every compliance violation from this file. This is the severity column from the [Overview table](./overview.mdx#one-role-three-labels). |
+| `roles` | Yes | Array of `{ "id": "<roleId>", "displayName": "..." }`. Only `id` is matched. |
+| `description` | No | Informational. |
+| `expectedConfig` | No | The target policy. Omit it entirely to classify by severity only, with no enforcement. |
+
+### Classification only, no enforcement
+
+Drop `expectedConfig` to put a role under coverage and assign it a severity, without checking its policy:
+
+```json
+{
+  "name": "High Risk Roles",
+  "severity": "High",
+  "roles": [
+    { "id": "194ae4cb-b126-40b2-bd5b-6091b380977d", "displayName": "Security Administrator" }
+  ]
+}
+```
+
+### Enforce only part of the policy
+
+`expectedConfig` is sparse: only the fields you include are checked. Missing fields mean no constraint.
+
+```json
+{
+  "name": "Production Admins",
+  "severity": "Medium",
+  "roles": [ { "id": "...", "displayName": "..." } ],
+  "expectedConfig": {
+    "requireMFA": true,
+    "requireApproval": true
+  }
+}
+```
+
+Unknown fields produce a warning but do not break the scan.
+
+## expectedConfig fields
+
+These map to the catalog's recommendation columns as follows:
+
+| Catalog column | `expectedConfig` field(s) |
+|---|---|
+| Max activation | `maxActivationDuration` |
+| MFA | `requireMFA` |
+| Approval | `requireApproval` |
+| Justification | `requireJustification` |
+| Auth context | **not an `expectedConfig` field.** `requireMFA` checks that *some* MFA or auth-context rule is on. To verify the *specific* auth context (phishing-resistant, sign-in frequency) is correctly enforced, use [Auth Context CA Compliance](./auth-context-compliance.md). |
+
+The full field list:
+
+| Field | Graph rule | Description |
+|---|---|---|
+| `maxActivationDuration` | `Expiration_EndUser_Assignment.maximumDuration` | Max activation duration (ISO 8601, e.g. `PT1H`) |
+| `requireMFA` | `AuthenticationContext_EndUser_Assignment.isEnabled` | MFA required (auth context or enabled rules) |
+| `requireJustification` | `Enablement_EndUser_Assignment.enabledRules` | Justification required on activation |
+| `requireTicketing` | `Enablement_EndUser_Assignment.enabledRules` | Ticket number required on activation |
+| `requireApproval` | `Approval_EndUser_Assignment.setting.isApprovalRequired` | Approval required on activation |
+| `allowPermanentEligible` | `Expiration_Admin_Eligibility.isExpirationRequired` | Allow permanent eligible assignments |
+| `maxEligibleDuration` | `Expiration_Admin_Eligibility.maximumDuration` | Max duration of an eligible assignment (ISO 8601, e.g. `P365D`) |
+| `allowPermanentActive` | `Expiration_Admin_Assignment.isExpirationRequired` | Allow permanent active assignments |
+| `maxActiveDuration` | `Expiration_Admin_Assignment.maximumDuration` | Max duration of a directly active assignment (ISO 8601, e.g. `P90D`) |
+
+## Where violations appear
+
+A compliance violation lands in the regular High / Medium / Low section that matches the file's `severity`, alongside other PIM changes. Email adds a Classification N count to the stat bar; Teams, Slack, and Discord append a dedicated block. (Coverage findings, by contrast, go to the separate Classification section. See [Coverage & Exclusions](./coverage-exclusions.md).)
+
+## Advanced: suppressing a known deviation
+
+If a deviation is intentional and temporary, silence it until a deadline instead of fixing the policy. Add an entry to `expected-changes.json` in the repository root:
+
+```json
+{
+  "expected": [
+    {
+      "workload": "directory-roles",
+      "entity": "global-administrator",
+      "fileType": "access-model-compliance",
+      "ruleId": "requireApproval",
+      "reason": "Approval requirement being phased out by 2026-06-15",
+      "expiresUtc": "2026-06-15T23:59:59Z"
+    }
+  ]
+}
+```
+
+- The top-level key must be `expected` (a bare array is ignored).
+- `fileType` is `access-model-compliance` for directory-role compliance violations.
+- `ruleId` is the `expectedConfig` field that deviated.
+- `expiresUtc` is when the suppression lapses.
+
+After each scan, PIM Monitor rewrites `expected-changes.json`: entries that matched a change and entries past their `expiresUtc` are removed; future-dated entries that have not matched yet are kept. See [Expected Changes](../customize/expected-changes.md) for the full mechanism.
+
+## Frequently asked questions
+
+### Can I classify a role without enforcing a policy?
+
+Yes. Omit the `expectedConfig` field entirely to put the role under coverage and assign it a severity, without checking its policy.
+
+### Does expectedConfig have to list every policy field?
+
+No. `expectedConfig` is sparse: only the fields you include are checked, and missing fields mean no constraint. Unknown fields produce a warning but do not break the scan.
+
+### How do I silence a deviation I know about?
+
+Add an entry to `expected-changes.json` in the repository root with `workload`, `entity`, `fileType` set to `access-model-compliance`, the `ruleId` that deviated, a `reason`, and an `expiresUtc` deadline. The suppression lapses automatically after that date.

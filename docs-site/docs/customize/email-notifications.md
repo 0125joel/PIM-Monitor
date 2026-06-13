@@ -1,5 +1,6 @@
 ---
 sidebar_position: 8
+description: Send PIM Monitor change summaries via email using Microsoft Graph sendMail. Configure the sender mailbox and Mail.Send permission.
 ---
 
 # Email Notifications
@@ -18,59 +19,71 @@ Configure email notifications for PIM Monitor scan results.
    - `NOTIFICATION_EMAIL` = recipient email address
    - `NOTIFICATION_MAIL_FROM` = service principal UPN (sender mailbox)
 
-3. **Test**: Run the pipeline; you should receive an email
+3. **Test**: Run the pipeline. Verify an email arrives in the inbox.
 
 ## Email Components
 
+### Subject Line
+
+Formatted to enable triage from the inbox without opening the email. The highest severity present leads, followed by tenant name and a breakdown.
+
+```
+[PIM Monitor] Contoso: HIGH severity, 7 changes (3 High, 2 Medium, 1 Low, 1 Classification)
+```
+
+When no tenant name is available (older deployments), the prefix falls back to `[PIM Monitor] `.
+
+### Preheader (inbox preview)
+
+A hidden span at the top of the body that most mail clients show next to the subject in the inbox list. Format:
+
+```
+3H / 2M / 1L / 1C detected in Contoso at 2026-05-21T11:36:24Z
+```
+
 ### Header
 
-The email header identifies it as a PIM Monitor notification:
-- Brand: "pim/monitor" (monospace font, red color)
-- Subtitle: "Change Notification" (for regular changes) or "Scan Errors" (for errors)
-- Timestamp: ISO 8601 UTC
+- Brand: "pim/monitor" (monospace, amber `#d97706`)
+- Subtitle: "change report"
+- Tenant display name (when provided)
 
-### Severity Summary
+### Executive summary
 
-High-level count of detected changes by severity:
-- **Red**: High-severity changes (e.g., new role, permanent assignment)
-- **Orange**: Medium-severity changes (e.g., policy updates, expiration)
-- **Yellow**: Low-severity changes (e.g., removals, minor updates)
-- **Gray**: Informational changes (e.g., display name changed)
+A single-sentence summary directly under the header, biased toward the highest severity present. Example:
 
-Example:
 ```
-[PIM Monitor] 2 High, 3 Medium, 1 Low changes
-
-Changes by severity:
-High (2)        ████████████████████░░░░░░░░
-Medium (3)      ██████████████░░░░░░░░░░░░░░░
-Low (1)         █████░░░░░░░░░░░░░░░░░░░░░░░
+3 High-severity change(s) require review in tenant Contoso.
+Scan completed 2026-05-21T11:36:24Z, commit linked below.
 ```
 
-### Change Details
+### Severity counts
 
-For each change, the email includes:
-- **Description**: What changed (e.g., "Directory Roles > Global Administrator > policy")
-- **Severity**: Color-coded badge
-- **Old vs. new**: Collapsible diff with before/after values
-- **Deep link**: Direct link to the entity in Entra portal (for roles/groups)
+A compact row showing Total / High / Medium / Low / Info, with non-zero severities color-coded and zeros muted. A secondary Git vs Compliance split is shown when compliance findings are present.
 
-**Collapsible example:**
-```
-▶ Directory Roles > Global Administrator > policy
+### Change cards
 
-Severity: High
+Each detected change renders as an always-expanded card (no `<details>` toggle, since several email clients including Outlook desktop and Gmail web do not implement it). Each card shows:
 
-OLD → NEW:
-- Enablement_EndUser_Assignment.enablement required: true
-+ Enablement_EndUser_Assignment.enablement required: false
-```
+- Context (e.g., role or group name) and a one-line description, prefixed by a `+`, `-`, or `M` sigil to indicate added, removed, or modified
+- Inline diff with property names, old value (red), and new value (green)
+- Severity-colored left border matching the design system
 
-### Diff Links
+Sections are grouped by severity, then split into Git changes (with `was` / `changed to` labels) and Access Model Compliance (policy deviates from `expectedConfig`, labels `actual` / `expected`). Access Model Coverage findings (roles or groups not present in any access-model file) appear last as a flat list.
 
-If your scan commit is pushed to GitHub or Azure DevOps, the email includes links to view the full diff:
-- **View diff in repository**: [link to commit in GitHub/Azure DevOps]
-- **Timestamp**: Time scan completed
+### Bulletproof "View diff" button
+
+A standards-compliant button with a VML fallback for Outlook desktop. Links to the scan commit in GitHub or Azure DevOps when `CommitSha` is available.
+
+### Dark mode
+
+The body declares `color-scheme: light dark` and includes both a `prefers-color-scheme: dark` media query and an Outlook.com `[data-ogsc]` selector. In dark-mode-capable clients (Apple Mail, iOS Mail, Outlook 2019+, Outlook.com), the email switches to the dark palette: `#0a0a0a` background, `#e5e5e5` text, `#27272a` borders.
+
+### Accessibility
+
+- `<html lang="en">`
+- Layout tables marked `role="presentation"`
+- Change-type sigils carry `aria-label` (added / removed / modified)
+- Severity count cells carry descriptive `aria-label` attributes
 
 ### Footer
 
@@ -85,10 +98,10 @@ All email formatting is done in `src/notifications-email.ps1`.
 
 ### Edit the HTML Layout
 
-The main HTML formatter is `Format-ChangeSummaryHtml`:
+The main HTML formatter is `Build-EmailChangeHtml`:
 
 ```powershell
-function Format-ChangeSummaryHtml {
+function Build-EmailChangeHtml {
     param(
         [Parameter(Mandatory)] $ChangesBySeverity,
         [Parameter(Mandatory)] [string] $CommitSha
@@ -122,7 +135,7 @@ Edit the inline styles to change colors:
 Edit the header text:
 
 ```powershell
-$s = "Bold, Italic, Red, UPPERCASE — whatever you want"
+$s = "Bold, Italic, Red, UPPERCASE, whatever you want"
 
 # Example: change from "pim/monitor" to "Azure Identity Governance"
 <div style="...">Azure Identity Governance</div>
@@ -167,7 +180,7 @@ The service principal sending email needs:
 
 **Verify in Azure AD:**
 - Go to **App registrations** → [Your app] → **API permissions**
-- Should see: ✓ `Mail.Send` (Application)
+- Should see: `Mail.Send` (Application) listed and granted
 
 ### Sender Mailbox Considerations
 
@@ -191,7 +204,7 @@ Add-MailboxPermission -Identity "shared-mailbox@contoso.com" `
 
 To send to multiple addresses, modify the script:
 
-**In Scan-PimState.ps1**, update the notification block:
+In `Scan-PimState.ps1`, update the notification block:
 
 ```powershell
 $notifEmails = @(
@@ -220,14 +233,14 @@ NOTIFICATION_EMAIL = security-team@contoso.com
 
 ### Email not sending
 
-**Check permission errors** in workflow logs:
+**Check** permission errors in workflow logs:
 ```
 Send-EmailNotification: "Authorization_RequestDenied"
 ```
 
 **Solutions**:
 1. Verify `Mail.Send` permission is granted (see Service Principal Setup)
-2. Verify permission has **admin consent** (not user consent)
+2. Verify permission has admin consent (not user consent)
 3. Verify service principal is owner/delegate of shared mailbox (if applicable)
 4. Wait 5-10 minutes after granting permission for sync
 
@@ -237,7 +250,7 @@ Send-EmailNotification: "Authorization_RequestDenied"
 1. Is `NOTIFICATION_EMAIL` correct? Check logs for address
 2. Check recipient's spam/junk folder (emails from service principals often flagged)
 3. Is the mailbox valid? Try sending a test email manually
-4. Check Exchange Online rules — may be blocking service principal emails
+4. Check Exchange Online rules, which may be blocking service principal emails
 
 ### Subject line wrong or missing
 
@@ -264,7 +277,7 @@ There are two separate email features:
 
 **Relationship**:
 - Email is sent automatically when changes are detected
-- Report is published as an artifact (if enabled) — stored separately
+- Report is published as an artifact (if enabled), stored separately
 - Both use same severity classification, but different formatting
 
 **Example workflow**:
@@ -283,9 +296,9 @@ Email notifications include:
 - Commit links (git diff visible to anyone with repo access)
 
 **Recommendations**:
-- Use **private email addresses** for `NOTIFICATION_EMAIL`
-- If using **shared mailbox**, limit access to authorized users
-- Emails are **not encrypted** in transit — use **TLS** if available
+- Use private email addresses for `NOTIFICATION_EMAIL`
+- If using a shared mailbox, limit access to authorized users
+- Emails are not encrypted in transit, so use TLS if available
 - Review email recipient permissions regularly
 
 ### Service Principal Credentials
@@ -296,8 +309,8 @@ Never commit service principal secrets. Use:
 
 ## Related Pages
 
-- [Environment Variables](./environment-variables.md) — NOTIFICATION_EMAIL, NOTIFICATION_MAIL_FROM
-- [Notifications](./notifications.md) — General notification configuration
-- [Webhook Channels](./webhook-channels.md) — Teams, Slack, Discord alternatives
-- [Scan Errors](./scan-errors.md) — Error notification format
-- [Reporting](./reporting.md) — HTML report artifact setup
+- [Environment Variables](./environment-variables.md): NOTIFICATION_EMAIL, NOTIFICATION_MAIL_FROM
+- [Notifications](./notifications.md): general notification configuration
+- [Webhook Channels](./webhook-channels.md): Teams, Slack, Discord alternatives
+- [Scan Errors](./scan-errors.md): error notification format
+- [Reporting](./reporting.md): HTML report artifact setup

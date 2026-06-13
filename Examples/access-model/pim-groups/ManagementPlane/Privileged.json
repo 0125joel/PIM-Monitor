@@ -1,0 +1,38 @@
+{
+  "name": "Management Plane Groups - Privileged",
+  "description": "Groups that gate full-service workload access with direct data impact. Classification follows the Clean Source principle: a group is Management Plane/Privileged if membership grants access equivalent to Exchange Administrator, SharePoint Administrator, Intune Administrator, Teams Administrator, or similar blast-radius roles. Also applies to groups with Owner or Contributor on critical Azure subscriptions.",
+  "plane": "Management",
+  "securityLevel": "Privileged",
+  "groups": [
+    {
+      "id": "00000000-0000-0000-0000-000000000010",
+      "displayName": "JIT-Exchange-Admins",
+      "notes": "Shadow group assigned to Exchange Administrator role. Membership grants full mailbox access across all users including executives."
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000011",
+      "displayName": "JIT-Intune-Admins",
+      "notes": "Shadow group assigned to Intune Administrator role. Membership grants device management and software deployment across all enrolled devices."
+    }
+  ],
+  "expectedConfig": {
+    "member": {
+      "maxActivationDuration": "PT1H",
+      "requireJustification": true,
+      "requireMFA": true,
+      "authContext": "phish-resistant-sif",
+      "requireApproval": true,
+      "allowPermanentEligible": false,
+      "allowPermanentActive": false
+    },
+    "owner": {
+      "maxActivationDuration": "PT1H",
+      "requireJustification": true,
+      "requireMFA": true,
+      "authContext": "phish-resistant-sif",
+      "requireApproval": true,
+      "allowPermanentEligible": false,
+      "allowPermanentActive": false
+    }
+  }
+}

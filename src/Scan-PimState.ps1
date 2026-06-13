@@ -35,15 +35,13 @@ $ErrorActionPreference = "Stop"
 . (Join-Path -Path $PSScriptRoot -ChildPath "git.ps1")
 . (Join-Path -Path $PSScriptRoot -ChildPath "notifications-shared.ps1")
 . (Join-Path -Path $PSScriptRoot -ChildPath "notifications-email.ps1")
+. (Join-Path -Path $PSScriptRoot -ChildPath "notifications-webhook-teams.ps1")
+. (Join-Path -Path $PSScriptRoot -ChildPath "notifications-webhook-slack.ps1")
+. (Join-Path -Path $PSScriptRoot -ChildPath "notifications-webhook-discord.ps1")
 . (Join-Path -Path $PSScriptRoot -ChildPath "notifications-webhook.ps1")
 . (Join-Path -Path $PSScriptRoot -ChildPath "notifications-html.ps1")
 . (Join-Path -Path $PSScriptRoot -ChildPath "notifications-error.ps1")
-
-function Write-StepLog {
-    param([string] $Message)
-    $ts = Get-Date -AsUTC -Format "yyyy-MM-ddTHH:mm:ssZ"
-    Write-Host "[$ts] $Message"
-}
+. (Join-Path -Path $PSScriptRoot -ChildPath "compliance.ps1")
 
 Write-StepLog "PIM Monitor scan starting"
 
@@ -70,15 +68,7 @@ if (Test-Path $expectedChangesPath) {
 
 Write-StepLog "Acquiring Graph API access token"
 
-# Az.Accounts 5.x returns .Token as SecureString; -AsPlainText doesn't exist in this version.
-# NetworkCredential unwraps SecureString safely; falls back to plain string for future versions.
-$rawToken = (Get-AzAccessToken -ResourceTypeName MSGraph).Token
-$token = if ($rawToken -is [System.Security.SecureString]) {
-    [System.Net.NetworkCredential]::new('', $rawToken).Password
-}
-else {
-    $rawToken
-}
+$token = Get-GraphAccessTokenString
 if (-not $token) {
     throw "Failed to acquire Graph API access token"
 }
@@ -120,15 +110,78 @@ try {
         if ($acId -and $acName) { $authContextLookup[$acId] = $acName }
     }
 
-    $removedAuthContexts = Get-RemovedEntities `
-        -WorkloadPath (Join-Path $inventoryRoot "authentication-contexts") `
-        -CurrentSlugs $authContextSlugs
-    $allChanges += $removedAuthContexts
-    foreach ($r in $removedAuthContexts) { Move-ToArchive -FolderPath $r.folderPath -InventoryRoot $inventoryRoot }
+    $authContextWorkloadPath = Join-Path $inventoryRoot "authentication-contexts"
+    if (Test-SafeToArchive -DiscoveredCount $authContexts.Count -WorkloadPath $authContextWorkloadPath) {
+        $removedAuthContexts = Get-RemovedEntities `
+            -WorkloadPath $authContextWorkloadPath `
+            -CurrentSlugs $authContextSlugs
+        $allChanges += $removedAuthContexts
+        foreach ($r in $removedAuthContexts) { Move-ToArchive -FolderPath $r.folderPath -InventoryRoot $inventoryRoot }
+    }
+    else {
+        $scanErrors.Add(@{ Component = 'Authentication Contexts discovery'; Error = "Discovery returned 0 entities while inventory still contains folders; skipped archival to prevent mass false-removal." })
+    }
 }
 catch {
     Write-Warning "Authentication contexts scan failed: $_"
     $scanErrors.Add(@{ Component = 'Authentication Contexts'; Error = $_.ToString() })
+}
+
+Write-StepLog "Fetching Conditional Access policies for authentication contexts"
+
+$caPolicies = @()
+try {
+    $allCaPolicies = @(Get-AllGraphItems -Uri $script:GraphEndpoints.ConditionalAccessPolicies -AccessToken $token)
+
+    # Only store policies that reference at least one auth context claim — all others are out of scope.
+    $caPolicies = @($allCaPolicies | Where-Object {
+        $conds = $_.PSObject.Properties['conditions']?.Value
+        $apps  = if ($conds) { $conds.PSObject.Properties['applications']?.Value } else { $null }
+        $refs  = if ($apps)  { $apps.PSObject.Properties['includeAuthenticationContextClassReferences']?.Value } else { $null }
+        $refs -and @($refs).Count -gt 0
+    })
+
+    Write-Host "  Found $($caPolicies.Count) CA policies targeting authentication contexts (of $($allCaPolicies.Count) total)"
+
+    $caPolicySlugs = @()
+    foreach ($caPolicy in $caPolicies) {
+        $slug = Get-InventorySlug -Name $caPolicy.displayName
+        $caPolicySlugs += $slug
+
+        $folderPath = New-InventoryFolder -Workload "conditional-access" -Slug $slug
+
+        $changes = Compare-InventoryFolder `
+            -FolderPath $folderPath `
+            -NewData @{ definition = $caPolicy } `
+            -EntityName $caPolicy.displayName
+
+        $allChanges += $changes
+
+        Save-InventoryFile -InputObject $caPolicy -FolderPath $folderPath -FileName "definition.json"
+    }
+
+    # Guard uses the raw fetch count ($allCaPolicies), not the auth-context-filtered subset: a tenant
+    # legitimately having no auth-context-targeting policies must still archive stale folders.
+    $caWorkloadPath = Join-Path $inventoryRoot "conditional-access"
+    if (Test-SafeToArchive -DiscoveredCount $allCaPolicies.Count -WorkloadPath $caWorkloadPath) {
+        $removedCaPolicies = Get-RemovedEntities `
+            -WorkloadPath $caWorkloadPath `
+            -CurrentSlugs $caPolicySlugs
+        $allChanges += $removedCaPolicies
+        foreach ($r in $removedCaPolicies) { Move-ToArchive -FolderPath $r.folderPath -InventoryRoot $inventoryRoot }
+    }
+    else {
+        $scanErrors.Add(@{ Component = 'Conditional Access discovery'; Error = "Discovery returned 0 entities while inventory still contains folders; skipped archival to prevent mass false-removal." })
+    }
+}
+catch {
+    if ($_ -match 'Policy\.Read' -or $_ -match 'Authorization_RequestDenied' -or $_ -match 'AccessDenied' -or $_ -match 'required scopes') {
+        Write-Warning "Conditional Access policies skipped: Policy.Read.All permission not granted on App Registration."
+    }
+    else {
+        Write-Warning "Conditional Access policies scan failed: $_"
+        $scanErrors.Add(@{ Component = 'Conditional Access Policies'; Error = $_.ToString() })
+    }
 }
 
 Write-StepLog "Fetching administrative units"
@@ -155,11 +208,17 @@ try {
         Save-InventoryFile -InputObject $adminUnit -FolderPath $folderPath -FileName "definition.json"
     }
 
-    $removedAdminUnits = Get-RemovedEntities `
-        -WorkloadPath (Join-Path $inventoryRoot "administrative-units") `
-        -CurrentSlugs $adminUnitSlugs
-    $allChanges += $removedAdminUnits
-    foreach ($r in $removedAdminUnits) { Move-ToArchive -FolderPath $r.folderPath -InventoryRoot $inventoryRoot }
+    $adminUnitWorkloadPath = Join-Path $inventoryRoot "administrative-units"
+    if (Test-SafeToArchive -DiscoveredCount $adminUnits.Count -WorkloadPath $adminUnitWorkloadPath) {
+        $removedAdminUnits = Get-RemovedEntities `
+            -WorkloadPath $adminUnitWorkloadPath `
+            -CurrentSlugs $adminUnitSlugs
+        $allChanges += $removedAdminUnits
+        foreach ($r in $removedAdminUnits) { Move-ToArchive -FolderPath $r.folderPath -InventoryRoot $inventoryRoot }
+    }
+    else {
+        $scanErrors.Add(@{ Component = 'Administrative Units discovery'; Error = "Discovery returned 0 entities while inventory still contains folders; skipped archival to prevent mass false-removal." })
+    }
 }
 catch {
     Write-Warning "Administrative units scan failed: $_"
@@ -179,20 +238,38 @@ try {
 
     $fetchSince = (Get-Date -AsUTC).AddDays(-30).ToString("yyyy-MM-ddTHH:mm:ssZ")
 
-    if (Test-Path $currentMonthFile) {
+    # Derive fetchSince from the current AND previous month files. On the first scan of a
+    # new month the current file does not exist yet; falling back to now-30d would re-fetch
+    # the previous month's events and duplicate them into the new file.
+    $previousYearMonth = (Get-Date -AsUTC).AddMonths(-1).ToString("yyyy-MM")
+    $previousMonthFile = Join-Path -Path $eventsRoot -ChildPath "$previousYearMonth.json"
+
+    $lastKnownEventTime = $null
+    foreach ($monthFile in @($currentMonthFile, $previousMonthFile)) {
+        if (-not (Test-Path $monthFile)) { continue }
         try {
-            $existingEvents = Get-Content -Path $currentMonthFile -Raw -Encoding utf8 | ConvertFrom-Json
-            if ($existingEvents -and $existingEvents.Count -gt 0) {
+            $existingEvents = Get-Content -Path $monthFile -Raw -Encoding utf8 | ConvertFrom-Json
+            if ($existingEvents -and @($existingEvents).Count -gt 0) {
                 $lastEvent = $existingEvents | Sort-Object { [datetime]$_.activityDateTime } | Select-Object -Last 1
-                if ($lastEvent -and $lastEvent.activityDateTime) {
-                    $lastTime = [datetime]::Parse($lastEvent.activityDateTime)
-                    $fetchSince = $lastTime.AddSeconds(1).ToString("yyyy-MM-ddTHH:mm:ssZ")
+                $lastEventTimeRaw = if ($lastEvent) { $lastEvent.PSObject.Properties['activityDateTime']?.Value } else { $null }
+                if ($lastEventTimeRaw) {
+                    $lastTime = [datetime]::Parse(
+                        $lastEventTimeRaw,
+                        [System.Globalization.CultureInfo]::InvariantCulture,
+                        [System.Globalization.DateTimeStyles]::AdjustToUniversal)
+                    if ($null -eq $lastKnownEventTime -or $lastTime -gt $lastKnownEventTime) {
+                        $lastKnownEventTime = $lastTime
+                    }
                 }
             }
         }
         catch {
-            Write-Warning "Could not parse existing events: $_"
+            Write-Warning "Could not parse existing events ($monthFile): $_"
+            $scanErrors.Add(@{ Component = 'Activation Events (monthly file parse)'; Error = $_.ToString() })
         }
+    }
+    if ($lastKnownEventTime) {
+        $fetchSince = $lastKnownEventTime.AddSeconds(1).ToString("yyyy-MM-ddTHH:mm:ssZ")
     }
 
     $auditUri = Get-AuditLogsPimUri -Since $fetchSince
@@ -289,6 +366,8 @@ try {
                 ${function:Invoke-WithRetry} = [scriptblock]::Create($using:invokeWithRetryFnStr)
                 $invokeGraphRequest = [scriptblock]::Create($using:invokeGraphFnStr)
 
+                # known-debt: pagination inline for runspace isolation — Get-AllGraphItems cannot be
+                # serialized here without pulling in its full dependency chain across the runspace boundary.
                 $policyItems = @()
                 $currentUri = $uris.policy
                 while ($currentUri) {
@@ -348,7 +427,7 @@ try {
                     error      = $_.ToString()
                 }
             }
-        } -ThrottleLimit 5)
+        } -ThrottleLimit 5)  # tuned from 8 to 5 to reduce sustained Graph 429s; see ADR-010
 
     foreach ($result in $roleResults) {
         $roleSlugs += $result.slug
@@ -389,11 +468,17 @@ try {
     }
 
     # Detect roles removed from PIM (folder exists but not in current fetch)
-    $removedRoles = Get-RemovedEntities `
-        -WorkloadPath (Join-Path $inventoryRoot "directory-roles") `
-        -CurrentSlugs $roleSlugs
-    $allChanges += $removedRoles
-    foreach ($r in $removedRoles) { Move-ToArchive -FolderPath $r.folderPath -InventoryRoot $inventoryRoot }
+    $roleWorkloadPath = Join-Path $inventoryRoot "directory-roles"
+    if (Test-SafeToArchive -DiscoveredCount $roleDefinitions.Count -WorkloadPath $roleWorkloadPath) {
+        $removedRoles = Get-RemovedEntities `
+            -WorkloadPath $roleWorkloadPath `
+            -CurrentSlugs $roleSlugs
+        $allChanges += $removedRoles
+        foreach ($r in $removedRoles) { Move-ToArchive -FolderPath $r.folderPath -InventoryRoot $inventoryRoot }
+    }
+    else {
+        $scanErrors.Add(@{ Component = 'Directory Roles discovery'; Error = "Discovery returned 0 entities while inventory still contains folders; skipped archival to prevent mass false-removal." })
+    }
 
     Write-StepLog "Directory Roles scan complete"
 }
@@ -410,11 +495,13 @@ $groupResults = @()   # initialised here so Access-Model Compliance can safely i
 $groupAssignmentsByEntity = @{}   # initialised here so Expiring Assignments can safely iterate if PIM Groups fails
 
 try {
-    # Discover PIM-onboarded groups via the resources endpoint.
-    # The unfiltered eligibilityScheduleInstances/assignmentScheduleInstances endpoints
-    # require $filter=groupId — they cannot be used for discovery.
+    # Discover PIM-onboarded groups via the group/resources endpoint. This is the only available
+    # discovery surface: the schedule-instance and roleManagementPolicyAssignment endpoints all
+    # require a groupId/scopeId filter, and there is no tenant-wide "list all PIM groups" API.
+    # The endpoint is beta and undocumented for discovery, so an empty/changed response is possible;
+    # Test-SafeToArchive (below) prevents that from mass-archiving the workload.
     $pimGroupResources = @(Get-AllGraphItems -Uri $script:GraphEndpoints.GroupResources -AccessToken $token)
-    $groupIds = @($pimGroupResources | ForEach-Object { $_.id }) | Where-Object { $_ }
+    $groupIds = @($pimGroupResources | ForEach-Object { $_.id } | Where-Object { $_ })
 
     Write-Host "  Found $($groupIds.Count) PIM-onboarded groups"
 
@@ -424,6 +511,7 @@ try {
 
     foreach ($groupId in $groupIds) {
         $groupDisplayName = $null
+        $groupDef = $null
         $slug = $null
         try {
             # Fetch group definition first so slug is available for archiving protection
@@ -495,25 +583,42 @@ try {
             }
         }
         catch {
+            $errorText = $_.ToString()
             $componentName = if ($groupDisplayName) { "PIM Group: $groupDisplayName" } else { "PIM Group: $groupId" }
-            Write-Warning "  Failed to process $componentName — $_"
-            $scanErrors.Add(@{ Component = $componentName; Error = $_.ToString() })
+            Write-Warning "  Failed to process $componentName — $errorText"
+            $scanErrors.Add(@{ Component = $componentName; Error = $errorText })
+            if (-not $slug) {
+                # The definition fetch failed before the slug was known. Recover it from the
+                # existing inventory by object id, otherwise Get-RemovedEntities would treat a
+                # transient per-group failure as "removed from PIM" and archive the folder.
+                $slug = Find-InventorySlugById -WorkloadPath (Join-Path $inventoryRoot "pim-groups") -EntityId $groupId
+                if ($slug) { $groupSlugs += $slug }
+            }
             if ($slug) {
                 $groupResults += @{
                     definition = $groupDef
                     slug       = $slug
-                    error      = $_.ToString()
+                    error      = $errorText
                 }
             }
         }
     }
 
     # Detect groups removed from PIM (folder exists but not in current resources list)
-    $removedGroups = Get-RemovedEntities `
-        -WorkloadPath (Join-Path $inventoryRoot "pim-groups") `
-        -CurrentSlugs $groupSlugs
-    $allChanges += $removedGroups
-    foreach ($r in $removedGroups) { Move-ToArchive -FolderPath $r.folderPath -InventoryRoot $inventoryRoot }
+    # Critical guard: group discovery uses a beta endpoint (group/resources) that is not documented
+    # as a discovery surface and can return empty without throwing. Without this, an empty result
+    # would archive every PIM group as "removed" and fire a High-severity false-removal cascade.
+    $groupWorkloadPath = Join-Path $inventoryRoot "pim-groups"
+    if (Test-SafeToArchive -DiscoveredCount $groupIds.Count -WorkloadPath $groupWorkloadPath) {
+        $removedGroups = Get-RemovedEntities `
+            -WorkloadPath $groupWorkloadPath `
+            -CurrentSlugs $groupSlugs
+        $allChanges += $removedGroups
+        foreach ($r in $removedGroups) { Move-ToArchive -FolderPath $r.folderPath -InventoryRoot $inventoryRoot }
+    }
+    else {
+        $scanErrors.Add(@{ Component = 'PIM Groups discovery'; Error = "Discovery returned 0 entities while inventory still contains group folders; skipped archival to prevent mass false-removal." })
+    }
 
     Write-StepLog "PIM Groups scan complete"
 }
@@ -527,21 +632,18 @@ catch {
 Write-StepLog "Checking for expiring assignments"
 
 try {
-    # Aggregate assignments from both workloads into a single lookup for expiry detection
-    $allAssignmentsByEntity = @{}
-
+    # One call per workload so the change entries carry the correct workload key
+    # (also avoids slug collisions between a role and a group in a merged lookup).
+    $roleAssignmentsByEntity = @{}
     foreach ($result in $roleResults) {
         if ($result.error) { continue }
-        $allAssignmentsByEntity[$result.slug] = $result.cleanAssignments
-    }
-
-    foreach ($slug in $groupAssignmentsByEntity.Keys) {
-        $allAssignmentsByEntity[$slug] = $groupAssignmentsByEntity[$slug]
+        $roleAssignmentsByEntity[$result.slug] = $result.cleanAssignments
     }
 
     $parsed = 0
     $windowDays = if ([int]::TryParse($env:EXPIRING_WINDOW_DAYS, [ref]$parsed)) { $parsed } else { 14 }
-    $expiringChanges = @(Find-ExpiringAssignments -Assignments $allAssignmentsByEntity -WindowDays $windowDays)
+    $expiringChanges  = @(Find-ExpiringAssignments -Assignments $roleAssignmentsByEntity  -WindowDays $windowDays -Workload 'directory-roles')
+    $expiringChanges += @(Find-ExpiringAssignments -Assignments $groupAssignmentsByEntity -WindowDays $windowDays -Workload 'pim-groups')
 
     if ($expiringChanges.Count -gt 0) {
         Write-Host "  Found $($expiringChanges.Count) expiring assignments within $windowDays days"
@@ -556,18 +658,79 @@ catch {
     $scanErrors.Add(@{ Component = 'Expiring Assignments'; Error = $_.ToString() })
 }
 
+# Access Model Compliance Detection
+
+$classificationPath = Join-Path -Path (Get-Location) -ChildPath "AccessModel"
+$authContextMap = Get-AuthContextMap -InventoryPath (Join-Path -Path (Get-Location) -ChildPath "inventory")
+
+if (Test-Path $classificationPath) {
+    Write-StepLog "Checking access-model compliance"
+    try {
+        $tierDefs = @(Get-TierDefinitions -TiersPath $classificationPath)
+        $exclusions = Get-CoverageExclusions -TiersPath $classificationPath
+        $coverageScope = if ($env:EAM_COVERAGE_SCOPE) { $env:EAM_COVERAGE_SCOPE } else { "privileged" }
+
+        $complianceChanges = @(Get-ComplianceViolations -TierDefinitions $tierDefs -RoleResults $roleResults -AuthContextMap $authContextMap)
+        $coverageChanges = @(Get-CoverageViolations  -TierDefinitions $tierDefs -RoleResults $roleResults -Exclusions $exclusions -Scope $coverageScope)
+
+        Write-Host "  Compliance violations: $($complianceChanges.Count)"
+        Write-Host "  Unclassified roles:    $($coverageChanges.Count)"
+        $allChanges += $complianceChanges + $coverageChanges
+    }
+    catch {
+        Write-Warning "Access-model compliance check failed: $_"
+        $scanErrors.Add(@{ Component = 'Access-Model Compliance'; Error = $_.ToString() })
+    }
+
+    # Auth Context CA Policy Compliance — only runs when the AccessModel folder is present,
+    # because it is part of the access model feature set.
+    Write-StepLog "Checking auth context CA policy compliance"
+    try {
+        $authCtxComplianceChanges = @(Get-AuthContextPolicyCompliance -CaPolicies $caPolicies -InventoryPath $inventoryRoot)
+        Write-Host "  Auth context CA policy violations: $($authCtxComplianceChanges.Count)"
+        $allChanges += $authCtxComplianceChanges
+    }
+    catch {
+        Write-Warning "Auth context CA policy compliance check failed: $_"
+        $scanErrors.Add(@{ Component = 'Auth Context CA Policy Compliance'; Error = $_.ToString() })
+    }
+}
+
+# Access Model Compliance Detection - PIM Groups
+
+$groupClassificationPath = Join-Path -Path (Get-Location) -ChildPath "AccessModel/pim-groups"
+
+if (Test-Path $groupClassificationPath) {
+    Write-StepLog "Checking PIM group access-model compliance"
+    try {
+        $groupDefs = @(Get-GroupDefinitions -Path $groupClassificationPath)
+        $groupExclusions = Get-GroupCoverageExclusions -Path $groupClassificationPath
+
+        $groupComplianceChanges = @(Get-GroupComplianceViolations -GroupDefinitions $groupDefs -GroupResults $groupResults -AuthContextMap $authContextMap)
+        $groupCoverageChanges = @(Get-GroupCoverageViolations   -GroupDefinitions $groupDefs -GroupResults $groupResults -Exclusions $groupExclusions)
+
+        Write-Host "  Group compliance violations: $($groupComplianceChanges.Count)"
+        Write-Host "  Unclassified groups:         $($groupCoverageChanges.Count)"
+        $allChanges += $groupComplianceChanges + $groupCoverageChanges
+    }
+    catch {
+        Write-Warning "PIM group access-model compliance check failed: $_"
+        $scanErrors.Add(@{ Component = 'PIM Groups Access-Model Compliance'; Error = $_.ToString() })
+    }
+}
+
 # Filter Expected Changes
 
 if ($expectations.Count -gt 0) {
     Write-StepLog "Filtering expected changes"
 
-    $consumedExpectations = @()
+    $suppressedChanges = @()
     $filteredChanges = @()
 
     foreach ($change in $allChanges) {
         if (Test-ChangeIsExpected -Change $change -Expectations $expectations) {
             Write-Host "  Suppressed: $($change.description)"
-            $consumedExpectations += $change
+            $suppressedChanges += $change
         }
         else {
             $filteredChanges += $change
@@ -575,9 +738,10 @@ if ($expectations.Count -gt 0) {
     }
 
     $allChanges = $filteredChanges
-    Write-Host "  Suppressed $($consumedExpectations.Count) expected change(s)"
+    Write-Host "  Suppressed $($suppressedChanges.Count) expected change(s)"
 
-    # Clean up expected-changes.json: remove consumed and expired entries
+    # Clean up expected-changes.json: remove expired entries. Matched (suppressing) entries
+    # are intentionally kept until their expiresUtc so they keep suppressing on every scan.
     $remainingExpectations = @()
     $nowUtc = Get-Date -AsUTC
 
@@ -631,10 +795,22 @@ if ($changesBySeverity.High.Count -gt 0) {
 
 # Publish Inventory Changes
 
+# Always attempt to publish, regardless of the notification change count: activation events,
+# fully suppressed changes, and the expected-changes.json cleanup all modify the working tree
+# without contributing to $changesBySeverity.Total. Skipping the commit on those scans would
+# drop them from the audit trail (activation events age out of the Graph audit log after 30
+# days). Publish-InventoryChanges itself commits only when the staged diff is non-empty.
 $publishResult = $null
-if ($changesBySeverity.Total -gt 0) {
-    Write-StepLog "Publishing inventory changes"
+Write-StepLog "Publishing inventory changes"
+# A failed commit/push must not abort the script: the notification steps below are the
+# only signal the operator gets, and they matter most on exactly the runs that detected
+# changes. Notifications proceed without a commit SHA (no diff links).
+try {
     $publishResult = Publish-InventoryChanges
+}
+catch {
+    Write-Warning "Publishing inventory changes failed: $_"
+    $scanErrors.Add(@{ Component = 'Publish Inventory Changes'; Error = $_.ToString() })
 }
 
 # HTML Report Artifact (optional — enabled by REPORT_ARTIFACT=true)
@@ -665,14 +841,18 @@ if ($env:REPORT_ARTIFACT -eq 'true') {
 # Notifications (after commit so we have SHA for diff links)
 
 if ($changesBySeverity.Total -gt 0) {
-    $minSeverity = if ($env:NOTIFICATION_MIN_SEVERITY -and $env:NOTIFICATION_MIN_SEVERITY -notmatch '^\$\(') { $env:NOTIFICATION_MIN_SEVERITY } else { 'Medium' }
+    $minSeverity = Get-PipelineEnvVar -Name 'NOTIFICATION_MIN_SEVERITY'
+    if (-not $minSeverity) { $minSeverity = 'Medium' }
     $commitSha = if ($publishResult -and $publishResult.committed) { $publishResult.commitSha } else { $null }
 
-    # ADO passes unresolved macro references as literal $(VAR_NAME) strings when a
-    # variable is absent from both YAML and UI. Treat those as not set.
-    $notifEmail = if ($env:NOTIFICATION_EMAIL -notmatch '^\$\(') { $env:NOTIFICATION_EMAIL } else { $null }
-    $notifFrom = if ($env:NOTIFICATION_MAIL_FROM -notmatch '^\$\(') { $env:NOTIFICATION_MAIL_FROM } else { $null }
-    $notifWebhook = if ($env:NOTIFICATION_WEBHOOK_URL -notmatch '^\$\(') { $env:NOTIFICATION_WEBHOOK_URL } else { $null }
+    $notifEmail = Get-PipelineEnvVar -Name 'NOTIFICATION_EMAIL'
+    $notifFrom = Get-PipelineEnvVar -Name 'NOTIFICATION_MAIL_FROM'
+    $notifWebhook = Get-PipelineEnvVar -Name 'NOTIFICATION_WEBHOOK_URL'
+    $teamsMentionRaw = Get-PipelineEnvVar -Name 'NOTIFICATION_TEAMS_MENTION'
+    $teamsMentionUpns = @()
+    if ($teamsMentionRaw) {
+        $teamsMentionUpns = @($teamsMentionRaw -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    }
 
     if ($notifEmail -and $notifFrom) {
         Write-StepLog "Sending email notification"
@@ -683,7 +863,8 @@ if ($changesBySeverity.Total -gt 0) {
             -AccessToken $token `
             -MinSeverity $minSeverity `
             -CommitSha   $commitSha `
-            -AuthContextLookup $authContextLookup
+            -AuthContextLookup $authContextLookup `
+            -TenantName  $tenantDisplayName
     }
 
     if ($notifWebhook) {
@@ -692,7 +873,9 @@ if ($changesBySeverity.Total -gt 0) {
             -ChangesBySeverity $changesBySeverity `
             -WebhookUrl  $notifWebhook `
             -MinSeverity $minSeverity `
-            -CommitSha $commitSha
+            -CommitSha   $commitSha `
+            -TenantName  $tenantDisplayName `
+            -MentionUpns $teamsMentionUpns
     }
 }
 else {
@@ -704,9 +887,9 @@ else {
 if ($scanErrors.Count -gt 0) {
     Write-StepLog "Sending scan-error notification ($($scanErrors.Count) component(s) failed)"
 
-    $notifEmail = if ($env:NOTIFICATION_EMAIL -and $env:NOTIFICATION_EMAIL -notmatch '^\$\(') { $env:NOTIFICATION_EMAIL } else { $null }
-    $notifFrom = if ($env:NOTIFICATION_MAIL_FROM -and $env:NOTIFICATION_MAIL_FROM -notmatch '^\$\(') { $env:NOTIFICATION_MAIL_FROM } else { $null }
-    $notifWebhook = if ($env:NOTIFICATION_WEBHOOK_URL -and $env:NOTIFICATION_WEBHOOK_URL -notmatch '^\$\(') { $env:NOTIFICATION_WEBHOOK_URL } else { $null }
+    $notifEmail   = Get-PipelineEnvVar -Name 'NOTIFICATION_EMAIL'
+    $notifFrom    = Get-PipelineEnvVar -Name 'NOTIFICATION_MAIL_FROM'
+    $notifWebhook = Get-PipelineEnvVar -Name 'NOTIFICATION_WEBHOOK_URL'
 
     Send-ScanErrorNotification `
         -ScanErrors  $scanErrors.ToArray() `
@@ -722,3 +905,11 @@ else {
 # Completion
 
 Write-StepLog "PIM Monitor scan complete"
+
+# Optional hard-fail on component errors. Default off: the scan stays resilient (commit what
+# succeeded, notify, exit 0) unless the operator opts in via FAIL_ON_COMPONENT_ERROR=true, which
+# makes the pipeline go red so a degraded scan is visible without relying on notifications.
+if ($scanErrors.Count -gt 0 -and (Get-PipelineEnvVar -Name 'FAIL_ON_COMPONENT_ERROR') -eq 'true') {
+    $failedComponents = ($scanErrors.ToArray() | ForEach-Object { $_.Component }) -join ', '
+    throw "Scan completed with $($scanErrors.Count) component error(s) and FAIL_ON_COMPONENT_ERROR=true: $failedComponents"
+}

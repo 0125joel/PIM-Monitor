@@ -135,8 +135,8 @@ Na het verzamelen van alle rolresultaten:
 
 PIM-onboarded groepen worden ontdekt via `GET /beta/identityGovernance/privilegedAccess/group/resources`.
 
-> [!WARNING]
-> Dit endpoint is door Microsoft gedeprecieerd en stopt data retourneren op **28 oktober 2026**. De vervangende aanpak is het verzamelen van unieke `groupId`-waarden uit `eligibilityScheduleInstances` en `assignmentScheduleInstances`.
+> [!NOTE]
+> Dit endpoint is beta en niet gedocumenteerd als discovery-surface, maar heeft geen gepubliceerde einddatum. (De vaak genoemde deadline 28 oktober 2026 geldt voor PIM iteratie 2 `aadRoles`/`azureResources`, niet voor dit pad.) Er is geen tenant-brede vervanging: `eligibilityScheduleInstances` en `assignmentScheduleInstances` vereisen `$filter=groupId eq '...'`. Lege respons afgevangen door `Test-SafeToArchive`.
 
 Per ontdekte groep: definitie ophalen, eligible en actieve assignments ophalen (gefilterd op `groupId`), beleid ophalen (member + owner), ruisverwijdering, diff, inventory schrijven.
 

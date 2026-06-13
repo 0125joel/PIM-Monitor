@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: Suppress known-good changes in PIM Monitor using expected-changes.json. Define time-bound suppressions for planned maintenance windows.
 ---
 
 # Expected Change Suppression
@@ -8,7 +9,7 @@ Suppress known-good changes so PIM Monitor only alerts on the unexpected.
 
 ## Problem
 
-When you intentionally modify a PIM policy through the Entra portal or PIM Manager, the next scan detects it as a change and fires a notification. For planned maintenance this is noise — you already know the change is coming.
+When you intentionally modify a PIM policy through the Entra portal or PIM Manager, the next scan detects it as a change and fires a notification. For planned maintenance this is noise: you already know the change is coming.
 
 ## Solution
 
@@ -38,19 +39,19 @@ After the scan, PIM Monitor automatically cleans up the file:
 
 ## Field Reference
 
-All fields are **optional**. Omitting a field makes it a wildcard: matching is AND-based across the fields you do provide.
+All fields are optional. Omitting a field makes it a wildcard: matching is AND-based across the fields you do provide.
 
 | Field | Description | Example values |
 |---|---|---|
 | `workload` | Limits matching to one workload type | `directory-roles`, `pim-groups`, `authentication-contexts`, `administrative-units` |
 | `entity` | Limits matching to one entity (kebab-case slug) | `global-administrator`, `tier-0-admins` |
-| `fileType` | Limits matching to one file type | `definition`, `policy`, `assignments` |
+| `fileType` | Limits matching to one file type | `definition`, `policy`, `assignments`, `access-model-compliance`, `access-model-coverage`, `group-compliance`, `group-coverage` |
 | `ruleId` | For policy changes: limits to a specific rule ID | `Enablement_EndUser_Assignment`, `Approval_EndUser_Assignment` |
 | `reason` | Free-text note for your own reference. Not evaluated by the filter. | `"SEC-1234 approved"` |
 | `expiresUtc` | ISO 8601 UTC timestamp. Entries past this time are ignored and removed. | `"2026-05-01T17:00:00Z"` |
 
 > [!NOTE]
-> An entry with no fields at all suppresses **every** detected change for as long as the entry exists. This is almost never what you want. Always include at least `workload` + `entity` + `fileType`.
+> An entry with no fields at all suppresses every detected change for as long as the entry exists. This is almost never what you want. Always include at least `workload` + `entity` + `fileType`.
 
 ## Matching Examples
 
@@ -102,11 +103,11 @@ The scan detects your changes, matches them against `expected-changes.json`, and
 
 ### After the scan
 
-`expected-changes.json` is rewritten to remove consumed and expired entries. Check the git history of the file to confirm cleanup happened.
+`expected-changes.json` is rewritten to remove expired entries. Matched entries are kept until their `expiresUtc`, so they keep suppressing on every scan inside the window (a two-step change or a briefly stale Graph response would otherwise re-alert). When no entries remain, the file is deleted. Check the git history of the file to confirm cleanup happened.
 
 ### Example timeline
 
-**Monday 9:00** — Commit `expected-changes.json`:
+**Monday 9:00**: commit `expected-changes.json`:
 ```json
 {
   "expected": [
@@ -122,11 +123,13 @@ The scan detects your changes, matches them against `expected-changes.json`, and
 }
 ```
 
-**Monday 9:15** — Make the policy change in the Entra portal.
+**Monday 9:15**: make the policy change in the Entra portal.
 
-**Monday 9:30** — Scan runs. MFA policy change detected, matched, suppressed. No notification sent. `expected-changes.json` is deleted (entry consumed).
+**Monday 9:30**: scan runs. MFA policy change detected, matched, suppressed. No notification sent; the updated `policy.json` is still committed. The entry stays in `expected-changes.json` and keeps suppressing until its `expiresUtc`.
 
-**Monday 10:00** — Scan runs again. No changes detected. No notification. Business as usual.
+**Monday 10:00**: scan runs again. No changes detected. No notification. Business as usual.
+
+**First scan after Monday 17:00**: the entry has expired and is removed. Nothing else remains, so `expected-changes.json` is deleted and the deletion is committed.
 
 ## Common Rule IDs
 
@@ -155,3 +158,17 @@ For the full list, see [Reference: Diff Engine](/docs/reference/diff-engine).
 - The inventory file is still updated. The change is still committed and visible in git history.
 - Other changes on the same entity that do not match the entry are still notified.
 - Changes detected after `expiresUtc` are always notified, regardless of whether you intended them or not.
+
+## Examples
+
+Five ready-to-use scenarios are available in the `Examples/expected-changes/` directory of the repository. Pick the one closest to your situation, copy its content to `expected-changes.json` in the repository root, customize the fields to match your change, and commit:
+
+| Scenario | File | Use when |
+|---|---|---|
+| **Single policy rule on one role** | `01-planned-policy-tightening.json` | You're tightening a PIM policy (e.g., reducing max activation duration) and want to suppress the notification for a specific deadline. |
+| **New role onboarding** | `02-new-role-onboarding.json` | You've just onboarded a new directory role to PIM and want to suppress the three initial change notifications (definition, assignment, policy). |
+| **Temporary access-model deviation** | `03-temporary-compliance-deviation.json` | A role's actual PIM policy temporarily deviates from its expected config in `AccessModel/`; suppress it with a deadline. |
+| **Bulk assignment cleanup** | `04-bulk-assignment-cleanup.json` | You're doing an org-wide role cleanup and want to suppress the assignment changes across multiple roles for the same deadline. |
+| **Break-glass account** | `05-emergency-access-account.json` | You've created a permanent break-glass emergency access account and want to permanently suppress its assignment change. |
+
+For detailed guidance on each scenario, see the README in `Examples/expected-changes/`.

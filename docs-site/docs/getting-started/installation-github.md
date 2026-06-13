@@ -1,8 +1,9 @@
 ---
 sidebar_position: 2
+description: Deploy PIM Monitor on GitHub Actions using OIDC authentication. Configure secrets, set up the workflow, and verify the initial scan.
 ---
 
-# Installation . GitHub Actions
+# Installation: GitHub Actions
 
 Deploy PIM Monitor on GitHub using GitHub Actions and OIDC authentication.
 
@@ -81,7 +82,7 @@ The workflow file `.github/workflows/scan.yml` is already in the repository. Con
 - The trigger schedule matches your requirement (default: every 6 hours, `cron: '0 */6 * * *'`)
 - The `environment: production` line matches your GitHub environment name, or remove it if you are not using GitHub environments
 
-The `MSGRAPH_VERSION` variable in the workflow pins the Microsoft.Graph module version used for scanning. Update it when you want to upgrade the module.
+The workflow uses `Az.Accounts` (installed by the `azure/login` action) for authentication and calls the Graph API directly via `Invoke-RestMethod`. No additional PowerShell modules are required.
 
 ## Step 5: First run
 
@@ -185,11 +186,6 @@ The scan completed but wrote nothing to git.
 
 ---
 
-### Module installation is slow
-
-`Install-Module Microsoft.Graph` takes 1-2 minutes on the first run. This is expected. Subsequent runs restore the module from the runner cache and skip the install step entirely.
-
----
 
 ## Next
 

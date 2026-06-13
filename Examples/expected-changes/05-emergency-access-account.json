@@ -1,0 +1,10 @@
+{
+  "expected": [
+    {
+      "workload": "directory-roles",
+      "entity": "global-administrator",
+      "fileType": "assignments",
+      "reason": "Break-glass emergency access account (permanent, monitored separately — no expiration)"
+    }
+  ]
+}

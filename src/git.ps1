@@ -1,4 +1,5 @@
-<#
+function Publish-InventoryChanges {
+    <#
     .SYNOPSIS
         Commits staged inventory changes and pushes them to the remote branch.
 
@@ -15,7 +16,6 @@
         $result = Publish-InventoryChanges
         if ($result.committed) { Write-Host "Committed: $($result.commitSha)" }
     #>
-function Publish-InventoryChanges {
     [CmdletBinding(SupportsShouldProcess)]
     param()
 
@@ -24,8 +24,8 @@ function Publish-InventoryChanges {
     $timestamp = Get-Date -AsUTC -Format "yyyy-MM-ddTHH:mm:ssZ"
 
     try {
-        git config user.name "PIM Monitor" | Out-Null
-        git config user.email "pim-monitor@noreply.github.com" | Out-Null
+        git config --local user.name "PIM Monitor" | Out-Null
+        git config --local user.email "pim-monitor@noreply.github.com" | Out-Null
 
         git add inventory/ | Out-Null
 
@@ -37,7 +37,7 @@ function Publish-InventoryChanges {
             git rm --cached --ignore-unmatch expected-changes.json | Out-Null
         }
 
-        $statusOutput = git diff --cached --quiet
+        git diff --cached --quiet | Out-Null
         if ($LASTEXITCODE -eq 0) {
             Write-Host "No inventory changes detected"
             return @{
@@ -65,20 +65,26 @@ function Publish-InventoryChanges {
             'main'
         }
 
-        # Retry once with rebase if another pipeline run pushed while this one was scanning
-        Write-Host "Pushing to origin/$targetBranch"
-        git push origin "HEAD:$targetBranch" 2>&1 | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "  Push rejected — fetching origin/$targetBranch and rebasing"
-            git fetch origin $targetBranch 2>&1 | Out-Null
-            git rebase "origin/$targetBranch" 2>&1 | Out-Null
-            if ($LASTEXITCODE -ne 0) {
-                throw "Rebase failed after fetch — manual intervention required"
+        # Retry with rebase up to 3 attempts total if another pipeline run pushed concurrently
+        $maxAttempts = 3
+        $pushed      = $false
+        for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            if ($attempt -eq 1) {
+                Write-Host "Pushing to origin/$targetBranch"
+            } else {
+                Write-Host "  Push rejected — fetching origin/$targetBranch and rebasing (attempt $attempt/$maxAttempts)"
+                git fetch origin $targetBranch 2>&1 | Out-Null
+                git rebase "origin/$targetBranch" 2>&1 | Out-Null
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Rebase failed after fetch — manual intervention required"
+                }
             }
-            git push origin "HEAD:$targetBranch" 2>&1 | Out-Null
-            if ($LASTEXITCODE -ne 0) {
-                throw "Push failed after rebase"
-            }
+            $pushOutput = git push origin "HEAD:$targetBranch" 2>&1
+            if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
+            Write-Warning "Push attempt $attempt failed: $pushOutput"
+        }
+        if (-not $pushed) {
+            throw "Push failed after $maxAttempts attempts"
         }
 
         # Re-read SHA: rebase may have changed it

@@ -1,0 +1,29 @@
+{
+  "name": "Tier-0 PAW Groups",
+  "description": "Groups with privileged access workstation (PAW) scope.",
+  "severity": "High",
+  "groups": [
+    {
+      "id": "60bba733-f09d-49b7-8445-32369aa066b3",
+      "displayName": "PAW-Admins-Members"
+    },
+    {
+      "id": "71cca844-g0ae-49c8-9556-43470bb177c4",
+      "displayName": "PAW-Admins-Owners"
+    }
+  ],
+  "expectedConfig": {
+    "member": {
+      "requireMFA": true,
+      "requireApproval": true,
+      "maxActivationDuration": "PT2H",
+      "allowPermanentEligible": false,
+      "allowPermanentActive": false
+    },
+    "owner": {
+      "requireMFA": true,
+      "requireApproval": true,
+      "maxActivationDuration": "PT1H"
+    }
+  }
+}

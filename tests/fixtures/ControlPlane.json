@@ -1,0 +1,17 @@
+{
+  "name": "Control Plane - Identity Infrastructure",
+  "description": "Rollen met directe tenant-admin-impact.",
+  "severity": "High",
+  "roles": [
+    { "id": "62e90394-69f5-4237-9190-012177145e10", "displayName": "Global Administrator" },
+    { "id": "194ae4cb-b126-40b2-bd5b-6091b380977d", "displayName": "Security Administrator" }
+  ],
+  "expectedConfig": {
+    "maxActivationDuration": "PT1H",
+    "requireJustification": true,
+    "requireMFA": true,
+    "requireApproval": true,
+    "allowPermanentEligible": false,
+    "allowPermanentActive": false
+  }
+}

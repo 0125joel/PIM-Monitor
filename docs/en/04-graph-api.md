@@ -37,7 +37,7 @@ The rule is: use the least privileged, most stable version that provides the req
 | `GET /groups/{id}` | v1.0 | Group properties |
 | `GET /identityGovernance/privilegedAccess/group/eligibilityScheduleInstances?$filter=groupId eq '{id}'` | v1.0 | PIM Group eligible assignments |
 | `GET /identityGovernance/privilegedAccess/group/assignmentScheduleInstances?$filter=groupId eq '{id}'` | v1.0 | PIM Group active/permanent assignments |
-| `GET /identityGovernance/privilegedAccess/group/resources` | **beta** | PIM Group discovery — **deprecated Oct 28, 2026** |
+| `GET /identityGovernance/privilegedAccess/group/resources` | **beta** | PIM Group discovery — beta, undocumented for discovery, no published deprecation date (guarded) |
 | `GET /identity/conditionalAccess/authenticationContextClassReferences` | v1.0 | Authentication context lookup |
 | `GET /directory/administrativeUnits` | v1.0 | Administrative unit lookup |
 | `GET /auditLogs/directoryAudits?$filter=loggedByService eq 'PIM'...` | v1.0 | PIM activation events |
@@ -150,16 +150,16 @@ while ($true) {
 
 ### `GET /beta/identityGovernance/privilegedAccess/group/resources`
 
-**Status:** Deprecated. Microsoft will stop returning data on **October 28, 2026**.
+**Status:** Beta, undocumented as a discovery surface. **No published deprecation date.**
 
-This endpoint is currently used to discover which groups are PIM-onboarded (`$script:GraphEndpoints.GroupResources`). The replacement approach is:
+Correction: the widely cited "October 28, 2026" deadline applies to PIM **iteration 2** (`/beta/privilegedAccess/aadRoles` + `/azureResources`), which this project does not use. This `identityGovernance/.../group` path is the current iteration-3 namespace.
 
-1. Call `GET /identityGovernance/privilegedAccess/group/eligibilityScheduleInstances` (no filter).
-2. Call `GET /identityGovernance/privilegedAccess/group/assignmentScheduleInstances` (no filter).
-3. Collect the distinct `groupId` values from both result sets.
+This endpoint is used to discover which groups are PIM-onboarded (`$script:GraphEndpoints.GroupResources`). There is **no** tenant-wide replacement:
 
-> [!NOTE]
-> The unfiltered `eligibilityScheduleInstances` and `assignmentScheduleInstances` endpoints return instances across all PIM-onboarded groups without a `$filter=groupId` requirement when used for discovery. This is different from the per-group filtered calls used to fetch assignments for a specific group.
+> [!IMPORTANT]
+> `eligibilityScheduleInstances` and `assignmentScheduleInstances` **require** `$filter=groupId` (verbatim in the Microsoft v1.0 docs) and **cannot** be enumerated unfiltered. `roleManagementPolicyAssignments` likewise requires `scopeId` + `scopeType`. There is no "list all PIM groups" API, so discovery cannot be reconstructed from these endpoints.
+
+Because the endpoint is beta and undocumented for discovery, an empty or changed response is possible. `Test-SafeToArchive` (`src/diff.ps1`) guards against that: if discovery returns zero groups while inventory still holds group folders, archival is skipped and a scan error is raised instead of mass false-removal.
 
 ### `resourceScopes` on role definitions
 

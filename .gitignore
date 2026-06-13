@@ -22,6 +22,12 @@ docs-site/package-lock.json
 # Design working directory (internal, development only)
 docs/Design/
 
+# Live scan state (tenant-specific; never commit to the public repo)
+inventory/
+
+# Preview-script outputs (regeneratable via tests/scripts/Preview-*.ps1)
+tests/output/
+
 # Environment variables (if used)
 .env.local
 .env.*.local

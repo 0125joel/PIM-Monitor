@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: "All Microsoft Graph API endpoints used by PIM Monitor: version rationale, required permissions, and pagination behavior."
 ---
 
 # Graph API Endpoints
@@ -58,7 +59,7 @@ Which Microsoft Graph endpoints PIM Monitor uses and why each one uses v1.0 or b
   &$expand=policy($expand=rules)
 ```
 
-**Why beta for groups:** The `scopeType eq 'Group'` filter **only works in beta**. v1.0 does not support group-scoped policy queries.
+**Why beta for groups:** The `scopeType eq 'Group'` filter only works in beta. v1.0 does not support group-scoped policy queries.
 
 :::warning Upgrade Path
 As of April 2026, the `scopeType eq 'Group'` filter remains beta-only. When/if Microsoft migrates this to v1.0 GA, this line must be updated:

@@ -1,0 +1,17 @@
+{
+  "conditions": {
+    "applications": {
+      "includeAuthenticationContextClassReferences": ["c2"]
+    }
+  },
+  "displayName": "PIM - Basic MFA (Weak)",
+  "grantControls": {
+    "authenticationStrength": {
+      "id": "00000000-0000-0000-0000-000000000001"
+    },
+    "operator": "AND"
+  },
+  "id": "aaaaaaaa-0000-0000-0000-000000000003",
+  "sessionControls": null,
+  "state": "enabled"
+}

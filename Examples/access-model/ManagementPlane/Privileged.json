@@ -1,0 +1,31 @@
+{
+  "name": "Management Plane - Privileged",
+  "description": "Workload administrators with full service control over a Microsoft 365 workload with direct data impact (mailboxes, sites, source code, device fleet, etc.). Blast-radius escape clause applies: treat as Privileged regardless of Microsoft isPrivileged flag. Compromise gives broad access to all data in the workload, including executive accounts.",
+  "plane": "Management",
+  "securityLevel": "Privileged",
+  "roles": [
+    { "id": "d2562ede-74db-457e-a7b6-544e236ebb61", "displayName": "AI Administrator" },
+    { "id": "e3973bdf-4987-49ae-837a-ba8e231c7286", "displayName": "Azure DevOps Administrator" },
+    { "id": "7698a772-787b-4ac8-901f-60d6b08affd2", "displayName": "Cloud Device Administrator" },
+    { "id": "44367163-eba1-44c3-98af-f5787879f96a", "displayName": "Dynamics 365 Administrator" },
+    { "id": "29232cdf-9323-42fd-ade2-1d097af3e4de", "displayName": "Exchange Administrator" },
+    { "id": "a9ea8996-122f-4c74-9520-8edcd192826c", "displayName": "Fabric Administrator" },
+    { "id": "3a2c62db-5318-420d-8d74-23affee5d9d5", "displayName": "Intune Administrator" },
+    { "id": "b5a8dcf3-09d5-43a9-a639-8e29ef291470", "displayName": "Knowledge Administrator" },
+    { "id": "744ec460-397e-42ad-a462-8b3f9747a02c", "displayName": "Knowledge Manager" },
+    { "id": "11648597-926c-4cf3-9c36-bcebb0ba8dcc", "displayName": "Power Platform Administrator" },
+    { "id": "f28a1f50-f6e7-4571-818b-6a12f2af6b6c", "displayName": "SharePoint Administrator" },
+    { "id": "69091246-20e8-4a56-aa4d-066075b2a7a8", "displayName": "Teams Administrator" },
+    { "id": "11451d60-acb2-45eb-a7d6-43d0f0125c13", "displayName": "Windows 365 Administrator" },
+    { "id": "810a2642-a034-447f-a5e8-41beaa378541", "displayName": "Yammer Administrator" }
+  ],
+  "expectedConfig": {
+    "maxActivationDuration": "PT1H",
+    "requireJustification": true,
+    "requireMFA": true,
+    "authContext": "phish-resistant-sif",
+    "requireApproval": true,
+    "allowPermanentEligible": false,
+    "allowPermanentActive": false
+  }
+}

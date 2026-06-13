@@ -1,5 +1,6 @@
 ---
 sidebar_position: 3
+description: "How PIM Monitor detects changes: property-level diffing, severity classification rules, and the change entry format."
 ---
 
 # Diff Engine
@@ -53,8 +54,8 @@ Located in `src/diff.ps1`.
 
 ### 2. Definition comparison
 
-- If `rolePermissions` changed: **High**
-- Otherwise: **Low** (metadata like displayName)
+- If `rolePermissions` changed: High
+- Otherwise: Low (metadata like displayName)
 
 ```powershell
 $oldPerms = $oldData.PSObject.Properties['rolePermissions']?.Value
@@ -110,10 +111,10 @@ $key = "$principalId|$groupId|$accessId"
 ```
 
 **Severity logic:**
-- Permanent: **High**
-- New with no `endDateTime`: **High**
-- New with expiration: **Medium**
-- Modified or removed: **Low**
+- Permanent: High
+- New with no `endDateTime`: High
+- New with expiration: Medium
+- Modified or removed: Low
 
 ### 5. Removed entities - Get-RemovedEntities
 
@@ -151,16 +152,16 @@ Result:
 
 All comparisons are O(n). No quadratic operations.
 
-**Parallel role fetching** (v2.0+): Role policies and assignments are fetched in parallel using PowerShell 7 `ForEach-Object -Parallel` with a throttle limit of 8 workers. This replaces the sequential per-role loop.
+**Parallel role fetching** (v2.0+): Role policies and assignments are fetched in parallel using PowerShell 7 `ForEach-Object -Parallel` with a throttle limit of 5 workers. This replaces the sequential per-role loop.
 
 | Step | Time | Notes |
 |---|---|---|
 | Role definitions fetch | ~5s | Sequential, single call |
-| Per-role fetch (8-worker parallel) | ~8-10s | Policies + 3 assignment types per role, network I/O overlapped |
+| Per-role fetch (5-worker parallel) | ~8-10s | Policies + 3 assignment types per role, network I/O overlapped |
 | All diffs | ~100ms | Sequential, CPU-bound |
 | Total | ~15-18s | 4-5x speedup vs sequential fetch |
 
-**Tuning:** Adjust `-ThrottleLimit` in `src/Scan-PimState.ps1` line 227 to balance parallelism and Graph API throttling.
+**Tuning:** Adjust `-ThrottleLimit` in `src/Scan-PimState.ps1` to balance parallelism and Graph API throttling. The current value of 5 was chosen to avoid sustained Graph 429 throttling under high load.
 
 ## Testing locally
 
@@ -179,4 +180,4 @@ See `src/README.md` for end-to-end test examples.
 
 ## Customizing
 
-To change diff behavior — severity rules, ignored fields, assignment keys, or object equality — see [Customize: Diff Engine](../customize/diff-engine.md).
+To change diff behavior (severity rules, ignored fields, assignment keys, or object equality), see [Customize: Diff Engine](../customize/diff-engine.md).

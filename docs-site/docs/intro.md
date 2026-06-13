@@ -1,19 +1,17 @@
 ---
 sidebar_position: 1
-description: PIM Monitor continuously monitors Microsoft Entra ID PIM state with a git-based audit trail. Detect changes, maintain compliance, and track security modifications in your Privileged Identity Management configuration.
+description: PIM Monitor scans Entra ID PIM, detects changes, commits inventory JSON to git, and sends notifications. No database, no agent, no external state.
 ---
 
 # PIM Monitor
 
 **Continuous monitoring of Microsoft Entra ID PIM state with a git-based audit trail.**
 
-> **Version:** 0.3.0 — [Release notes](https://github.com/0125joel/PIM-Monitor/releases) <!-- x-release-please-version -->
-
 PIM Monitor is a scheduled Azure DevOps pipeline. It scans your Entra ID Privileged Identity Management configuration, detects changes, and commits inventory JSON files to git. Every change becomes a commit. Your audit trail is version history.
 
 ## How it works
 
-Each scheduled run fetches the full PIM state from Microsoft Graph, compares it against JSON inventory files committed in the repository, classifies any differences as High, Medium, or Low severity, writes updated inventory files, commits the changes to git, and sends notifications if changes were detected. No database, no external state — the repository is the source of truth.
+Each scheduled run fetches the full PIM state from Microsoft Graph, compares it against JSON inventory files committed in the repository, classifies any differences as High, Medium, or Low severity, writes updated inventory files, commits the changes to git, and sends notifications if changes were detected. No database, no external state. The repository is the source of truth.
 
 ## Why git?
 
@@ -46,7 +44,7 @@ Each entity gets its own folder so git diffs show exactly which role or group ch
 
 ### Severity classification
 
-Changes are classified by **rule ID prefix matching**, not property inspection:
+Changes are classified by rule ID prefix matching, not property inspection:
 
 | Rule | Severity |
 |---|---|
@@ -61,12 +59,32 @@ Changes are classified by **rule ID prefix matching**, not property inspection:
 
 Add new rules by editing `src/diff.ps1`. No code changes needed beyond that.
 
+### Access Model and desired-state compliance (optional)
+
+Off by default. There is no variable: creating the `AccessModel/` folder is the switch. If the folder is absent, both checks below are silently skipped and PIM Monitor behaves exactly as if this feature does not exist.
+
+When the folder is present, two checks run on every scan:
+
+- **Compliance**: role is in a model file with `expectedConfig`, but the actual policy deviates, so you get a notification at the file's severity level
+- **Coverage**: role is in inventory but appears in no access-model file, so you get a notification in a dedicated "Classification" section, separate from PIM state changes
+
+```
+AccessModel/             ← create this folder to enable; delete it to disable
+├── ControlPlane.json    # identity infrastructure roles + expectedConfig
+├── ManagementPlane.json # workload-specific admins
+├── DataWorkloadPlane.json
+├── Specialized.json     # high-impact non-identity roles
+└── coverage-exclusions.json
+```
+
+See [Access Model and Desired-State Compliance](./access-model/overview.mdx) for setup, EAM plane mapping, and copy-paste examples.
+
 ### Notifications (optional)
 
 When changes are detected:
 - **Email** - via Graph `sendMail` (requires `Mail.Send` permission)
 - **Webhook** - format is auto-detected from the URL:
-  - `webhook.office.com` → Teams Adaptive Card
+  - `*.logic.azure.com` / `*.azure-apim.net` → Teams Adaptive Card (Power Automate)
   - `hooks.slack.com` → Slack blocks
   - `discord.com/api/webhooks` → Discord embed
   - Other → generic JSON

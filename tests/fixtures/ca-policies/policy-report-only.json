@@ -1,0 +1,24 @@
+{
+  "conditions": {
+    "applications": {
+      "includeAuthenticationContextClassReferences": ["c2"]
+    }
+  },
+  "displayName": "PIM - Phish-Resistant MFA with SIF (Report Only)",
+  "grantControls": {
+    "authenticationStrength": {
+      "id": "00000000-0000-0000-0000-000000000003"
+    },
+    "operator": "AND"
+  },
+  "id": "aaaaaaaa-0000-0000-0000-000000000002",
+  "sessionControls": {
+    "signInFrequency": {
+      "frequencyInterval": "everyTime",
+      "isEnabled": true,
+      "type": null,
+      "value": null
+    }
+  },
+  "state": "enabledForReportingButNotEnforced"
+}

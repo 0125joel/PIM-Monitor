@@ -2,6 +2,32 @@ import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
 import { APP_VERSION } from '../constants';
+import JsonLd from '../components/JsonLd';
+
+const softwareApplicationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'PIM Monitor',
+  applicationCategory: 'SecurityApplication',
+  operatingSystem: 'Cross-platform (Azure DevOps, GitHub Actions)',
+  description:
+    'Open-source pipeline that continuously monitors Microsoft Entra ID Privileged Identity Management (PIM). It diffs the live state of directory roles, eligibility and assignment schedules, PIM policies, and group membership against versioned inventory files, commits every change as a git audit trail, classifies changes by severity, and sends email or webhook notifications. An optional Access Model layer enforces desired-state PIM policy compliance per role against the Enterprise Access Model.',
+  url: 'https://pimmonitor.com',
+  downloadUrl: 'https://github.com/joel-prins/PIM-Monitor',
+  license: 'https://opensource.org/licenses/MIT',
+  isAccessibleForFree: true,
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  author: {
+    '@type': 'Person',
+    name: 'Joël Prins',
+    url: 'https://www.linkedin.com/in/jo%C3%ABl-prins-4b4655aa/',
+  },
+  sameAs: ['https://github.com/joel-prins/PIM-Monitor'],
+};
 
 function NotificationCard() {
   return (
@@ -112,6 +138,7 @@ function GitLog() {
 export default function Home(): JSX.Element {
   return (
     <Layout title="PIM Monitor" description="Continuous monitoring of Microsoft Entra ID PIM state with git-based audit trail">
+      <JsonLd schema={softwareApplicationSchema} />
       <main className={styles.heroPage} data-theme="dark">
         <div className={styles.heroInner}>
           <div className={styles.heroLeft}>

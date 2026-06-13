@@ -1,0 +1,25 @@
+{
+  "conditions": {
+    "applications": {
+      "includeAuthenticationContextClassReferences": ["c2"]
+    }
+  },
+  "displayName": "PIM - Phish-Resistant MFA with SIF",
+  "grantControls": {
+    "authenticationStrength": {
+      "id": "00000000-0000-0000-0000-000000000003"
+    },
+    "builtInControls": ["compliantDevice"],
+    "operator": "AND"
+  },
+  "id": "aaaaaaaa-0000-0000-0000-000000000001",
+  "sessionControls": {
+    "signInFrequency": {
+      "frequencyInterval": "everyTime",
+      "isEnabled": true,
+      "type": null,
+      "value": null
+    }
+  },
+  "state": "enabled"
+}

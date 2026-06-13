@@ -1,0 +1,26 @@
+{
+  "name": "Control Plane - Specialized",
+  "description": "Roles operating on identity objects with limited scope that does not reach full identity infrastructure control. Microsoft Graph isPrivileged = false on the Control Plane, non-reader category.",
+  "plane": "Control",
+  "securityLevel": "Specialized",
+  "roles": [
+    { "id": "58a13ea3-c632-46ae-9ee0-9c0d43cd7f3d", "displayName": "Attribute Assignment Administrator" },
+    { "id": "0526716b-113d-4c15-b2c8-68e3c22b9f80", "displayName": "Authentication Policy Administrator" },
+    { "id": "3edaf663-341e-4475-9f94-5c398ef6c070", "displayName": "B2C IEF Policy Administrator" },
+    { "id": "892c5842-a9a6-463a-8041-72aa08ca3cf6", "displayName": "Cloud App Security Administrator" },
+    { "id": "d29b2b05-8046-44ba-8758-1e26182fcf32", "displayName": "Directory Synchronization Accounts" },
+    { "id": "6e591065-9bad-43ed-90f3-e9424366d2f0", "displayName": "External ID User Flow Administrator" },
+    { "id": "fdd7a751-b60b-444a-984c-02652fe8fa1c", "displayName": "Groups Administrator" },
+    { "id": "a92aed5d-d78a-4d16-b381-09adb37eb3b0", "displayName": "On Premises Directory Sync Account" },
+    { "id": "507f53e4-4e52-4077-abd3-d2e1558b6ea2", "displayName": "Organizational Messages Writer" }
+  ],
+  "expectedConfig": {
+    "maxActivationDuration": "PT4H",
+    "requireJustification": true,
+    "requireMFA": true,
+    "authContext": "phish-resistant-no-sif",
+    "requireApproval": true,
+    "allowPermanentEligible": false,
+    "allowPermanentActive": false
+  }
+}

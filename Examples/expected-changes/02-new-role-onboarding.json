@@ -1,0 +1,25 @@
+{
+  "expected": [
+    {
+      "workload": "directory-roles",
+      "entity": "compliance-administrator",
+      "fileType": "definition",
+      "reason": "New role onboarded to PIM — will be classified in AccessModel/DataWorkloadPlane.json",
+      "expiresUtc": "2026-05-20T17:00:00Z"
+    },
+    {
+      "workload": "directory-roles",
+      "entity": "compliance-administrator",
+      "fileType": "assignments",
+      "reason": "New role onboarded to PIM — initial assignment to first user",
+      "expiresUtc": "2026-05-20T17:00:00Z"
+    },
+    {
+      "workload": "directory-roles",
+      "entity": "compliance-administrator",
+      "fileType": "policy",
+      "reason": "New role onboarded to PIM — default policy assignment",
+      "expiresUtc": "2026-05-20T17:00:00Z"
+    }
+  ]
+}

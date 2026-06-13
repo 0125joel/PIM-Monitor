@@ -10,7 +10,7 @@ You'll need the following before deploying PIM Monitor.
 ## Azure DevOps
 
 - An Azure DevOps organization with pipelines enabled
-- A git repo where PIM Monitor will push inventory changes
+- A git repo where PIM Monitor pushes inventory changes
 - Stakeholder access or higher (to create pipelines)
 
 ## Microsoft Entra ID
@@ -28,19 +28,20 @@ You'll need the following before deploying PIM Monitor.
 
 **2. Grant application permissions to Microsoft Graph**
 
-| Permission | Purpose |
-|---|---|
-| `RoleManagement.Read.Directory` | Read role definitions and assignments |
-| `RoleAssignmentSchedule.Read.Directory` | Read PIM active schedules |
-| `RoleEligibilitySchedule.Read.Directory` | Read PIM eligible schedules |
-| `RoleManagementPolicy.Read.Directory` | Read PIM policies |
-| `Policy.Read.ConditionalAccess` | Read authentication contexts |
-| `User.Read.All` | Resolve principal names |
-| `Group.Read.All` | Read group details |
-| `AdministrativeUnit.Read.All` | Read AU metadata |
-| `AuditLog.Read.All` | Read activation events from audit log |
-| `PrivilegedAccess.Read.AzureADGroup` | Read PIM Groups |
-| `Mail.Send` (optional) | Send emails via Graph |
+| Permission                                          | Purpose                                                                                                           |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `RoleManagement.Read.Directory`                     | Read role definitions and assignments                                                                             |
+| `RoleAssignmentSchedule.Read.Directory`             | Read PIM active schedules                                                                                         |
+| `RoleEligibilitySchedule.Read.Directory`            | Read PIM eligible schedules                                                                                       |
+| `RoleManagementPolicy.Read.Directory`               | Read PIM policies for directory roles                                                                             |
+| `Policy.Read.ConditionalAccess`                     | Read authentication contexts                                                                                      |
+| `User.Read.All`                                     | Resolve principal names                                                                                           |
+| `Group.Read.All`                                    | Read group details                                                                                                |
+| `AdministrativeUnit.Read.All`                       | Read AU metadata                                                                                                  |
+| `AuditLog.Read.All`                                 | Read activation events from audit log                                                                             |
+| `PrivilegedAccess.Read.AzureADGroup`                | Read PIM Groups                                                                                                   |
+| `Mail.Send` (optional)                              | Send emails via Graph                                                                                             |
+| `RoleManagementPolicy.Read.AzureADGroup` (optional) | Read PIM Group policy rules; required for access model compliance checks, not needed for basic PIM Group scanning |
 
 **3. Configure Workload Identity Federation**
 
@@ -64,26 +65,28 @@ In the app registration, go to **Certificates & secrets** > **Federated credenti
 
 Fill in these fields with the values ADO generated:
 
-| Field | Value | Notes |
-|---|---|---|
-| **Federated credential scenario** | `Other issuer` | Do not select "Azure DevOps" |
-| **Issuer** | From ADO Step 3 (Issuer field) | Copy the full URL, including `/v2.0` at the end. Do not truncate. |
-| **Type** | `Explicit subject identifier` | Default radio button |
-| **Subject identifier** | From ADO Step 3 (Subject identifier field) | Copy the full value exactly as shown in ADO |
-| **Name** | `azure-devops-pim-monitor` | Cannot be changed after creation |
-| **Description** | `WIF federation for PIM Monitor pipeline` | Optional |
-| **Audience** | `api://AzureADTokenExchange` | Default. Do not change. |
+| Field                             | Value                                      | Notes                                                             |
+| --------------------------------- | ------------------------------------------ | ----------------------------------------------------------------- |
+| **Federated credential scenario** | `Other issuer`                             | Do not select "Azure DevOps"                                      |
+| **Issuer**                        | From ADO Step 3 (Issuer field)             | Copy the full URL, including `/v2.0` at the end. Do not truncate. |
+| **Type**                          | `Explicit subject identifier`              | Default radio button                                              |
+| **Subject identifier**            | From ADO Step 3 (Subject identifier field) | Copy the full value exactly as shown in ADO                       |
+| **Name**                          | `azure-devops-pim-monitor`                 | Cannot be changed after creation                                  |
+| **Description**                   | `WIF federation for PIM Monitor pipeline`  | Optional                                                          |
+| **Audience**                      | `api://AzureADTokenExchange`               | Default. Do not change.                                           |
 
 Click **Save** when done.
 
 **Important notes:**
+
 - The Issuer is tenant-specific and includes `/v2.0`. Copy it exactly from ADO including the full URL.
 - The Subject identifier is a long string generated uniquely for your ADO repo. Copy it in full.
-- Both must match exactly what ADO provided. A mismatch will cause verification to fail (see troubleshooting below).
+- Both must match exactly what ADO provided. A mismatch causes verification to fail (see troubleshooting below).
 
-**4. Save your app registration IDs** (you'll need these for the service connection)
+**4. Save your app registration IDs** (needed for the service connection)
 
 Go to the app registration **Overview** tab and copy:
+
 - **Application (client) ID**
 - **Directory (tenant) ID**
 
@@ -93,7 +96,7 @@ Save these somewhere safe. You'll paste them into Azure DevOps in the next step.
 
 After creating the federated credential in Entra ID, return to Azure DevOps and complete the service connection.
 
-1. Back in Azure DevOps service connection form (after clicking **Next** in step 3a), you should now see the **Issuer** and **Subject identifier** fields populated.
+1. Back in Azure DevOps service connection form (after clicking **Next** in step 3a), the **Issuer** and **Subject identifier** fields are now populated.
 
 2. Click **Verify and save**.
 
@@ -119,7 +122,7 @@ If you want to test scripts locally before deploying:
 
 - PowerShell 7+ (`choco install pwsh` on Windows, `brew install powershell` on macOS)
 - Azure CLI (`az` available in PATH)
-- Microsoft Graph PowerShell SDK (installed by the script, or `Install-Module Microsoft.Graph`)
+- Azure CLI or `Az.Accounts` PowerShell module (for authenticating to Azure locally)
 
 ## Troubleshooting
 
@@ -130,6 +133,7 @@ If you want to test scripts locally before deploying:
 **Cause:** The Issuer in your Entra ID federated credential does not match the Issuer that ADO is using.
 
 **Solution:**
+
 1. Delete the federated credential in Entra ID (trash icon)
 2. In Azure DevOps service connection form, click in the **Issuer** field and select all (Cmd+A or Ctrl+A)
 3. Copy the complete Issuer URL (ensure you capture the full URL including `/v2.0` at the end, not truncated)
@@ -145,6 +149,7 @@ If you want to test scripts locally before deploying:
 **Cause:** The app registration does not have permissions on the Azure subscription.
 
 **Solution:**
+
 1. Go to **Azure Portal** > **Subscriptions** > your subscription ID (shown in the error)
 2. Click **Access control (IAM)**
 3. Click **Add role assignment**
@@ -158,6 +163,7 @@ If you want to test scripts locally before deploying:
 **Cause:** Network connectivity or service delays.
 
 **Solution:**
+
 1. Wait 30 seconds and try again
 2. If it persists, delete the service connection draft and create a new one
 3. Ensure your app registration has the Reader role on the subscription (see above)

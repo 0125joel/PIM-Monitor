@@ -199,6 +199,23 @@ This step and the `Publish-InventoryChanges` function in `git.ps1` both attempt 
 
 Only runs when `REPORT_ARTIFACT=true`. The artifact is named `scan-report` and contains `scan-report.html`.
 
+### Step 7: Check for upstream version updates
+
+```bash
+LATEST_TAG=$(curl -sf "https://api.github.com/repos/0125joel/PIM-Monitor/releases/latest" \
+  | jq -r '.tag_name // empty')
+CURRENT_VERSION=$(grep -oP '\d+\.\d+\.\d+' "$(Build.SourcesDirectory)/VERSION")
+# Compare: if LATEST > CURRENT, set UPSTREAM_UPDATE_AVAILABLE=true
+```
+
+This step checks whether a newer version of PIM Monitor is available on GitHub by:
+1. Reading your `VERSION` file (what you're running)
+2. Calling the GitHub API to fetch the latest release
+3. Comparing semantic versions
+4. Setting `UPSTREAM_UPDATE_AVAILABLE` if an update is available
+
+To disable: set pipeline variable `NOTIFY_UPSTREAM_UPDATE=false`.
+
 ---
 
 ## 6. Pipeline Variables Reference

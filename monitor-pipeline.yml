@@ -6,99 +6,83 @@ schedules:
     branches:
       include: [main]
     always: true
+    batch: true
 
-pool:
-  vmImage: "ubuntu-latest"
+jobs:
+  - job: scan
+    timeoutInMinutes: 30
+    pool:
+      vmImage: "ubuntu-latest"
+    steps:
+      - checkout: self
+        persistCredentials: true
+        # Full history: the concurrent-push recovery (fetch + rebase in git.ps1) needs a
+        # merge-base, which a shallow clone may not contain.
+        fetchDepth: 0
+        displayName: "Checkout repository"
 
-variables:
-  MSGRAPH_VERSION: "2.35.1"
+      - script: |
+          LATEST_TAG=$(curl -sf --max-time 10 \
+            "https://api.github.com/repos/0125joel/PIM-Monitor/releases/latest" \
+            | jq -r '.tag_name // empty' 2>/dev/null || echo "")
+          LATEST_VERSION="${LATEST_TAG#v}"
+          CURRENT_VERSION=$(grep -oP '\d+\.\d+\.\d+' "$(Build.SourcesDirectory)/VERSION" | head -1)
 
-steps:
-  - checkout: self
-    persistCredentials: true
-    displayName: "Checkout repository"
+          if [ -z "$LATEST_VERSION" ] || [ -z "$CURRENT_VERSION" ]; then
+            echo "##[warning]Could not determine version for upstream check"
+            echo "##vso[task.setvariable variable=UPSTREAM_UPDATE_AVAILABLE]false"
+          elif [ "$LATEST_VERSION" != "$CURRENT_VERSION" ] && \
+               [ "$(printf '%s\n' "$CURRENT_VERSION" "$LATEST_VERSION" | sort -V | head -1)" = "$CURRENT_VERSION" ]; then
+            echo "##[warning]PIM Monitor $LATEST_VERSION is available (running $CURRENT_VERSION). See https://github.com/0125joel/PIM-Monitor/releases/tag/v$LATEST_VERSION"
+            echo "##vso[task.setvariable variable=UPSTREAM_LATEST_VERSION]$LATEST_VERSION"
+            echo "##vso[task.setvariable variable=UPSTREAM_CURRENT_VERSION]$CURRENT_VERSION"
+            echo "##vso[task.setvariable variable=UPSTREAM_UPDATE_AVAILABLE]true"
+          else
+            echo "No upstream update available (running $CURRENT_VERSION, latest $LATEST_VERSION)"
+            echo "##vso[task.setvariable variable=UPSTREAM_UPDATE_AVAILABLE]false"
+          fi
+        displayName: "Check for upstream version updates"
+        continueOnError: true
 
-  - script: |
-      git remote add upstream https://github.com/0125joel/PIM-Monitor.git
-      git fetch upstream main --quiet 2>/dev/null
-      AHEAD=$(git rev-list HEAD..upstream/main --count 2>/dev/null || echo 0)
-      git remote remove upstream
-      if [ "$AHEAD" -gt 0 ]; then
-        echo "##[warning]PIM Monitor: $AHEAD upstream commit(s) available on GitHub (https://github.com/0125joel/PIM-Monitor). Review and update your local copy."
-        echo "##vso[task.setvariable variable=UPSTREAM_COMMITS_AHEAD]$AHEAD"
-        echo "##vso[task.setvariable variable=UPSTREAM_UPDATE_AVAILABLE]true"
-      else
-        echo "##vso[task.setvariable variable=UPSTREAM_UPDATE_AVAILABLE]false"
-      fi
-    displayName: "Check for upstream updates on GitHub"
-    continueOnError: true
+      - task: AzurePowerShell@5
+        inputs:
+          azureSubscription: "pim-monitor-service-connection"
+          ScriptType: "FilePath"
+          ScriptPath: "$(Build.SourcesDirectory)/src/Scan-PimState.ps1"
+          azurePowerShellVersion: "LatestVersion"
+          pwsh: true
+        displayName: "Run PIM change scan"
+        env:
+          NOTIFICATION_EMAIL: $(NOTIFICATION_EMAIL)
+          NOTIFICATION_MAIL_FROM: $(NOTIFICATION_MAIL_FROM)
+          NOTIFICATION_WEBHOOK_URL: $(NOTIFICATION_WEBHOOK_URL)
+          NOTIFICATION_WEBHOOK_TYPE: $(NOTIFICATION_WEBHOOK_TYPE)
+          NOTIFICATION_MIN_SEVERITY: $(NOTIFICATION_MIN_SEVERITY)
+          REPORT_ARTIFACT: $(REPORT_ARTIFACT)
+          EXPIRING_WINDOW_DAYS: $(EXPIRING_WINDOW_DAYS)
+          EAM_COVERAGE_SCOPE: $(EAM_COVERAGE_SCOPE)
+          NOTIFICATION_TEAMS_MENTION: $(NOTIFICATION_TEAMS_MENTION)
+          FAIL_ON_COMPONENT_ERROR: $(FAIL_ON_COMPONENT_ERROR)
 
-  - task: PowerShell@2
-    name: cacheVars
-    inputs:
-      targetType: inline
-      pwsh: true
-      script: |
-        $p = $env:PSModulePath.Split([IO.Path]::PathSeparator) |
-             Where-Object { $_ -match 'home|user' } |
-             Select-Object -First 1
-        "##vso[task.setvariable variable=psUserModulePath]$p" | Write-Host
-        Write-Host "User module path: $p"
-    displayName: "Detect user module path"
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: "$(Build.ArtifactStagingDirectory)"
+          artifact: "scan-report"
+        displayName: "Publish HTML scan report"
+        condition: eq(variables['REPORT_ARTIFACT'], 'true')
 
-  - task: Cache@2
-    inputs:
-      key: '"MSGraph" | "$(MSGRAPH_VERSION)" | "$(Agent.OS)"'
-      path: "$(psUserModulePath)"
-      cacheHitVar: MODULES_CACHE_HIT
-    displayName: "Restore Microsoft.Graph module cache"
-
-  - task: PowerShell@2
-    condition: ne(variables['MODULES_CACHE_HIT'], 'true')
-    inputs:
-      targetType: inline
-      pwsh: true
-      script: |
-        Write-Host "Installing Microsoft.Graph $(MSGRAPH_VERSION)..."
-        Install-Module -Name Microsoft.Graph -RequiredVersion "$(MSGRAPH_VERSION)" `
-          -Scope CurrentUser -Force -SkipPublisherCheck -Repository PSGallery
-        Write-Host "Module installed successfully"
-    displayName: "Install Microsoft.Graph module"
-
-  - task: AzurePowerShell@5
-    inputs:
-      azureSubscription: "pim-monitor-service-connection"
-      ScriptType: "FilePath"
-      ScriptPath: "$(Build.SourcesDirectory)/src/Scan-PimState.ps1"
-      azurePowerShellVersion: "LatestVersion"
-      pwsh: true
-    displayName: "Run PIM change scan"
-    env:
-      NOTIFICATION_EMAIL: $(NOTIFICATION_EMAIL)
-      NOTIFICATION_MAIL_FROM: $(NOTIFICATION_MAIL_FROM)
-      NOTIFICATION_WEBHOOK_URL: $(NOTIFICATION_WEBHOOK_URL)
-      NOTIFICATION_MIN_SEVERITY: $(NOTIFICATION_MIN_SEVERITY)
-      REPORT_ARTIFACT: $(REPORT_ARTIFACT)
-      EXPIRING_WINDOW_DAYS: $(EXPIRING_WINDOW_DAYS)
-
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: "$(Build.ArtifactStagingDirectory)"
-      artifact: "scan-report"
-    displayName: "Publish HTML scan report"
-    condition: eq(variables['REPORT_ARTIFACT'], 'true')
-
-  - task: AzurePowerShell@5
-    displayName: "Notify upstream update available"
-    condition: and(always(), eq(variables['UPSTREAM_UPDATE_AVAILABLE'], 'true'), ne(variables['NOTIFY_UPSTREAM_UPDATE'], 'false'))
-    inputs:
-      azureSubscription: "pim-monitor-service-connection"
-      ScriptType: "FilePath"
-      ScriptPath: "$(Build.SourcesDirectory)/src/Send-UpstreamUpdate.ps1"
-      azurePowerShellVersion: "LatestVersion"
-      pwsh: true
-    env:
-      NOTIFICATION_EMAIL: $(NOTIFICATION_EMAIL)
-      NOTIFICATION_MAIL_FROM: $(NOTIFICATION_MAIL_FROM)
-      NOTIFICATION_WEBHOOK_URL: $(NOTIFICATION_WEBHOOK_URL)
-      UPSTREAM_COMMITS_AHEAD: $(UPSTREAM_COMMITS_AHEAD)
+      - task: AzurePowerShell@5
+        displayName: "Notify upstream update available"
+        condition: and(always(), eq(variables['UPSTREAM_UPDATE_AVAILABLE'], 'true'), ne(variables['NOTIFY_UPSTREAM_UPDATE'], 'false'))
+        inputs:
+          azureSubscription: "pim-monitor-service-connection"
+          ScriptType: "FilePath"
+          ScriptPath: "$(Build.SourcesDirectory)/src/Send-UpstreamUpdate.ps1"
+          azurePowerShellVersion: "LatestVersion"
+          pwsh: true
+        env:
+          NOTIFICATION_EMAIL: $(NOTIFICATION_EMAIL)
+          NOTIFICATION_MAIL_FROM: $(NOTIFICATION_MAIL_FROM)
+          NOTIFICATION_WEBHOOK_URL: $(NOTIFICATION_WEBHOOK_URL)
+          UPSTREAM_LATEST_VERSION: $(UPSTREAM_LATEST_VERSION)
+          UPSTREAM_CURRENT_VERSION: $(UPSTREAM_CURRENT_VERSION)

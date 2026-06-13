@@ -1,0 +1,38 @@
+{
+  "name": "Management Plane Groups - Specialized",
+  "description": "Groups that gate elevated workload access without full-service blast radius. Classification follows the Clean Source principle: a group is Management Plane/Specialized if membership grants access to a specific workload subset, application role, or IT service function that does not reach full-service data control. Examples: SOC team groups (if scoped to specific tooling), JIT groups for third-party app admin roles provisioned via SCIM, Azure resource groups with scoped Contributor access.",
+  "plane": "Management",
+  "securityLevel": "Specialized",
+  "groups": [
+    {
+      "id": "00000000-0000-0000-0000-000000000020",
+      "displayName": "SOC-Incident-Response",
+      "notes": "SOC analyst group for incident response tooling. Membership grants access to Defender XDR and Sentinel workspaces scoped to the security operations function."
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000021",
+      "displayName": "JIT-ThirdPartyApp-Admins",
+      "notes": "App access group provisioned via SCIM to a business-critical third-party application admin role. Classify at the level of the app's data sensitivity."
+    }
+  ],
+  "expectedConfig": {
+    "member": {
+      "maxActivationDuration": "PT4H",
+      "requireJustification": true,
+      "requireMFA": true,
+      "authContext": "phish-resistant-no-sif",
+      "requireApproval": true,
+      "allowPermanentEligible": false,
+      "allowPermanentActive": false
+    },
+    "owner": {
+      "maxActivationDuration": "PT2H",
+      "requireJustification": true,
+      "requireMFA": true,
+      "authContext": "phish-resistant-no-sif",
+      "requireApproval": true,
+      "allowPermanentEligible": false,
+      "allowPermanentActive": false
+    }
+  }
+}
