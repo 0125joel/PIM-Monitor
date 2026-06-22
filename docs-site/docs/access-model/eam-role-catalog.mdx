@@ -26,19 +26,19 @@ export const definedTermSetSchema = {
       '@type': 'DefinedTerm',
       name: 'Control plane',
       description:
-        'Roles that control identity, authentication, and authorization. A compromise can lead to full tenant takeover. Maps to the Privileged security level and High severity.',
+        'Roles whose permissions govern identity, authentication, and authorization. A compromise can change who can access what across the tenant. The plane describes function; the security level is derived separately from the role permissions.',
     },
     {
       '@type': 'DefinedTerm',
       name: 'Management plane',
       description:
-        'Roles that administer workloads, devices, and services such as Exchange, Intune, SharePoint, Teams, and Defender. Maps to the Specialized security level and Medium severity.',
+        'Roles whose permissions administer one workload or the hosting infrastructure, bounded to a service such as Exchange, Intune, SharePoint, Teams, or Defender. The plane describes function; the security level is derived separately from the role permissions.',
     },
     {
       '@type': 'DefinedTerm',
       name: 'Data plane',
       description:
-        'Mostly read-only roles affecting end-user data and business processes, with limited blast radius. Maps to the Enterprise security level and Low severity.',
+        'Roles whose permissions mostly read or serve business data, telemetry, or end-user support, with a limited blast radius. The plane describes function; the security level is derived separately from the role permissions.',
     },
     {
       '@type': 'DefinedTerm',
@@ -67,7 +67,7 @@ export const definedTermSetSchema = {
 
 Every built-in Microsoft Entra directory role, mapped to its Enterprise Access Model (EAM) plane, its Securing Privileged Access (SPA) security level, and a recommended PIM activation policy. Use it to decide what `expectedConfig` each role should have before you author [access-model files](./setup-compliance.mdx).
 
-Every value carries a label showing how far you can trust it, from "Microsoft says so" down to "an automated first guess". Nothing here is invented silently. The [legend below](#where-each-value-comes-from) explains the labels.
+Every value carries a label showing how far you can trust it, from "Microsoft says so" down to "derived by rule". Nothing here is invented silently. The [legend below](#where-each-value-comes-from) explains the labels.
 
 <EamRoleCatalog />
 
@@ -79,36 +79,37 @@ Every role on this page gets three things:
 - a **security level**: how strictly its use should be protected (Privileged, Specialized, or Enterprise);
 - a **recommended PIM activation policy**: the concrete settings to enforce.
 
-Microsoft publishes exactly one of these per role: the `isPrivileged` flag. The plane we review by hand; the level and its policy we work out from the rules in [Security level: how strict](#security-level-how-strict) and [Recommended PIM activation policy](#recommended-pim-activation-policy) further down. So every value wears a plain-language label that tells you where it came from, no guessing about the guesses.
+Microsoft publishes exactly one of these per role: the `isPrivileged` flag. The plane and the level we derive from what the role can actually do, its `rolePermissions.allowedResourceActions`, not its name. The policy then follows from the level. So every value wears a plain-language label that tells you where it came from.
 
 ### Where each value comes from
 
 | Label              | What it means                                                                                                  |
 | ------------------ | ------------------------------------------------------------------------------------------------------------- |
 | **from Microsoft** | Published by Microsoft for this exact role. The `isPrivileged` flag is the only such value.                    |
-| **reviewed**       | Assigned by hand and checked against Microsoft's model before landing here.                                    |
-| **unreviewed**     | A keyword guess, based on the role's name, for a role nobody has reviewed yet. Always flagged review needed.   |
-| **by rule**        | Calculated by a rule, with no per-role judgement. See [Security level: how strict](#security-level-how-strict) below. |
+| **reviewed**       | Assigned by reading the role's permissions and checked against the [grounding rubric](#eam-plane-blast-radius) before landing here. |
+| **by rule**        | Calculated by a rule from the level, with no per-role judgement. See [Recommended PIM activation policy](#recommended-pim-activation-policy) below. |
 
 ### EAM plane: blast radius
 
-Microsoft does not hand out a plane per role, so we assign one ourselves: reviewed by hand for the roles we know, an unreviewed keyword guess for anything new or unfamiliar. We judge it from the role's name and description against Microsoft's [Enterprise Access Model](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-access-model).
+Microsoft does not hand out a plane per role, so we derive one from the role's permissions (`allowedResourceActions`) against Microsoft's [Enterprise Access Model](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-access-model). The name and description are only context; the actions decide. The plane describes a role's function (does it govern identity, administer a workload, or touch data), not its blast radius; the blast radius is captured by the level.
 
-| Plane          | Controls                                                                              | Examples                                                      |
-| -------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| **Control**    | Identity, authentication, authorization. Compromise can lead to full tenant takeover. | Global Admin, Conditional Access Admin, Privileged Role Admin |
-| **Management** | Workload, device, and service configuration.                                          | Intune, Exchange, SharePoint, Teams, Defender                 |
-| **Data**       | End-user data and business processes (mostly read-only roles).                        | Reports Reader, Message Center Reader, Search Editor          |
+| Plane          | Permissions govern                                                                                       | Examples                                                      |
+| -------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Control**    | Identity, authentication, and authorization itself. A compromise changes who can access what tenant-wide. | Global Admin, Conditional Access Admin, Privileged Role Admin |
+| **Management** | One workload or the hosting infrastructure, bounded to a service.                                         | Intune, Exchange, SharePoint, Teams, Defender                 |
+| **Data**       | Mostly reading or serving business data, telemetry, or end-user support.                                  | Reports Reader, Message Center Reader, Search Editor          |
+
+Identity and security actions always outrank workload actions: if a role's permissions touch authentication, authorization, or the security posture, it is Control even when it also touches a workload. Read-only does not lower the plane (a reader of identity configuration is still Control); it lowers the level instead.
 
 ### Security level: how strict
 
-A role's level follows three rules, in order. The first that matches wins:
+A role's level is derived from the depth and breadth of its permissions, with two deterministic guardrails applied first:
 
-1. Microsoft marks it `isPrivileged`, so it is Privileged. This signal comes straight from the role definition in your inventory. Some read-only roles count here too (Global Reader, Security Reader, AI Reader): reading the full security configuration still hands an attacker a tactical advantage, so read-only is not the same as low-impact.
-2. It owns a whole M365 workload with direct data impact, so it is Privileged even when Microsoft does not flag it. This covers Exchange, SharePoint, Teams, Yammer, Power Platform, Dynamics 365, Fabric, Azure DevOps, Windows 365, and Knowledge. Full control over a workload is too much blast radius for anything less.
-3. Otherwise, the level follows the plane. The Management plane and Control-plane writers become Specialized; everything else (Control-plane readers, governance, default roles, and the Data plane) becomes Enterprise.
+1. **isPrivileged floor.** Microsoft marks it `isPrivileged`, so it is at least Privileged, and nothing can lower it. This signal comes straight from the role definition in your inventory. Some read-only roles count here too (Global Reader, Security Reader, AI Reader): reading the full security configuration still hands an attacker a tactical advantage, so read-only is not the same as low-impact.
+2. **Blast-radius escalation.** The permissions grant full data-plane control over an entire workload (all mailboxes, all sites, all source code), so it is Privileged even when Microsoft does not flag it. This is derived from the permissions, not a fixed list, so a new workload admin is covered automatically. Today it raises Exchange, SharePoint, Teams, Yammer, Power Platform, Dynamics 365, Fabric, Azure DevOps, Windows 365, and Knowledge, while their scoped sub-admins (for example Exchange Recipient Administrator) stay Specialized.
+3. **Otherwise, the permissions decide the level.** Actions that administer a bounded service or modify identity, security, or access configuration are Specialized. Read-only, end-user, default, or low-impact support actions are Enterprise.
 
-The three levels (Privileged / Specialized / Enterprise) come from Microsoft's [Securing privileged access security levels](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-security-levels). Where rule 1 is contentious, the role's own note explains the trade-off.
+The three levels (Privileged / Specialized / Enterprise) come from Microsoft's [Securing privileged access security levels](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-security-levels). Where a call is contentious, the role's own note explains the trade-off.
 
 ### Recommended PIM activation policy
 
