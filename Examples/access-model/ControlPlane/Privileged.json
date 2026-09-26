@@ -17,6 +17,7 @@
     { "id": "b1be1c3e-b65d-4f19-8427-f6fa0d97feb9", "displayName": "Conditional Access Administrator" },
     { "id": "9360feb5-f418-4baa-8175-e2a00bac4301", "displayName": "Directory Writers" },
     { "id": "8329153b-31d0-4727-b945-745eb3bc5f31", "displayName": "Domain Name Administrator" },
+    { "id": "58f930cc-fcf4-4152-852c-1d7dbf502139", "displayName": "Entra SOC Identity Responder" },
     { "id": "be2f45a1-457d-42af-a067-6ec1fa63bc45", "displayName": "External Identity Provider Administrator" },
     { "id": "62e90394-69f5-4237-9190-012177145e10", "displayName": "Global Administrator" },
     { "id": "f2ef992c-3afb-46b9-b7cf-a126ee74c451", "displayName": "Global Reader" },

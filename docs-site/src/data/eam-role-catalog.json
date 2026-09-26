@@ -1,6 +1,6 @@
 {
   "_comment": "Hand-maintained EAM Role Catalog. Reconciled permission-by-permission against docs/Research/eam-classification-agent-grounding.md (see docs/Research/eam-catalog-reconciliation.md). This file is the maintained source until the classification agent lands; the PowerShell generator is retired.",
-  "roleCount": 144,
+  "roleCount": 145,
   "roles": [
     {
       "description": "Manage profile photos of users and people settings for all users in the organization.",
@@ -1351,6 +1351,33 @@
         "securityLevel": "derived"
       },
       "templateId": "58a13ea3-c632-46ae-9ee0-9c0d43cd7f3d"
+    },
+    {
+      "description": "Perform identity containment actions for SOC incident response, including disabling users, revoking sessions, and resetting passwords.",
+      "displayName": "Entra SOC Identity Responder",
+      "eamPlane": "Control",
+      "isPrivileged": true,
+      "levelBasis": "isPrivileged",
+      "note": "New built-in role (Microsoft, June 2026) for least-privilege SOC incident response: disable/enable users, revoke sessions, reset passwords. Deliberately scoped away from admin accounts, but Microsoft still flags isPrivileged=true, so the floor applies. Plane follows function: same identity-control namespace (microsoft.directory/users/*) as User Administrator and Password Administrator.",
+      "recommendedConfig": {
+        "authContext": "Phishing-resistant + sign-in frequency",
+        "maxActivation": "PT1H",
+        "maxActivationLabel": "1 hour",
+        "pimRequired": true,
+        "requireApproval": true,
+        "requireJustification": true,
+        "requireMfa": true,
+        "severity": "High"
+      },
+      "reviewNeeded": false,
+      "securityLevel": "Privileged",
+      "sourceAuthority": {
+        "eamPlane": "curated",
+        "isPrivileged": "authoritative",
+        "recommendedConfig": "derived",
+        "securityLevel": "derived"
+      },
+      "templateId": "58f930cc-fcf4-4152-852c-1d7dbf502139"
     },
     {
       "description": "Create and manage all aspects of workflows and tasks associated with Lifecycle Workflows in Microsoft Entra ID.",

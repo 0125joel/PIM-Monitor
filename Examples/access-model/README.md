@@ -1,6 +1,6 @@
 # Access Model Examples
 
-Starter files mapping all 144 built-in Entra ID directory roles against the Microsoft Enterprise Access Model (EAM). Drop the folders into an `AccessModel/` directory in your repository root and edit the role lists to match your tenant.
+Starter files mapping all 145 built-in Entra ID directory roles against the Microsoft Enterprise Access Model (EAM). Drop the folders into an `AccessModel/` directory in your repository root and edit the role lists to match your tenant.
 
 ## Structure
 
@@ -9,7 +9,7 @@ Files are organized by two independent EAM dimensions:
 ```
 AccessModel/
 ├── ControlPlane/
-│   ├── Privileged.json     (29 roles)
+│   ├── Privileged.json     (30 roles)
 │   ├── Specialized.json    (9 roles)
 │   └── Enterprise.json     (27 roles)
 ├── ManagementPlane/
@@ -77,7 +77,7 @@ The scanner derives the notification severity from the security level: Privilege
 - The `roles[]` array uses Microsoft's well-known directory role template IDs. Add or remove roles; `displayName` is informational and not used for matching.
 - Tighten or loosen `expectedConfig` per your organization's maturity.
 - The complete `expectedConfig` field reference is in [`docs-site/docs/access-model/setup-compliance.mdx`](../../docs-site/docs/access-model/setup-compliance.mdx).
-- The authoritative classification reference for all 144 built-in roles is the single source of truth [`docs/eam-pim-classification.md`](../../docs/eam-pim-classification.md) (the rules) plus the generated catalog `docs-site/src/data/eam-role-catalog.json` (per-role). The older `docs/PIM-EAM-Mapping-v2.xlsx` is legacy and may be stale.
+- The authoritative classification reference for all 145 built-in roles is the single source of truth [`docs/eam-pim-classification.md`](../../docs/eam-pim-classification.md) (the rules) plus the generated catalog `docs-site/src/data/eam-role-catalog.json` (per-role). The older `docs/PIM-EAM-Mapping-v2.xlsx` is legacy and may be stale.
 
 ## PIM Groups
 
