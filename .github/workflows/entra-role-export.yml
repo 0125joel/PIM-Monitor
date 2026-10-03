@@ -131,3 +131,24 @@ jobs:
           elif [ -n "$existing" ]; then
             gh issue close "$existing" --comment "The catalog is up to date with the snapshot." >/dev/null
           fi
+
+      - name: Warn when the review routine has gone silent
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # The routine writes a line in the "Catalog review log" issue every week. No line for 9 days
+          # means it is not running. Skipped until that issue exists (before the routine is set up).
+          log=$(gh issue list --label catalog-review-log --state all --json number --jq '.[0].number // empty')
+          [ -z "$log" ] && { echo "No review log issue yet; skipping."; exit 0; }
+          last=$(gh issue view "$log" --json comments,createdAt --jq '[.createdAt] + [.comments[].createdAt] | max')
+          age_days=$(( ( $(date -u +%s) - $(date -u -d "$last" +%s) ) / 86400 ))
+          silent=$(gh issue list --label role-changes --state open --search '"Catalog review routine is silent" in:title' --json number --jq '.[0].number // empty')
+          if [ "$age_days" -ge 9 ]; then
+            body="No entry in the Catalog review log (#$log) for $age_days days. The weekly review routine is not running, or it fails before it logs. Check the routine's run history."
+            if [ -n "$silent" ]; then gh issue edit "$silent" --body "$body" >/dev/null
+            else gh issue create --title "Catalog review routine is silent" --label role-changes --body "$body" >/dev/null; fi
+          elif [ -n "$silent" ]; then
+            gh issue close "$silent" --comment "The routine logged again ($age_days days ago)." >/dev/null
+          fi

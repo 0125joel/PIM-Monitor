@@ -250,3 +250,75 @@ Describe 'Test-CatalogChangeIsAutoSafe' {
         $r.verdict | Should -Be 'merge-now'
     }
 }
+
+Describe 'Invoke-CatalogBacktest' {
+    BeforeAll {
+        $script:backtest = Join-Path $script:repoRoot 'catalog-automation/Invoke-CatalogBacktest.ps1'
+        # Real catalog plus a synthetic snapshot built from it, so the sample has facts to read.
+        $script:btSnap = Join-Path $TestDrive 'bt-snap'
+        $real = Get-Content -Raw $script:realCatalog | ConvertFrom-Json
+        Write-Snapshot $script:btSnap @($real.roles | ForEach-Object { New-RoleDef -Id ([string]$_.templateId).ToLowerInvariant() -Name $_.displayName -Privileged ([bool]$_.isPrivileged) })
+        $script:btOut = Join-Path $TestDrive 'bt-out'
+        & $script:backtest -Mode Prepare -CatalogPath $script:realCatalog -SnapshotDir $script:btSnap -OutDir $script:btOut -Count 20 | Out-Null
+    }
+
+    It 'samples the requested number of roles, covering every plane and level group first' {
+        $key = @(Get-Content -Raw (Join-Path $script:btOut 'answer-key.json') | ConvertFrom-Json)
+        $key.Count | Should -Be 20
+        @($key | Group-Object { "$($_.plane)|$($_.securityLevel)" }).Count | Should -Be 8
+    }
+
+    It 'is deterministic per seed' {
+        $o2 = Join-Path $TestDrive 'bt-out2'
+        & $script:backtest -Mode Prepare -CatalogPath $script:realCatalog -SnapshotDir $script:btSnap -OutDir $o2 -Count 20 | Out-Null
+        (Get-Content -Raw (Join-Path $o2 'answer-key.json')) | Should -Be (Get-Content -Raw (Join-Path $script:btOut 'answer-key.json'))
+    }
+
+    It 'keeps every classification out of the blind input and out of the reduced catalog' {
+        $in = Get-Content -Raw (Join-Path $script:btOut 'input.json')
+        $in | Should -Not -Match 'securityLevel'
+        $in | Should -Not -Match '"plane"'
+        $key = @(Get-Content -Raw (Join-Path $script:btOut 'answer-key.json') | ConvertFrom-Json)
+        $reduced = Get-Content -Raw (Join-Path $script:btOut 'catalog-without-sample.json') | ConvertFrom-Json
+        $reduced.roles.Count | Should -Be (145 - 20)
+        @($reduced.roles.templateId | Where-Object { $_ -in $key.templateId }).Count | Should -Be 0
+    }
+
+    It 'passes a perfect result' {
+        $key = Get-Content -Raw (Join-Path $script:btOut 'answer-key.json')
+        $res = Join-Path $TestDrive 'bt-perfect.json'; $key | Set-Content $res
+        $s = & $script:backtest -Mode Score -CatalogPath $script:realCatalog -ResultsPath $res -AnswerKeyPath (Join-Path $script:btOut 'answer-key.json')
+        $s.passed | Should -BeTrue
+        $s.levelAgreement | Should -Be 1
+    }
+
+    It 'fails when an isPrivileged role is placed below Privileged' {
+        $key = @(Get-Content -Raw (Join-Path $script:btOut 'answer-key.json') | ConvertFrom-Json)
+        $victim = $key | Where-Object isPrivileged | Select-Object -First 1
+        $victim.securityLevel = 'Specialized'
+        $res = Join-Path $TestDrive 'bt-floor.json'; $key | ConvertTo-Json -Depth 5 | Set-Content $res
+        $s = & $script:backtest -Mode Score -CatalogPath $script:realCatalog -ResultsPath $res -AnswerKeyPath (Join-Path $script:btOut 'answer-key.json')
+        $s.passed | Should -BeFalse
+        $s.floorViolations | Should -Contain $victim.displayName
+        $s.lenient | Should -Contain $victim.displayName
+    }
+
+    It 'separates lenient from strict disagreements and fails below the agreement threshold' {
+        $key = @(Get-Content -Raw (Join-Path $script:btOut 'answer-key.json') | ConvertFrom-Json)
+        $res = Join-Path $TestDrive 'bt-bad.json'
+        $bad = $key | ForEach-Object { $c = $_ | ConvertTo-Json | ConvertFrom-Json; if (-not $c.isPrivileged) { $c.securityLevel = 'Privileged' }; $c }
+        $bad | ConvertTo-Json -Depth 5 | Set-Content $res
+        $s = & $script:backtest -Mode Score -CatalogPath $script:realCatalog -ResultsPath $res -AnswerKeyPath (Join-Path $script:btOut 'answer-key.json') -MinLevelAgreement 0.99
+        $s.strict.Count | Should -BeGreaterThan 0
+        $s.lenient.Count | Should -Be 0
+        $s.passed | Should -BeFalse
+    }
+
+    It 'reports a role the routine did not answer as missing' {
+        $key = @(Get-Content -Raw (Join-Path $script:btOut 'answer-key.json') | ConvertFrom-Json)
+        $res = Join-Path $TestDrive 'bt-missing.json'; $key[1..($key.Count - 1)] | ConvertTo-Json -Depth 5 | Set-Content $res
+        $s = & $script:backtest -Mode Score -CatalogPath $script:realCatalog -ResultsPath $res -AnswerKeyPath (Join-Path $script:btOut 'answer-key.json')
+        $s.missing | Should -Contain $key[0].displayName
+        $s.passed | Should -BeFalse
+    }
+}
