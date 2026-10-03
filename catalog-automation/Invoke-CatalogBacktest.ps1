@@ -19,6 +19,10 @@
     CLASSIFICATION-RUBRIC.md. Roles in its worked-examples table are left out of the sample: the routine
     has seen their answers, so scoring it on them would measure nothing.
 
+.PARAMETER ExcludeDisplayNames
+    More roles to leave out, for names the rubric mentions in prose (the escalation anchor) rather
+    than in the examples table.
+
 .PARAMETER SnapshotDir
     A role snapshot folder (role-definitions/). Supplies description and allowedResourceActions.
 #>
@@ -33,6 +37,7 @@ param(
     [Parameter()] [string] $ResultsPath,
     [Parameter()] [string] $AnswerKeyPath,
     [Parameter()] [string] $RubricPath,
+    [Parameter()] [string[]] $ExcludeDisplayNames = @(),
     [Parameter()] [double] $MinLevelAgreement = 0.9
 )
 
@@ -50,6 +55,9 @@ if ($Mode -eq 'Prepare') {
     New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
     $catalog = Get-Content -Raw -Path $CatalogPath | ConvertFrom-Json
     $roles = @($catalog.roles)
+    if ($ExcludeDisplayNames.Count -gt 0) {
+        $roles = @($roles | Where-Object { $_.displayName -notin $ExcludeDisplayNames })
+    }
     if ($RubricPath) {
         $known = @(Select-String -Path $RubricPath -Pattern '^\| (.+?) \| (Control|Management|Data) \|' | ForEach-Object { $_.Matches[0].Groups[1].Value })
         $roles = @($roles | Where-Object { $_.displayName -notin $known })
