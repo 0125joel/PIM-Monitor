@@ -10,10 +10,25 @@ BeforeAll {
 }
 
 Describe "Get-InventoryFileUrl" {
+    BeforeAll {
+        # The runner sets these (on a pull_request GITHUB_REF_NAME is "<pr>/merge"); restore them afterwards.
+        $script:savedBranchEnv = @{
+            BUILD_SOURCEBRANCHNAME = $env:BUILD_SOURCEBRANCHNAME
+            GITHUB_REF_NAME        = $env:GITHUB_REF_NAME
+        }
+    }
+
+    AfterAll {
+        $env:BUILD_SOURCEBRANCHNAME = $script:savedBranchEnv.BUILD_SOURCEBRANCHNAME
+        $env:GITHUB_REF_NAME        = $script:savedBranchEnv.GITHUB_REF_NAME
+    }
+
     BeforeEach {
-        $env:BUILD_REPOSITORY_URI = $null
-        $env:GITHUB_SERVER_URL    = $null
-        $env:GITHUB_REPOSITORY    = $null
+        $env:BUILD_REPOSITORY_URI   = $null
+        $env:GITHUB_SERVER_URL      = $null
+        $env:GITHUB_REPOSITORY      = $null
+        $env:BUILD_SOURCEBRANCHNAME = $null
+        $env:GITHUB_REF_NAME        = $null
     }
 
     It "returns null when no CI platform env vars are present" {
