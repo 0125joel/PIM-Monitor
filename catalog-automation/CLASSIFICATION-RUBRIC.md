@@ -96,6 +96,14 @@ After the isPrivileged floor:
    human member is a finding.
 6. Microsoft-internal "do not use" roles (Partner Tier1 Support, Partner Tier2 Support) are Control and
    Privileged: any assignment is a finding.
+7. A role whose only write is approving a request is Enterprise: it decides, it does not administer.
+   Customer LockBox Access Approver, Entra Customer Lockbox Approver and Organizational Messages
+   Approver are all Enterprise. This does not apply to the roles that author or manage the same
+   items (Organizational Messages Writer is Specialized).
+8. A role with no `allowedResourceActions` (deprecated or not yet exposed) cannot be read from its
+   actions. Classify it by function and set `confidence` to low: device-join and device-user roles
+   and readers are Data and Enterprise; administrator and writer roles of a workload are Management
+   and Specialized (Purview Workload Content Administrator and Writer).
 
 ## Worked examples
 

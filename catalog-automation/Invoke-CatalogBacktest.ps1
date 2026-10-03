@@ -12,7 +12,10 @@
       -Mode Score     compares the routine's verdicts (results.json) with the answer key
 
     Go-live criteria (defaults): no isPrivileged role below Privileged, and at least 90% level
-    agreement. Roles the routine classifies more leniently than the catalog are listed separately,
+    agreement. `autoEligible` repeats the check for the roles the routine would label `auto`
+    (confidence high or medium): the routine never auto-merges a low-confidence verdict, so a miss
+    it flagged as low is caught by design. `passed` stays on all roles; `passedAutoEligible` is
+    the same test on that subset. Roles the routine classifies more leniently than the catalog are listed separately,
     because too strict is annoying and too lenient is the real risk.
 
 .PARAMETER RubricPath
@@ -128,6 +131,12 @@ foreach ($k in $key) {
     }
     if ($k.isPrivileged -and $r.securityLevel -ne 'Privileged') { $floor += $k.displayName }
 }
+# A verdict without a confidence is treated as low: the routine never auto-merges it.
+function Get-Confidence { param($Verdict) [string]($Verdict.PSObject.Properties['confidence']?.Value ?? 'low') }
+$eligible = @($key | Where-Object { $byId.ContainsKey(([string]$_.templateId).ToLowerInvariant()) -and (Get-Confidence $byId[([string]$_.templateId).ToLowerInvariant()]) -in 'high', 'medium' })
+$eligibleOk = @($eligible | Where-Object { $byId[([string]$_.templateId).ToLowerInvariant()].securityLevel -eq $_.securityLevel }).Count
+$eligibleLenient = @($eligible | Where-Object { $levelRank[[string]$byId[([string]$_.templateId).ToLowerInvariant()].securityLevel] -gt $levelRank[[string]$_.securityLevel] } | ForEach-Object displayName)
+$eligibleAgreement = if ($eligible.Count) { [Math]::Round($eligibleOk / $eligible.Count, 3) } else { 0 }
 $n = [Math]::Max($key.Count, 1)
 $planeAgreement = [Math]::Round($planeOk / $n, 3)
 $levelAgreement = [Math]::Round($levelOk / $n, 3)
@@ -141,4 +150,7 @@ $levelAgreement = [Math]::Round($levelOk / $n, 3)
     missing         = @($missing)
     mismatches      = @($mismatch)
     passed          = ($floor.Count -eq 0) -and ($missing.Count -eq 0) -and ($levelAgreement -ge $MinLevelAgreement)
+    autoEligible    = $eligible.Count
+    autoEligibleLevelAgreement = $eligibleAgreement
+    passedAutoEligible = ($floor.Count -eq 0) -and ($missing.Count -eq 0) -and ($eligibleLenient.Count -eq 0) -and ($eligibleAgreement -ge $MinLevelAgreement)
 }
