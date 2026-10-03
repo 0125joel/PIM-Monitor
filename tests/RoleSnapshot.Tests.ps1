@@ -321,4 +321,15 @@ Describe 'Invoke-CatalogBacktest' {
         $s.missing | Should -Contain $key[0].displayName
         $s.passed | Should -BeFalse
     }
+
+    It 'leaves out the roles the rubric uses as worked examples' {
+        $rubric = Join-Path $script:repoRoot 'catalog-automation/CLASSIFICATION-RUBRIC.md'
+        $o = Join-Path $TestDrive 'bt-rubric'
+        & $script:backtest -Mode Prepare -CatalogPath $script:realCatalog -SnapshotDir $script:btSnap -OutDir $o -Count 40 -RubricPath $rubric | Out-Null
+        $names = @(Get-Content -Raw (Join-Path $o 'answer-key.json') | ConvertFrom-Json).displayName
+        foreach ($example in 'Global Administrator', 'Exchange Administrator', 'Reports Reader', 'People Administrator') {
+            $names | Should -Not -Contain $example
+        }
+        $names.Count | Should -Be 40
+    }
 }

@@ -15,6 +15,10 @@
     agreement. Roles the routine classifies more leniently than the catalog are listed separately,
     because too strict is annoying and too lenient is the real risk.
 
+.PARAMETER RubricPath
+    CLASSIFICATION-RUBRIC.md. Roles in its worked-examples table are left out of the sample: the routine
+    has seen their answers, so scoring it on them would measure nothing.
+
 .PARAMETER SnapshotDir
     A role snapshot folder (role-definitions/). Supplies description and allowedResourceActions.
 #>
@@ -28,6 +32,7 @@ param(
     [Parameter()] [int] $Seed = 1,
     [Parameter()] [string] $ResultsPath,
     [Parameter()] [string] $AnswerKeyPath,
+    [Parameter()] [string] $RubricPath,
     [Parameter()] [double] $MinLevelAgreement = 0.9
 )
 
@@ -45,6 +50,11 @@ if ($Mode -eq 'Prepare') {
     New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
     $catalog = Get-Content -Raw -Path $CatalogPath | ConvertFrom-Json
     $roles = @($catalog.roles)
+    if ($RubricPath) {
+        $known = @(Select-String -Path $RubricPath -Pattern '^\| (.+?) \| (Control|Management|Data) \|' | ForEach-Object { $_.Matches[0].Groups[1].Value })
+        $roles = @($roles | Where-Object { $_.displayName -notin $known })
+        Write-Host "Left out $($catalog.roles.Count - $roles.Count) roles that the rubric uses as examples."
+    }
 
     # Stratified: round-robin over (plane, level) groups, each group shuffled with the seed, so
     # every group is represented before any group gets a second role. Deterministic per seed.
