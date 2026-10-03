@@ -20,7 +20,8 @@
     { "id": "fdd7a751-b60b-444a-984c-02652fe8fa1c", "displayName": "Groups Administrator" },
     { "id": "a92aed5d-d78a-4d16-b381-09adb37eb3b0", "displayName": "On Premises Directory Sync Account" },
     { "id": "af78dc32-cf4d-46f9-ba4e-4428526346b5", "displayName": "Permissions Management Administrator" },
-    { "id": "1981f584-96e9-4a6f-95b0-f522373f8fae", "displayName": "Tenant Governance Administrator" }
+    { "id": "1981f584-96e9-4a6f-95b0-f522373f8fae", "displayName": "Tenant Governance Administrator" },
+    { "id": "b8e31d83-1534-480f-9b10-0338ded51b7e", "displayName": "Tenant Governance Relationship Administrator" }
   ],
   "expectedConfig": {
     "maxActivationDuration": "PT4H",

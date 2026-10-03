@@ -9,11 +9,11 @@ Files are organized by two independent EAM dimensions:
 ```
 AccessModel/
 ├── ControlPlane/
-│   ├── Privileged.json     (30 roles)
-│   ├── Specialized.json    (17 roles)
-│   └── Enterprise.json     (16 roles)
+│   ├── Privileged.json     (31 roles)
+│   ├── Specialized.json    (18 roles)
+│   └── Enterprise.json     (15 roles)
 ├── ManagementPlane/
-│   ├── Privileged.json     (14 roles - blast-radius escalation)
+│   ├── Privileged.json     (13 roles - blast-radius escalation)
 │   ├── Specialized.json    (47 roles)
 │   └── Enterprise.json     (1 role)
 └── DataWorkloadPlane/

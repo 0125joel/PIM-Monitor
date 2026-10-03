@@ -4,7 +4,6 @@
   "plane": "Management",
   "securityLevel": "Privileged",
   "roles": [
-    { "id": "d2562ede-74db-457e-a7b6-544e236ebb61", "displayName": "AI Administrator" },
     { "id": "e3973bdf-4987-49ae-837a-ba8e231c7286", "displayName": "Azure DevOps Administrator" },
     { "id": "7698a772-787b-4ac8-901f-60d6b08affd2", "displayName": "Cloud Device Administrator" },
     { "id": "44367163-eba1-44c3-98af-f5787879f96a", "displayName": "Dynamics 365 Administrator" },
