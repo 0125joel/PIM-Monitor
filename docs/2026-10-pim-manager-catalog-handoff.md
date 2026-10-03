@@ -3,7 +3,7 @@
 **For:** an agent working in the `0125joel/PIM-Monitor` repository.
 **From:** the PIM Manager Configure phase (NextGen phase 4), 2026-10-03.
 **Background (Dutch):** `docs/Assets/next-gen/configure/2026-10-nextgen-configure-redesign.md` in the PIM Manager repository (`0125joel/PIM-manager-private`, branch `NextGen` or `claude/app-review-improvements-nxaxdz`), sections 3c and 3.6. This file is kept in both repositories; the copy in PIM Monitor is the one to work from.
-**Status:** not started. Nothing in PIM Monitor has been changed.
+**Status:** not started. Nothing in PIM Monitor has been changed apart from adding this file. Joël's answers of 2026-10-03 are worked in; no questions are open.
 
 ## 1. Goal
 
@@ -24,8 +24,8 @@ Fix or decide these first; they block a clean contract.
 | # | Finding | Where |
 |---|---|---|
 | F1 | Two shapes for the same policy. The catalog uses `recommendedConfig` with `maxActivation`, `requireMfa`, `authContext` (free text such as `"Phishing-resistant"`, `"Phishing-resistant + sign-in frequency"`, `"Standard MFA"`), plus `pimRequired`, `severity` and `maxActivationLabel`. The access-model files use `expectedConfig` with `maxActivationDuration`, `requireMFA`, `authContext` as a slug (`phish-resistant-sif`), `requireJustification`, `requireApproval`, `allowPermanentEligible`, `allowPermanentActive`. | `docs-site/src/data/eam-role-catalog.json`, `Examples/access-model/**`, field reference in `docs-site/docs/access-model/setup-compliance.mdx` |
-| F2 | Two files claim to be the source. `eam-role-catalog.json` says it is hand-maintained and the generator is retired; `Generate-EamRoleCatalog.ps1` says it is the single source of truth and that the catalog is generated from `eam-role-curated.json`. | `docs-site/src/data/eam-role-catalog.json` (`_comment`), `docs-site/scripts/Generate-EamRoleCatalog.ps1` |
-| F3 | The catalog and the curated file disagree on 15 roles (plane or security level). Examples: People Administrator is Management/Specialized in the catalog and Control/Enterprise in the curated file; Device Managers is Management/Specialized against Data/Enterprise; User Experience Success Manager is Data/Enterprise against Control/Enterprise. The catalog has 145 roles, the curated file 144. | same two files |
+| F2 | There is one source, the hand-maintained catalog `eam-role-catalog.json`, last reconciled by hand in commit `c92918e` ("hand-reconciled classifications and revised derivation rationale"); its `_comment` says so and the docs page `eam-role-catalog.mdx` describes the method. The generator `Generate-EamRoleCatalog.ps1` and its input `eam-role-curated.json` are leftovers: the generator header still calls itself the single source of truth, and `c92918e` did not touch the curated file. | `docs-site/src/data/eam-role-catalog.json` (`_comment`), `docs-site/scripts/Generate-EamRoleCatalog.ps1`, `docs-site/src/data/eam-role-curated.json` |
+| F3 | Because of F2 the stale files disagree with the catalog: `eam-role-curated.json` differs on 15 roles (for example People Administrator is Management/Specialized in the catalog and Control/Enterprise in the curated file) and has 144 roles against 145. The starter files in `Examples/access-model/` lag as well: `ControlPlane/Enterprise.json` lists 11 roles the catalog puts at another level, `ControlPlane/Specialized.json` has 9 roles where the catalog has 17, the catalog's one Management/Enterprise role has no file, and the `Examples/access-model/README.md` still describes plane derivation from "role name and description", while the catalog page says the permissions (`allowedResourceActions`) decide. The catalog wins in every case. | `docs-site/src/data/eam-role-curated.json`, `Examples/access-model/**` |
 | F4 | `authContext` is resolved by slug of the tenant's authentication context display name (`Get-InventorySlug`: lowercase, keep `a-z0-9`, whitespace and hyphens, collapse). In Joël's tenant this works: the contexts are named "Phish-resistant & SIF", "Phish-resistant & No SIF", "Phish-resistant & Compliant device" and "Phish-resistant & Compliant device & SIF", which slug to exactly the four seed labels (checked 2026-10-03). A tenant that names its contexts differently (for example "Auth Context - Phish-resistant & SIF", which slugs to `auth-context-phish-resistant-sif`) gets the compliance check skipped with only a warning in the log (`Resolve-AuthContextConfig`). | `src/compliance.ps1` (`Resolve-AuthContextConfig`), `src/helpers.ps1` (`Get-InventorySlug`), `Scan-PimState.ps1` |
 | F5 | The four seed auth context requirements (`phish-resistant-sif`, `phish-resistant-no-sif`, `phish-resistant-compliant-device`, `phish-resistant-compliant-device-sif`) are documented, but only `phish-resistant-sif` exists as a fixture. | `docs-site/docs/access-model/auth-context-compliance.md`, `tests/fixtures/inventory/authentication-contexts/` |
 | F6 | There is no published data file. `pimmonitor.com` serves the Docusaurus site (Cloudflare, `Access-Control-Allow-Origin: *` on `/` checked 2026-10-03); `/eam-role-catalog.json` and `/data/eam-role-catalog.json` answer 404. `docs-site/static/` only holds `img/` and `robots.txt`. | `docs-site/` |
@@ -34,17 +34,20 @@ Fix or decide these first; they block a clean contract.
 
 Each package is one pull request. Follow the repo's own conventions: Pester tests under `tests/`, `release-please` for versions, `CHANGELOG.md`, the docs in `docs-site/docs`. House style: no EM dashes, no emojis.
 
-### PMC-1. Decide the source and reconcile the catalog (needs Joël)
+### PMC-1. One source, and bring the rest in line
 
-- Ask Joël which file is the source: the hand-maintained `eam-role-catalog.json` or `eam-role-curated.json` plus the generator. Write the answer at the top of the file that stays, remove or archive the other mechanism, and fix the comments of F2.
-- Resolve the 15 differences of F3 role by role with Joël (list them in the PR description with both values). Do not pick a side silently.
-- Acceptance: one source file, no contradicting comment, a Pester test that fails when a `templateId` appears twice or is not a GUID, and a test that counts the roles.
+The classification method is already defined and stays as it is: the plane follows from the role's permissions (identity and security actions outrank workload actions), and the level follows the waterfall on the catalog page (`eam-role-catalog.mdx`): first the `isPrivileged` floor, then blast-radius escalation, otherwise the permissions decide. `eam-role-catalog.json` is the result and the only source.
+
+- Remove `docs-site/scripts/Generate-EamRoleCatalog.ps1` and `docs-site/src/data/eam-role-curated.json`, or move them to an `archive/` folder with a note that they are retired. Make sure nothing in the build or the tests still reads them.
+- Regenerate the starter files in `Examples/access-model/` (roles at each plane and level, including the missing Management/Enterprise file) from the catalog, with a script and a Pester test that fails when a starter file and the catalog disagree. Update `Examples/access-model/README.md` to the method of the catalog page (permissions decide, not names) and to the real counts.
+- Add a Pester test that fails when a `templateId` appears twice or is not a GUID, and when a role has a plane or level outside the allowed values.
+- Acceptance: one source, no stale file that claims otherwise, starter files equal to the catalog, tests green.
 
 ### PMC-2. One vocabulary for policy settings
 
 - Use the `expectedConfig` field names everywhere, because the scanner already reads them: `maxActivationDuration`, `requireMFA`, `authContext`, `requireJustification`, `requireTicketing`, `requireApproval`, `allowPermanentEligible`, `maxEligibleDuration`, `allowPermanentActive`, `maxActiveDuration`.
 - Rename the catalog's `recommendedConfig` to `expectedConfig` (or keep the key but use these field names inside it). `maxActivationLabel` and `severity` are presentation; keep them outside the policy object (`severity` follows from `securityLevel`, as the access-model README already says).
-- `authContext` in the catalog becomes one of the seed slugs, not free text. Map: "Phishing-resistant + sign-in frequency" to `phish-resistant-sif`, "Phishing-resistant" to `phish-resistant-no-sif`, "Standard MFA" to no `authContext` with `requireMFA: true`. Confirm the mapping with Joël.
+- `authContext` in the catalog becomes one of the seed slugs, not free text. Map: "Phishing-resistant + sign-in frequency" to `phish-resistant-sif`, "Phishing-resistant" to `phish-resistant-no-sif`, "Standard MFA" to no `authContext` with `requireMFA: true`. This is checked: the starter files already use exactly these values per level (Privileged `phish-resistant-sif`, Specialized `phish-resistant-no-sif`, Enterprise no `authContext` and `requireMFA: true`), and the catalog page's policy table says the same. The two compliant-device seeds are not used by the catalog; they stay available for tenants that want them.
 - Document the rule PIM Manager relies on: `requireMFA: true` means "MFA or an authentication context is on"; when `authContext` is present it is the activation requirement, otherwise MFA. PIM allows only one of the two (Microsoft Graph refuses both, `MfaAndAcrsConflict`).
 - Acceptance: the docs component `EamRoleCatalog` and its "Copy AccessModel JSON" button still work; the copied JSON passes the existing compliance tests unchanged.
 
@@ -63,7 +66,7 @@ Each package is one pull request. Follow the repo's own conventions: Pester test
 ### PMC-4. Publish the file on pimmonitor.com
 
 - Generate `docs-site/static/catalog/v1/eam-catalog.json` from the source during the docs build (or commit it from a script with a test that it is up to date; pick one and document it). Docusaurus serves `static/` at the site root, so the file lands at `https://pimmonitor.com/catalog/v1/eam-catalog.json`.
-- First check how `pimmonitor.com` is deployed (the response header says Cloudflare; Cloudflare Pages is likely but not confirmed). For Cloudflare Pages add `docs-site/static/_headers` with, for `/catalog/*`: `Access-Control-Allow-Origin: *`, `Content-Type: application/json; charset=utf-8`, `Cache-Control: public, max-age=3600`, `X-Content-Type-Options: nosniff`.
+- `pimmonitor.com` is deployed with Cloudflare Pages from `docs-site` (confirmed by Joël, 2026-10-03). Add `docs-site/static/_headers` with, for `/catalog/*`: `Access-Control-Allow-Origin: *`, `Content-Type: application/json; charset=utf-8`, `Cache-Control: public, max-age=3600`, `X-Content-Type-Options: nosniff`.
 - Do not serve it from a GitHub branch (`raw.githubusercontent.com` answers `text/plain` and ties the contract to a branch name).
 - Acceptance: after a deploy, `curl -sI -H "Origin: https://pimmanager.com" https://pimmonitor.com/catalog/v1/eam-catalog.json` returns 200, `application/json` and `Access-Control-Allow-Origin: *`, and the body validates against the schema.
 
@@ -80,6 +83,7 @@ Each package is one pull request. Follow the repo's own conventions: Pester test
 
 - One page under `docs-site/docs/access-model/` (or `reference/`): the URL, the schema, the versioning rule, what PIM Manager does with it (section 4 below, in short), and that the file is public and contains no tenant data.
 - Link it from the EAM Role Catalog page.
+- Add the catalog as a second contract to `docs/en/11-pim-manager-integration.md` and `docs/nl/11-pim-manager-integratie.md` (today they describe only the inventory contract for the `/monitor` page), and the schema versioning rule to `docs/en/12-versioning.md` and its Dutch twin: a breaking change to the catalog is a `feat!:` commit and a new `/catalog/vN/` path.
 
 ## 4. What PIM Manager will do with the file (for context, not for this repo)
 
@@ -90,9 +94,6 @@ Each package is one pull request. Follow the repo's own conventions: Pester test
 - Match `authContext` slugs to the tenant's contexts with the same slug rule as PIM Monitor first, then by the `authContexts` requirements, and let the admin choose when it is ambiguous.
 - Export what was applied back as `AccessModel/` files, so PIM Monitor can watch for drift.
 
-## 5. Questions for Joël before starting
+## 5. Questions for Joël
 
-1. Which catalog file is the source (PMC-1)?
-2. How should each of the 15 disagreeing roles be classified (PMC-1)?
-3. Is the mapping of the free-text `authContext` values to the seed slugs right (PMC-2)?
-4. Is `pimmonitor.com` deployed with Cloudflare Pages from `docs-site` (PMC-4)?
+All answered on 2026-10-03: there is one source (the catalog, F2); the classification method is the waterfall on the catalog page, so the stale files follow the catalog (F3, PMC-1); the auth context mapping is checked (PMC-2); `pimmonitor.com` runs on Cloudflare Pages (PMC-4). Ask Joël only when a starter file or a role note seems to need a different classification than the catalog gives.
