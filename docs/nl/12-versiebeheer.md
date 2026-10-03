@@ -80,6 +80,16 @@ De comment-marker `# x-release-please-version` vertelt Release Please waar het v
 
 De pipeline leest dit bestand om te weten welke versie de gebruiker draait, en vergelijkt het met de nieuwste GitHub Release om updates te detecteren.
 
+## Catalogusversiebeheer
+
+De gepubliceerde EAM-catalogus (`/catalog/v1/eam-catalog.json`) heeft een eigen `schemaVersion`, los van de appversie:
+
+- Een brekende wijziging van de catalogus (een verwijderd of hernoemd veld, een veranderde betekenis) is een `feat!:`-commit en een nieuw pad, `/catalog/v2/`. v1 blijft online tot consumenten zijn overgestapt.
+- Een optioneel veld toevoegen is een `feat:`-commit en een minor bump van `schemaVersion`. Een tekstwijziging is een patch.
+- `catalogVersion` is de versie van de inhoud (een datum). Die verandert als rollen of beleid veranderen en raakt `schemaVersion` niet.
+
+`docs-site/src/constants.ts` heeft dezelfde `x-release-please-version`-marker als `VERSION`, dus ook de appversie op de voorpagina wordt door Release Please bijgewerkt.
+
 ## Meldingen voor Gebruikers
 
 Wanneer een gebruiker PIM Monitor implementeert (Azure DevOps of GitHub Actions):

@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/intothecloud/pim-monitor/main/schemas/eam-catalog-v1.json",
+  "title": "PIM Monitor EAM catalog v1",
+  "description": "The Enterprise Access Model (EAM) role catalog published at https://pimmonitor.com/catalog/v1/eam-catalog.json: every built-in Entra directory role with its plane, security level and proposed PIM policy, plus the default policy per plane and level, the PIM for Groups defaults and the seed authentication contexts. The file is public and contains no tenant data. Versioning rule (schemaVersion is semver): a major bump changes the URL (/catalog/v2/) and may remove or rename fields; a minor bump only adds optional fields; a patch changes wording only. A field is never removed or renamed within v1. Consumers should read only the schemaVersion majors they know and treat every value as a proposal for an admin to review.",
+  "type": "object",
+  "required": ["schemaVersion", "catalogVersion", "publishedAt", "source", "roles", "levels", "groups", "authContexts"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri",
+      "description": "Pointer to this JSON Schema (optional self-reference for validators)."
+    },
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^1\\.\\d+\\.\\d+$",
+      "description": "Semantic version of this contract. Starts at 1.0.0. See the versioning rule in the schema description."
+    },
+    "catalogVersion": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Version of the content: a date (YYYY-MM-DD) or a semver string. Changes when roles or policies change, independent of schemaVersion."
+    },
+    "publishedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of the catalog content."
+    },
+    "source": {
+      "type": "object",
+      "required": ["repository"],
+      "additionalProperties": false,
+      "properties": {
+        "repository": { "type": "string", "format": "uri" },
+        "path": { "type": "string", "description": "Path of the maintained source file in the repository." },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$", "description": "Optional commit the content was built from." }
+      }
+    },
+    "roles": {
+      "type": "array",
+      "description": "Built-in Entra directory roles. templateId is unique.",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/role" }
+    },
+    "levels": {
+      "type": "array",
+      "description": "Default expectedConfig per plane and security level, so a template can be applied without listing every role.",
+      "items": { "$ref": "#/$defs/level" }
+    },
+    "groups": {
+      "type": "array",
+      "description": "Default expectedConfig for PIM for Groups per plane and security level, split into member and owner. Holds no group ids, those are tenant specific. A plane and level without an entry has no group default.",
+      "items": { "$ref": "#/$defs/groupLevel" }
+    },
+    "authContexts": {
+      "type": "array",
+      "description": "Seed authentication contexts, keyed by slug, with the requirements of the Conditional Access policy that backs each one. Match a slug to a context in the tenant by the slug of its display name first, then by these requirements.",
+      "items": { "$ref": "#/$defs/authContext" }
+    }
+  },
+  "$defs": {
+    "plane": { "enum": ["Control", "Management", "Data"] },
+    "securityLevel": { "enum": ["Privileged", "Specialized", "Enterprise"] },
+    "guid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "duration": {
+      "type": "string",
+      "pattern": "^P(?=\\d|T\\d)(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(?=\\d)(\\d+H)?(\\d+M)?(\\d+S)?)?$",
+      "description": "ISO 8601 duration, for example PT1H or P365D."
+    },
+    "expectedConfig": {
+      "type": "object",
+      "description": "PIM policy settings, with the same field names as expectedConfig in the AccessModel/ files. Sparse: a missing field means the catalog proposes nothing for it. requireMFA true means MFA or an authentication context is on; when authContext is present it is the activation requirement, otherwise MFA. PIM allows only one of the two (Microsoft Graph refuses both, MfaAndAcrsConflict).",
+      "additionalProperties": false,
+      "properties": {
+        "maxActivationDuration": { "$ref": "#/$defs/duration" },
+        "requireMFA": { "type": "boolean" },
+        "authContext": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "description": "Slug of an entry in authContexts."
+        },
+        "requireJustification": { "type": "boolean" },
+        "requireTicketing": { "type": "boolean" },
+        "requireApproval": { "type": "boolean" },
+        "allowPermanentEligible": { "type": "boolean" },
+        "maxEligibleDuration": { "$ref": "#/$defs/duration" },
+        "allowPermanentActive": { "type": "boolean" },
+        "maxActiveDuration": { "$ref": "#/$defs/duration" }
+      }
+    },
+    "role": {
+      "type": "object",
+      "required": ["templateId", "displayName", "plane", "securityLevel", "isPrivileged", "expectedConfig"],
+      "additionalProperties": false,
+      "properties": {
+        "templateId": { "$ref": "#/$defs/guid" },
+        "displayName": { "type": "string", "minLength": 1 },
+        "plane": { "$ref": "#/$defs/plane" },
+        "securityLevel": { "$ref": "#/$defs/securityLevel" },
+        "isPrivileged": { "type": "boolean", "description": "Microsoft's isPrivileged flag on the role definition." },
+        "expectedConfig": { "$ref": "#/$defs/expectedConfig" },
+        "note": { "type": ["string", "null"], "description": "Why the classification is what it is, where a call is contentious." },
+        "reviewNeeded": { "type": "boolean" }
+      }
+    },
+    "level": {
+      "type": "object",
+      "required": ["plane", "securityLevel", "expectedConfig"],
+      "additionalProperties": false,
+      "properties": {
+        "plane": { "$ref": "#/$defs/plane" },
+        "securityLevel": { "$ref": "#/$defs/securityLevel" },
+        "expectedConfig": { "$ref": "#/$defs/expectedConfig" }
+      }
+    },
+    "groupLevel": {
+      "type": "object",
+      "required": ["plane", "securityLevel", "member", "owner"],
+      "additionalProperties": false,
+      "properties": {
+        "plane": { "$ref": "#/$defs/plane" },
+        "securityLevel": { "$ref": "#/$defs/securityLevel" },
+        "member": { "$ref": "#/$defs/expectedConfig" },
+        "owner": { "$ref": "#/$defs/expectedConfig" }
+      }
+    },
+    "authContext": {
+      "type": "object",
+      "required": ["slug", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "description": { "type": "string", "minLength": 1 },
+        "requireState": { "type": "string", "description": "Required Conditional Access policy state, for example enabled." },
+        "requireAuthStrengthId": { "$ref": "#/$defs/guid" },
+        "requireSignInFrequencyEveryTime": { "type": "boolean" },
+        "requireCompliantDevice": { "type": "boolean" }
+      }
+    }
+  }
+}

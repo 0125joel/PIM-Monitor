@@ -14,6 +14,7 @@ keywords:
 
 import EamRoleCatalog from "@site/src/components/EamRoleCatalog";
 import JsonLd from '@site/src/components/JsonLd';
+import { CATALOG_VERSION } from '@site/src/constants';
 
 export const definedTermSetSchema = {
   '@context': 'https://schema.org',
@@ -68,6 +69,8 @@ export const definedTermSetSchema = {
 Every built-in Microsoft Entra directory role, mapped to its Enterprise Access Model (EAM) plane, its Securing Privileged Access (SPA) security level, and a recommended PIM activation policy. Use it to decide what `expectedConfig` each role should have before you author [access-model files](./setup-compliance.mdx).
 
 Every value carries a label showing how far you can trust it, from "Microsoft says so" down to "derived by rule". Nothing here is invented silently. The [legend below](#where-each-value-comes-from) explains the labels.
+
+<p><strong>Catalog version:</strong> <code>{CATALOG_VERSION}</code>. Also published as <a href="/catalog/v1/eam-catalog.json">JSON</a> for other tools, see <a href="/docs/access-model/pim-manager-catalog">Catalog for PIM Manager</a>.</p>
 
 <EamRoleCatalog />
 

@@ -11,12 +11,13 @@
 7. [PIM Manager Integration Points](#7-pim-manager-integration-points)
 8. [Severity Rendering](#8-severity-rendering)
 9. [What PIM Monitor Must Not Do](#9-what-pim-monitor-must-not-do)
+10. [The Catalog Contract](#10-the-catalog-contract)
 
 ---
 
 ## 1. Overview
 
-PIM Monitor and PIM Manager are **independent projects** with no code dependency. PIM Monitor runs as a pipeline; PIM Manager is a web application. The only coupling is the **inventory file format** stored in the git repository.
+PIM Monitor and PIM Manager are **independent projects** with no code dependency. PIM Monitor runs as a pipeline; PIM Manager is a web application. There are two couplings: the **inventory file format** stored in the git repository (section 2), and the **published EAM catalog** (section 10).
 
 PIM Manager's planned `/monitor` page reads the change timeline from the PIM Monitor repository via the Azure DevOps Git REST API. It does not need access to the pipeline, the pipeline variables, or the PIM Monitor source code. It needs only read access to the repository.
 
@@ -204,3 +205,20 @@ To keep the contract clean and the two projects independent:
 - **No awareness of PIM Manager types.** PIM Monitor does not import or reference any PIM Manager type definitions.
 - **No commit structure changes for PIM Manager.** The commit message format and inventory folder structure are chosen for the audit trail. PIM Manager adapts to them.
 - **No webhook to PIM Manager.** PIM Manager reads git history; it does not receive push notifications from PIM Monitor.
+
+---
+
+## 10. The Catalog Contract
+
+The second contract runs the other way: PIM Manager's Configure page reads the EAM role catalog from PIM Monitor and offers it as a template. PIM Manager sends nothing back; tenant data never leaves its browser.
+
+| Guarantee | Details |
+|---|---|
+| URL | `https://pimmonitor.com/catalog/v1/eam-catalog.json`, one public file, no authentication |
+| Headers | `Access-Control-Allow-Origin: *`, `Content-Type: application/json; charset=utf-8`, `Cache-Control: public, max-age=3600`, `X-Content-Type-Options: nosniff` |
+| Schema | `schemas/eam-catalog-v1.json` (JSON Schema 2020-12), `additionalProperties: false`, validated by a Pester test |
+| Vocabulary | Policy settings use the `expectedConfig` field names of the `AccessModel/` files, and `authContext` is a seed slug |
+| Content | `schemaVersion`, `catalogVersion`, `publishedAt`, `source`, `roles[]`, `levels[]`, `groups[]`, `authContexts[]`. No tenant data, no group ids |
+| Source | `docs-site/src/data/eam-role-catalog.json`, built into the published file by `docs-site/scripts/Build-EamCatalog.ps1` |
+
+A field is never removed or renamed within v1. A breaking change is a `feat!:` commit and a new `/catalog/vN/` path; v1 keeps being served until PIM Manager has moved. PIM Manager treats every value as a proposal that goes through its change basket, ships a fallback copy, and shows a "needs a newer PIM Manager" message for a major it does not know. User documentation: [Catalog for PIM Manager](https://pimmonitor.com/docs/access-model/pim-manager-catalog).

@@ -224,10 +224,53 @@ $script:CaPolicyConfigToCheck = @(
 
 <#
 .SYNOPSIS
+    Tests whether one CA policy satisfies every requirement of an auth context config.json.
+
+.DESCRIPTION
+    Uses the same declarative checks as Get-AuthContextPolicyCompliance. Fields without a
+    check are ignored.
+#>
+function Test-CaPolicyMeetsAuthContextConfig {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        $CaPolicy,
+
+        [Parameter(Mandatory)]
+        $Config
+    )
+
+    foreach ($fieldName in @($Config | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name)) {
+        $checkDef = $script:CaPolicyConfigToCheck | Where-Object { $_.field -eq $fieldName } | Select-Object -First 1
+        if (-not $checkDef) { continue }
+        $result = & $checkDef.evaluate $CaPolicy $Config.$fieldName
+        if (-not $result.passes) { return $false }
+    }
+    return $true
+}
+
+<#
+.SYNOPSIS
     Builds a slug-to-claimValue map from inventory/authentication-contexts/.
+
+.DESCRIPTION
+    A slug (the label an access-model file uses in expectedConfig.authContext) is resolved in
+    this order, first hit wins:
+      1. Explicit mapping file (AccessModel/authContexts.json): label -> claim value (c1..c25)
+         or the display name of a tenant auth context.
+      2. The slug of the tenant auth context's display name (the folder name in the inventory).
+      3. Requirements: a label that has a config.json (a seed) but no tenant context of that name
+         resolves to the one tenant context whose CA policy satisfies that config.json.
+         Zero or several qualifying contexts leave the label unresolved.
 
 .PARAMETER InventoryPath
     Path to the inventory root directory (contains authentication-contexts/ subdirectory).
+
+.PARAMETER MappingFile
+    Optional path to authContexts.json.
+
+.PARAMETER CaPolicies
+    Optional CA policies, enables matching by requirements.
 
 .RETURNS
     Hashtable: slug -> claimValue (e.g. @{ 'phish-resistant-sif' = 'c2' })
@@ -237,7 +280,13 @@ function Get-AuthContextMap {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [string] $InventoryPath
+        [string] $InventoryPath,
+
+        [Parameter()]
+        [string] $MappingFile,
+
+        [Parameter()]
+        [array] $CaPolicies = @()
     )
 
     $map = @{}
@@ -248,18 +297,81 @@ function Get-AuthContextMap {
         return $map
     }
 
+    $definitions = [System.Collections.Generic.List[object]]::new()
+    $pendingSeeds = [System.Collections.Generic.List[object]]::new()
+
     foreach ($dir in Get-ChildItem -Path $authContextPath -Directory) {
         $defFile = Join-Path -Path $dir.FullName -ChildPath "definition.json"
+        $configFile = Join-Path -Path $dir.FullName -ChildPath "config.json"
         if (Test-Path $defFile) {
             try {
                 $def = Get-Content -Path $defFile -Raw -Encoding utf8NoBOM | ConvertFrom-Json
                 if ($def.id) {
                     $map[$dir.Name] = $def.id
+                    $displayName = $def.PSObject.Properties['displayName']?.Value
+                    $definitions.Add(@{ slug = $dir.Name; id = [string]$def.id; displayName = [string]$displayName })
                     Write-Verbose "Auth context: $($dir.Name) -> $($def.id)"
                 }
             }
             catch {
                 Write-Warning "Failed to parse auth context definition '$defFile': $_"
+            }
+        }
+        elseif (Test-Path $configFile) {
+            $pendingSeeds.Add(@{ slug = $dir.Name; configFile = $configFile })
+        }
+    }
+
+    # 1. Explicit mapping file. Wins over the slug rule.
+    $mapped = [System.Collections.Generic.HashSet[string]]::new()
+    if ($MappingFile -and (Test-Path $MappingFile -PathType Leaf)) {
+        try {
+            $mapping = Get-Content -Path $MappingFile -Raw -Encoding utf8NoBOM | ConvertFrom-Json
+            foreach ($label in @($mapping | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name)) {
+                $target = [string]$mapping.$label
+                $hit = @($definitions | Where-Object { $_.id -eq $target })
+                if ($hit.Count -eq 0) {
+                    $hit = @($definitions | Where-Object { $_.displayName -eq $target -or (Get-InventorySlug -Name $_.displayName) -eq (Get-InventorySlug -Name $target) })
+                }
+                if ($hit.Count -eq 1) {
+                    $map[$label] = $hit[0].id
+                    [void]$mapped.Add($label)
+                    Write-Verbose "Auth context (mapping file): $label -> $($hit[0].id)"
+                }
+                else {
+                    Write-Warning "authContexts.json maps '$label' to '$target', which matches $($hit.Count) tenant auth contexts; ignoring this entry."
+                }
+            }
+        }
+        catch {
+            Write-Warning "Failed to parse auth context mapping file '$MappingFile': $_"
+        }
+    }
+
+    # 3. Requirements. Only for labels that no tenant context is named after.
+    if (@($CaPolicies).Count -gt 0) {
+        foreach ($seed in $pendingSeeds) {
+            if ($map.ContainsKey($seed.slug)) { continue }
+            try {
+                $config = Get-Content -Path $seed.configFile -Raw -Encoding utf8NoBOM | ConvertFrom-Json
+            }
+            catch {
+                Write-Warning "Failed to parse '$($seed.configFile)': $_"
+                continue
+            }
+            $qualifying = @($definitions | Where-Object {
+                    $claim = $_.id
+                    @($CaPolicies | Where-Object {
+                            $refs = $_.PSObject.Properties['conditions']?.Value?.PSObject.Properties['applications']?.Value?.PSObject.Properties['includeAuthenticationContextClassReferences']?.Value
+                            $refs -and ($claim -in @($refs)) -and (Test-CaPolicyMeetsAuthContextConfig -CaPolicy $_ -Config $config)
+                        }).Count -gt 0
+                })
+            if ($qualifying.Count -eq 1) {
+                $map[$seed.slug] = $qualifying[0].id
+                Write-Verbose "Auth context (requirements): $($seed.slug) -> $($qualifying[0].id)"
+            }
+            else {
+                Write-Verbose "Auth context '$($seed.slug)': $($qualifying.Count) tenant contexts satisfy its requirements; leaving unresolved."
             }
         }
     }
@@ -278,6 +390,9 @@ function Get-AuthContextMap {
 .PARAMETER AuthContextMap
     Hashtable from Get-AuthContextMap: slug -> claimValue.
 
+.PARAMETER Unresolved
+    Optional set that receives every slug that could not be resolved, so the caller can report it.
+
 .RETURNS
     A hashtable copy of ExpectedConfig with authContext replaced by its resolved claimValue,
     or with authContext removed (and a warning emitted) if the slug is not in the map.
@@ -290,7 +405,10 @@ function Resolve-AuthContextConfig {
         $ExpectedConfig,
 
         [Parameter()]
-        [hashtable] $AuthContextMap = @{}
+        [hashtable] $AuthContextMap = @{},
+
+        [Parameter()]
+        [System.Collections.Generic.HashSet[string]] $Unresolved
     )
 
     if (-not $ExpectedConfig) { return $ExpectedConfig }
@@ -305,11 +423,42 @@ function Resolve-AuthContextConfig {
     if (-not $AuthContextMap -or -not $AuthContextMap.ContainsKey($authContextSlug)) {
         Write-Warning "Auth context slug '$authContextSlug' not found in inventory; skipping authContext compliance check."
         $resolved.Remove('authContext')
+        if ($null -ne $Unresolved) { [void]$Unresolved.Add([string]$authContextSlug) }
     } else {
         $resolved['authContext'] = $AuthContextMap[$authContextSlug]
     }
 
     return $resolved
+}
+
+<#
+.SYNOPSIS
+    Builds the change entry that reports a skipped authContext check.
+#>
+function New-AuthContextUnresolvedEntry {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string] $Slug,
+
+        [Parameter()]
+        [string] $DefinitionName = ''
+    )
+
+    $source = if ($DefinitionName) { "Access model '$DefinitionName' requires" } else { 'The access model requires' }
+    @{
+        severity    = "Medium"
+        changeType  = "non-compliant"
+        workload    = "conditional-access"
+        entity      = $Slug
+        fileType    = "auth-context-resolution"
+        ruleId      = "authContextUnresolved"
+        context     = $Slug
+        description = "$source auth context '$Slug', but no tenant auth context matches it by name, by AccessModel/authContexts.json, or by requirements. The authContext check was skipped. Add a mapping in AccessModel/authContexts.json."
+        isAlert     = $true
+        old         = $null
+        new         = "A tenant auth context for '$Slug'"
+    }
 }
 
 <#
@@ -338,7 +487,7 @@ function Get-TierDefinitions {
         return $tiers
     }
 
-    $tierFiles = Get-ChildItem -Path $TiersPath -Filter "*.json" -File -Recurse | Where-Object { $_.Name -ne 'coverage-exclusions.json' }
+    $tierFiles = Get-ChildItem -Path $TiersPath -Filter "*.json" -File -Recurse | Where-Object { $_.Name -notin 'coverage-exclusions.json', 'authContexts.json' }
 
     $allRoleIds = @{}
 
@@ -609,6 +758,7 @@ function Get-ComplianceViolations {
     )
 
     $violations = @()
+    $unresolved = [System.Collections.Generic.HashSet[string]]::new()
 
     if (@($TierDefinitions).Count -eq 0) {
         return $violations
@@ -630,7 +780,11 @@ function Get-ComplianceViolations {
             continue
         }
 
-        $resolvedConfig = Resolve-AuthContextConfig -ExpectedConfig $tierExpectedConfig -AuthContextMap $AuthContextMap
+        $unresolvedBefore = $unresolved.Count
+        $resolvedConfig = Resolve-AuthContextConfig -ExpectedConfig $tierExpectedConfig -AuthContextMap $AuthContextMap -Unresolved $unresolved
+        if ($unresolved.Count -gt $unresolvedBefore) {
+            $violations += New-AuthContextUnresolvedEntry -Slug ([string]$tierExpectedConfig.authContext) -DefinitionName $tier.name
+        }
 
         foreach ($tierRole in $tier.roles) {
             $roleId = $tierRole.id
@@ -785,7 +939,7 @@ function Get-GroupDefinitions {
         return $groupDefs
     }
 
-    $groupFiles = Get-ChildItem -Path $Path -Filter "*.json" -File -Recurse | Where-Object { $_.Name -ne 'coverage-exclusions.json' }
+    $groupFiles = Get-ChildItem -Path $Path -Filter "*.json" -File -Recurse | Where-Object { $_.Name -notin 'coverage-exclusions.json', 'authContexts.json' }
 
     $allGroupIds = @{}
 
@@ -929,6 +1083,7 @@ function Get-GroupComplianceViolations {
     )
 
     $violations = @()
+    $unresolvedSlugs = [System.Collections.Generic.HashSet[string]]::new()
 
     if (@($GroupDefinitions).Count -eq 0) {
         return $violations
@@ -974,7 +1129,11 @@ function Get-GroupComplianceViolations {
                     continue
                 }
 
-                $resolvedSub = Resolve-AuthContextConfig -ExpectedConfig $expectedSub -AuthContextMap $AuthContextMap
+                $unresolvedBefore = $unresolvedSlugs.Count
+                $resolvedSub = Resolve-AuthContextConfig -ExpectedConfig $expectedSub -AuthContextMap $AuthContextMap -Unresolved $unresolvedSlugs
+                if ($unresolvedSlugs.Count -gt $unresolvedBefore) {
+                    $violations += New-AuthContextUnresolvedEntry -Slug ([string]$expectedSub.authContext) -DefinitionName $groupDef.name
+                }
                 $policyViolations = Test-RolePolicyCompliance -RolePolicy $subPolicy -ExpectedConfig $resolvedSub
 
                 foreach ($pv in $policyViolations) {
@@ -1104,7 +1263,12 @@ function Get-AuthContextPolicyCompliance {
         [array] $CaPolicies,
 
         [Parameter(Mandatory)]
-        [string] $InventoryPath
+        [string] $InventoryPath,
+
+        # Slug -> claim map from Get-AuthContextMap. Lets a seed folder (config.json without
+        # definition.json) be checked against the tenant context it was resolved to.
+        [Parameter()]
+        [hashtable] $AuthContextMap = @{}
     )
 
     $violations = @()
@@ -1142,12 +1306,19 @@ function Get-AuthContextPolicyCompliance {
 
         try {
             if (-not (Test-Path $defFile)) {
-                Write-Warning "Auth context '$slug' has config.json but no definition.json; skipping."
-                continue
+                if ($AuthContextMap.ContainsKey($slug)) {
+                    $claimValue = $AuthContextMap[$slug]
+                }
+                else {
+                    # Reported as an auth-context-resolution entry by the compliance check that uses this label.
+                    Write-Warning "Auth context '$slug' has config.json but no definition.json and no tenant context resolves to it; skipping."
+                    continue
+                }
             }
-
-            $def        = Get-Content -Path $defFile -Raw -Encoding utf8NoBOM | ConvertFrom-Json
-            $claimValue = $def.PSObject.Properties['id']?.Value
+            else {
+                $def        = Get-Content -Path $defFile -Raw -Encoding utf8NoBOM | ConvertFrom-Json
+                $claimValue = $def.PSObject.Properties['id']?.Value
+            }
             if (-not $claimValue) {
                 Write-Warning "Auth context '$slug' definition.json has no 'id' field; skipping."
                 continue

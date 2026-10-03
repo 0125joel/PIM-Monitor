@@ -5,7 +5,6 @@
   "securityLevel": "Enterprise",
   "roles": [
     { "id": "9c094953-4995-41c8-84c8-3ebb9b32c93f", "displayName": "Device Join" },
-    { "id": "2b499bcd-da44-4968-8aec-78e1674fa64d", "displayName": "Device Managers" },
     { "id": "d405c6df-0af8-4e3b-95e4-4d06e542189e", "displayName": "Device Users" },
     { "id": "f42252d9-5400-4d7b-b9ef-cc582dbb8577", "displayName": "Entra Backup Reader" },
     { "id": "843318fb-79a6-4168-9e6f-aa9a07481cc4", "displayName": "Global Secure Access Log Reader" },
@@ -22,6 +21,7 @@
     { "id": "fcf91098-03e3-41a9-b5ba-6f0ec8188a12", "displayName": "Teams Communications Support Specialist" },
     { "id": "1076ac91-f3d9-41a7-a339-dcdf5f480acc", "displayName": "Teams Reader" },
     { "id": "75934031-6c7e-415a-99d7-48dbd49e875e", "displayName": "Usage Summary Reports Reader" },
+    { "id": "27460883-1df1-4691-b032-3b79643e5e63", "displayName": "User Experience Success Manager" },
     { "id": "c34f683f-4d5a-4403-affd-6615e00e3a7f", "displayName": "Workplace Device Join" }
   ],
   "expectedConfig": {

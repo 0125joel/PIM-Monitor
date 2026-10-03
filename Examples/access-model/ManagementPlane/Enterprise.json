@@ -1,0 +1,16 @@
+{
+  "name": "Management Plane - Enterprise",
+  "description": "Management Plane roles whose permissions are read-only or low impact. Microsoft Graph isPrivileged = false. PIM provides the audit trail; approval overhead is not warranted.",
+  "plane": "Management",
+  "securityLevel": "Enterprise",
+  "roles": [
+    { "id": "e48398e2-f4bb-4074-8f31-4586725e205b", "displayName": "Organizational Messages Approver" }
+  ],
+  "expectedConfig": {
+    "maxActivationDuration": "PT8H",
+    "requireJustification": true,
+    "requireMFA": true,
+    "requireApproval": false,
+    "allowPermanentActive": false
+  }
+}

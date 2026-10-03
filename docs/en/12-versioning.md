@@ -80,6 +80,16 @@ The comment marker `# x-release-please-version` tells Release Please where to up
 
 The pipeline reads this file to know what version the user is running, and compares it against the latest GitHub Release to detect updates.
 
+## Catalog Versioning
+
+The published EAM catalog (`/catalog/v1/eam-catalog.json`) has its own `schemaVersion`, separate from the app version:
+
+- A breaking change to the catalog (a removed or renamed field, a changed meaning) is a `feat!:` commit and a new path, `/catalog/v2/`. v1 stays online until consumers have moved.
+- Adding an optional field is a `feat:` commit and a minor bump of `schemaVersion`. A wording change is a patch.
+- `catalogVersion` is the version of the content (a date). It changes when roles or policies change and does not touch `schemaVersion`.
+
+`docs-site/src/constants.ts` carries the same `x-release-please-version` marker as `VERSION`, so the app version shown on the front page is updated by Release Please too.
+
 ## User Update Notifications
 
 When a user deploys PIM Monitor (either Azure DevOps or GitHub Actions), the pipeline:

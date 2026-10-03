@@ -1,0 +1,237 @@
+{
+  "catalogVersion": "2026-10-03",
+  "publishedAt": "2026-10-03T00:00:00Z",
+  "levels": [
+    {
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "expectedConfig": {
+        "maxActivationDuration": "PT1H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "authContext": "phish-resistant-sif",
+        "requireApproval": true,
+        "allowPermanentEligible": false,
+        "allowPermanentActive": false
+      }
+    },
+    {
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "expectedConfig": {
+        "maxActivationDuration": "PT4H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "authContext": "phish-resistant-no-sif",
+        "requireApproval": true,
+        "allowPermanentEligible": false,
+        "allowPermanentActive": false
+      }
+    },
+    {
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "expectedConfig": {
+        "maxActivationDuration": "PT8H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "requireApproval": false,
+        "allowPermanentActive": false
+      }
+    },
+    {
+      "plane": "Management",
+      "securityLevel": "Privileged",
+      "expectedConfig": {
+        "maxActivationDuration": "PT1H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "authContext": "phish-resistant-sif",
+        "requireApproval": true,
+        "allowPermanentEligible": false,
+        "allowPermanentActive": false
+      }
+    },
+    {
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "expectedConfig": {
+        "maxActivationDuration": "PT4H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "authContext": "phish-resistant-no-sif",
+        "requireApproval": true,
+        "allowPermanentEligible": false,
+        "allowPermanentActive": false
+      }
+    },
+    {
+      "plane": "Management",
+      "securityLevel": "Enterprise",
+      "expectedConfig": {
+        "maxActivationDuration": "PT8H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "requireApproval": false,
+        "allowPermanentActive": false
+      }
+    },
+    {
+      "plane": "Data",
+      "securityLevel": "Privileged",
+      "expectedConfig": {
+        "maxActivationDuration": "PT1H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "authContext": "phish-resistant-sif",
+        "requireApproval": true,
+        "allowPermanentEligible": false,
+        "allowPermanentActive": false
+      }
+    },
+    {
+      "plane": "Data",
+      "securityLevel": "Specialized",
+      "expectedConfig": {
+        "maxActivationDuration": "PT4H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "authContext": "phish-resistant-no-sif",
+        "requireApproval": true,
+        "allowPermanentEligible": false,
+        "allowPermanentActive": false
+      }
+    },
+    {
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "expectedConfig": {
+        "maxActivationDuration": "PT8H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "requireApproval": false,
+        "allowPermanentActive": false
+      }
+    }
+  ],
+  "groups": [
+    {
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "member": {
+        "maxActivationDuration": "PT1H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "authContext": "phish-resistant-sif",
+        "requireApproval": true,
+        "allowPermanentEligible": false,
+        "allowPermanentActive": false
+      },
+      "owner": {
+        "maxActivationDuration": "PT1H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "authContext": "phish-resistant-sif",
+        "requireApproval": true,
+        "allowPermanentEligible": false,
+        "allowPermanentActive": false
+      }
+    },
+    {
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "member": {
+        "maxActivationDuration": "PT8H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "requireApproval": false,
+        "allowPermanentActive": false
+      },
+      "owner": {
+        "maxActivationDuration": "PT4H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "requireApproval": true,
+        "allowPermanentActive": false
+      }
+    },
+    {
+      "plane": "Management",
+      "securityLevel": "Privileged",
+      "member": {
+        "maxActivationDuration": "PT1H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "authContext": "phish-resistant-sif",
+        "requireApproval": true,
+        "allowPermanentEligible": false,
+        "allowPermanentActive": false
+      },
+      "owner": {
+        "maxActivationDuration": "PT1H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "authContext": "phish-resistant-sif",
+        "requireApproval": true,
+        "allowPermanentEligible": false,
+        "allowPermanentActive": false
+      }
+    },
+    {
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "member": {
+        "maxActivationDuration": "PT4H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "authContext": "phish-resistant-no-sif",
+        "requireApproval": true,
+        "allowPermanentEligible": false,
+        "allowPermanentActive": false
+      },
+      "owner": {
+        "maxActivationDuration": "PT2H",
+        "requireJustification": true,
+        "requireMFA": true,
+        "authContext": "phish-resistant-no-sif",
+        "requireApproval": true,
+        "allowPermanentEligible": false,
+        "allowPermanentActive": false
+      }
+    }
+  ],
+  "authContexts": [
+    {
+      "slug": "phish-resistant-sif",
+      "description": "Phishing-resistant MFA with sign-in frequency set to every time. Used by the Privileged level.",
+      "requireState": "enabled",
+      "requireAuthStrengthId": "00000000-0000-0000-0000-000000000003",
+      "requireSignInFrequencyEveryTime": true,
+      "requireCompliantDevice": false
+    },
+    {
+      "slug": "phish-resistant-no-sif",
+      "description": "Phishing-resistant MFA without a sign-in frequency requirement. Used by the Specialized level.",
+      "requireState": "enabled",
+      "requireAuthStrengthId": "00000000-0000-0000-0000-000000000003",
+      "requireSignInFrequencyEveryTime": false,
+      "requireCompliantDevice": false
+    },
+    {
+      "slug": "phish-resistant-compliant-device",
+      "description": "Phishing-resistant MFA on a compliant device. Not used by the catalog; available for tenants that want it.",
+      "requireState": "enabled",
+      "requireAuthStrengthId": "00000000-0000-0000-0000-000000000003",
+      "requireSignInFrequencyEveryTime": false,
+      "requireCompliantDevice": true
+    },
+    {
+      "slug": "phish-resistant-compliant-device-sif",
+      "description": "Phishing-resistant MFA on a compliant device with sign-in frequency set to every time. Not used by the catalog; available for tenants that want it.",
+      "requireState": "enabled",
+      "requireAuthStrengthId": "00000000-0000-0000-0000-000000000003",
+      "requireSignInFrequencyEveryTime": true,
+      "requireCompliantDevice": true
+    }
+  ]
+}

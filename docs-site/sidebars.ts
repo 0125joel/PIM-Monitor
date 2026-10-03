@@ -91,6 +91,7 @@ const sidebars: SidebarsConfig = {
   accessModelSidebar: [
     'access-model/overview',
     'access-model/eam-role-catalog',
+    'access-model/pim-manager-catalog',
     'access-model/setup-compliance',
     'access-model/coverage-exclusions',
     'access-model/pim-groups',

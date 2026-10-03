@@ -11,6 +11,7 @@
 7. [Integratiepunten in PIM Manager](#7-integratiepunten-in-pim-manager)
 8. [Weergave van ernst](#8-weergave-van-ernst)
 9. [Wat PIM Monitor niet mag doen](#9-wat-pim-monitor-niet-mag-doen)
+10. [Het cataloguscontract](#10-het-cataloguscontract)
 
 ---
 
@@ -187,3 +188,20 @@ Om het contract schoon en de twee projecten onafhankelijk te houden:
 - **Geen bewustzijn van PIM Manager-types.** PIM Monitor importeert of verwijst niet naar PIM Manager-typedefinities.
 - **Geen commitstructuurwijzigingen voor PIM Manager.** Het commitberichtformaat en de inventorymapstructuur dienen het auditspoor; PIM Manager past zich daaraan aan.
 - **Geen webhook naar PIM Manager.** PIM Manager leest git-geschiedenis; het ontvangt geen pushnotificaties van PIM Monitor.
+
+---
+
+## 10. Het cataloguscontract
+
+Het tweede contract loopt de andere kant op: de Configure-pagina van PIM Manager leest de EAM-rolcatalogus van PIM Monitor en biedt die aan als template. PIM Manager stuurt niets terug; tenantdata verlaat de browser nooit.
+
+| Garantie | Details |
+|---|---|
+| URL | `https://pimmonitor.com/catalog/v1/eam-catalog.json`, één openbaar bestand, geen authenticatie |
+| Headers | `Access-Control-Allow-Origin: *`, `Content-Type: application/json; charset=utf-8`, `Cache-Control: public, max-age=3600`, `X-Content-Type-Options: nosniff` |
+| Schema | `schemas/eam-catalog-v1.json` (JSON Schema 2020-12), `additionalProperties: false`, gevalideerd door een Pester-test |
+| Vocabulaire | Beleidsinstellingen gebruiken de `expectedConfig`-veldnamen van de `AccessModel/`-bestanden, en `authContext` is een seed-slug |
+| Inhoud | `schemaVersion`, `catalogVersion`, `publishedAt`, `source`, `roles[]`, `levels[]`, `groups[]`, `authContexts[]`. Geen tenantdata, geen groep-id's |
+| Bron | `docs-site/src/data/eam-role-catalog.json`, door `docs-site/scripts/Build-EamCatalog.ps1` omgezet naar het gepubliceerde bestand |
+
+Een veld wordt binnen v1 nooit verwijderd of hernoemd. Een brekende wijziging is een `feat!:`-commit en een nieuw `/catalog/vN/`-pad; v1 blijft beschikbaar tot PIM Manager is overgestapt. PIM Manager behandelt elke waarde als voorstel dat door de change basket gaat, levert een fallbackkopie mee en toont "needs a newer PIM Manager" bij een major die het niet kent. Gebruikersdocumentatie: [Catalog for PIM Manager](https://pimmonitor.com/docs/access-model/pim-manager-catalog).

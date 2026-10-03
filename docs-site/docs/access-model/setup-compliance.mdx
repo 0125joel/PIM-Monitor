@@ -186,7 +186,7 @@ These map to the catalog's recommendation columns as follows:
 | MFA | `requireMFA` |
 | Approval | `requireApproval` |
 | Justification | `requireJustification` |
-| Auth context | **not an `expectedConfig` field.** `requireMFA` checks that *some* MFA or auth-context rule is on. To verify the *specific* auth context (phishing-resistant, sign-in frequency) is correctly enforced, use [Auth Context CA Compliance](./auth-context-compliance.md). |
+| Auth context | `authContext`: the slug of an authentication context, for example `phish-resistant-sif` (Privileged), `phish-resistant-no-sif` (Specialized), or no `authContext` with `requireMFA: true` for plain MFA (Enterprise). `requireMFA: true` means "MFA or an authentication context is on"; when `authContext` is present it is the activation requirement, otherwise MFA. PIM allows only one of the two. To verify the Conditional Access policy behind the context, use [Auth Context CA Compliance](./auth-context-compliance.md). |
 
 The full field list:
 

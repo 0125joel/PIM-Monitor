@@ -16,7 +16,7 @@ $script:SeverityOrder = @('High', 'Medium', 'Low', 'Informational')
 # Items with these fileTypes render under the Access Model > Compliance sub-section with actual/expected
 # diff labels. Everything else renders under CHANGES with was/changed to labels.
 $script:ComplianceFileTypes = [System.Collections.Generic.HashSet[string]]::new(
-    [string[]]@('access-model-compliance', 'access-model-coverage', 'group-compliance', 'group-coverage', 'auth-context-policy-compliance'),
+    [string[]]@('access-model-compliance', 'access-model-coverage', 'group-compliance', 'group-coverage', 'auth-context-policy-compliance', 'auth-context-resolution'),
     [System.StringComparer]::OrdinalIgnoreCase
 )
 

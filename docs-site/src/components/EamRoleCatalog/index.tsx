@@ -1,19 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useHistory, useLocation } from '@docusaurus/router';
 import catalog from '../../data/eam-role-catalog.json';
+import defaults from '../../data/eam-catalog-defaults.json';
 import styles from './styles.module.css';
 
 type Authority = 'authoritative' | 'curated' | 'heuristic' | 'derived';
 
-interface RecommendedConfig {
-  pimRequired: boolean;
-  maxActivation: string;
-  maxActivationLabel: string;
-  requireMfa: boolean;
+interface ExpectedConfig {
+  maxActivationDuration: string;
+  requireMFA: boolean;
   requireApproval: boolean;
   requireJustification: boolean;
-  authContext: string;
-  severity: 'High' | 'Medium' | 'Low';
+  authContext?: string;
 }
 
 interface Role {
@@ -21,16 +19,19 @@ interface Role {
   templateId: string;
   description: string;
   isPrivileged: boolean;
-  eamPlane: 'Control' | 'Management' | 'Data';
+  plane: 'Control' | 'Management' | 'Data';
   securityLevel: 'Privileged' | 'Specialized' | 'Enterprise';
   levelBasis: 'isPrivileged' | 'escape-clause' | 'plane-mapping';
   reviewNeeded: boolean;
-  recommendedConfig: RecommendedConfig;
+  expectedConfig: ExpectedConfig;
+  maxActivationLabel: string;
+  pimRequired: boolean;
+  severity: 'High' | 'Medium' | 'Low';
   sourceAuthority: {
     isPrivileged: Authority;
-    eamPlane: Authority;
+    plane: Authority;
     securityLevel: Authority;
-    recommendedConfig: Authority;
+    expectedConfig: Authority;
   };
   note: string | null;
 }
@@ -97,37 +98,26 @@ function activationHours(pt: string): number {
   return m ? Number(m[1]) : Number.MAX_SAFE_INTEGER;
 }
 
-// Canonical expectedConfig per security level (docs/eam-pim-classification.md, Part 2.5).
-// authContext is a tenant-specific slug placeholder; Enterprise enforces neither an auth
-// context nor allowPermanentEligible. Severity is derived by the scanner from securityLevel,
-// so the emitted file carries securityLevel, not a literal severity field.
-const EXPECTED_BY_LEVEL: Record<Level, Record<string, unknown>> = {
-  Privileged: {
-    maxActivationDuration: 'PT1H',
-    requireJustification: true,
-    requireMFA: true,
-    authContext: 'phish-resistant-sif',
-    requireApproval: true,
-    allowPermanentEligible: false,
-    allowPermanentActive: false,
-  },
-  Specialized: {
-    maxActivationDuration: 'PT4H',
-    requireJustification: true,
-    requireMFA: true,
-    authContext: 'phish-resistant-no-sif',
-    requireApproval: true,
-    allowPermanentEligible: false,
-    allowPermanentActive: false,
-  },
-  Enterprise: {
-    maxActivationDuration: 'PT8H',
-    requireJustification: true,
-    requireMFA: true,
-    requireApproval: false,
-    allowPermanentActive: false,
-  },
+// Canonical expectedConfig per security level, shared with the published catalog and the
+// Examples/access-model starter files (docs-site/src/data/eam-catalog-defaults.json).
+// Enterprise enforces neither an auth context nor allowPermanentEligible. Severity is derived by
+// the scanner from securityLevel, so the emitted file carries securityLevel, not a literal severity field.
+const EXPECTED_BY_LEVEL = Object.fromEntries(
+  (defaults.levels as { plane: string; securityLevel: Level; expectedConfig: Record<string, unknown> }[])
+    .filter((l) => l.plane === 'Control')
+    .map((l) => [l.securityLevel, l.expectedConfig]),
+) as Record<Level, Record<string, unknown>>;
+
+const AUTH_CONTEXT_LABEL: Record<string, string> = {
+  'phish-resistant-sif': 'Phishing-resistant + sign-in frequency',
+  'phish-resistant-no-sif': 'Phishing-resistant',
 };
+
+// requireMFA means "MFA or an authentication context is on"; an authContext replaces plain MFA.
+function authContextLabel(c: ExpectedConfig): string {
+  if (!c.authContext) return c.requireMFA ? 'Standard MFA' : 'None';
+  return AUTH_CONTEXT_LABEL[c.authContext] ?? c.authContext;
+}
 
 // Build a ready-to-use AccessModel/*.json file for every role at a security level.
 // A per-level file spans planes, so it carries securityLevel but no single plane.
@@ -149,7 +139,7 @@ function buildRoleJson(r: Role): string {
   const payload = {
     name: `EAM ${r.securityLevel} Roles`,
     description: `${r.displayName} classified ${r.securityLevel} under the Enterprise Access Model. Generated from the PIM Monitor EAM Role Catalog.`,
-    plane: r.eamPlane,
+    plane: r.plane,
     securityLevel: r.securityLevel,
     roles: [{ id: r.templateId, displayName: r.displayName }],
     expectedConfig: EXPECTED_BY_LEVEL[r.securityLevel],
@@ -273,7 +263,7 @@ export default function EamRoleCatalog(): JSX.Element {
   const filtered = useMemo(() => {
     const q = facets.query.trim().toLowerCase();
     const rows = ROLES.filter((r) => {
-      if (facets.plane !== 'All' && r.eamPlane !== facets.plane) return false;
+      if (facets.plane !== 'All' && r.plane !== facets.plane) return false;
       if (facets.level !== 'All' && r.securityLevel !== facets.level) return false;
       if (facets.basis !== 'All' && r.levelBasis !== facets.basis) return false;
       if (facets.privOnly && !r.isPrivileged) return false;
@@ -287,10 +277,10 @@ export default function EamRoleCatalog(): JSX.Element {
     rows.sort((a, b) => {
       let c = 0;
       if (sortKey === 'name') c = a.displayName.localeCompare(b.displayName);
-      else if (sortKey === 'plane') c = PLANE_ORDER[a.eamPlane] - PLANE_ORDER[b.eamPlane];
+      else if (sortKey === 'plane') c = PLANE_ORDER[a.plane] - PLANE_ORDER[b.plane];
       else if (sortKey === 'level') c = LEVEL_ORDER[a.securityLevel] - LEVEL_ORDER[b.securityLevel];
       else if (sortKey === 'priv') c = (a.isPrivileged === b.isPrivileged ? 0 : a.isPrivileged ? -1 : 1);
-      else c = activationHours(a.recommendedConfig.maxActivation) - activationHours(b.recommendedConfig.maxActivation);
+      else c = activationHours(a.expectedConfig.maxActivationDuration) - activationHours(b.expectedConfig.maxActivationDuration);
       if (c === 0) c = a.displayName.localeCompare(b.displayName);
       return c * dir;
     });
@@ -301,7 +291,7 @@ export default function EamRoleCatalog(): JSX.Element {
   const matrix = useMemo(() => {
     const cell: Record<string, number> = {};
     PLANES.forEach((p) => LEVELS.forEach((l) => (cell[`${p}|${l}`] = 0)));
-    ROLES.forEach((r) => (cell[`${r.eamPlane}|${r.securityLevel}`] += 1));
+    ROLES.forEach((r) => (cell[`${r.plane}|${r.securityLevel}`] += 1));
     const rowTotal = (p: Plane) => LEVELS.reduce((s, l) => s + cell[`${p}|${l}`], 0);
     const colTotal = (l: Level) => PLANES.reduce((s, p) => s + cell[`${p}|${l}`], 0);
     return { cell, rowTotal, colTotal };
@@ -310,12 +300,12 @@ export default function EamRoleCatalog(): JSX.Element {
   // Confidence gauge: four honest indicators of how far the catalog can be trusted.
   const trust = useMemo(() => ({
     authoritative: ROLES.filter((r) => r.isPrivileged).length,
-    curated: ROLES.filter((r) => r.sourceAuthority.eamPlane === 'curated').length,
-    heuristic: ROLES.filter((r) => r.sourceAuthority.eamPlane === 'heuristic').length,
+    curated: ROLES.filter((r) => r.sourceAuthority.plane === 'curated').length,
+    heuristic: ROLES.filter((r) => r.sourceAuthority.plane === 'heuristic').length,
     review: ROLES.filter((r) => r.reviewNeeded).length,
   }), []);
 
-  const planeCount = (p: Plane) => ROLES.filter((r) => r.eamPlane === p).length;
+  const planeCount = (p: Plane) => ROLES.filter((r) => r.plane === p).length;
   const levelCount = (l: Level) => ROLES.filter((r) => r.securityLevel === l).length;
   const basisCount = (b: Basis) => ROLES.filter((r) => r.levelBasis === b).length;
 
@@ -556,11 +546,11 @@ export default function EamRoleCatalog(): JSX.Element {
                     </td>
                     <td>
                       <span
-                        className={`${styles.badge} ${styles[`badge${PLANE_TOK[r.eamPlane]}`]} ${styles.badgeClickable}`}
-                        title={`Filter by ${r.eamPlane} plane`}
-                        onClick={(e) => { e.stopPropagation(); toggleFacet('plane', r.eamPlane); }}
+                        className={`${styles.badge} ${styles[`badge${PLANE_TOK[r.plane]}`]} ${styles.badgeClickable}`}
+                        title={`Filter by ${r.plane} plane`}
+                        onClick={(e) => { e.stopPropagation(); toggleFacet('plane', r.plane); }}
                       >
-                        {r.eamPlane}
+                        {r.plane}
                       </span>
                     </td>
                     <td>
@@ -581,7 +571,7 @@ export default function EamRoleCatalog(): JSX.Element {
                         <span className={styles.privNo}>no</span>
                       )}
                     </td>
-                    <td className={styles.mono}>{r.recommendedConfig.maxActivationLabel}</td>
+                    <td className={styles.mono}>{r.maxActivationLabel}</td>
                     <td className={styles.center}><span className={styles.expand}>{isOpen ? 'hide' : 'details'}</span></td>
                   </tr>
                   {isOpen && (
@@ -593,8 +583,8 @@ export default function EamRoleCatalog(): JSX.Element {
                           {/* Classification lineage (Tier 1.3): plane -> level -> policy */}
                           <div className={styles.lineage}>
                             <span className={styles.lineageHop}>
-                              <span className={styles.lineageVal}>{r.eamPlane}</span>
-                              <span className={styles.lineageSub}>plane <AuthorityToken authority={r.sourceAuthority.eamPlane} /></span>
+                              <span className={styles.lineageVal}>{r.plane}</span>
+                              <span className={styles.lineageSub}>plane <AuthorityToken authority={r.sourceAuthority.plane} /></span>
                             </span>
                             <span className={styles.lineageArrow}>→</span>
                             <span className={styles.lineageHop}>
@@ -603,7 +593,7 @@ export default function EamRoleCatalog(): JSX.Element {
                             </span>
                             <span className={styles.lineageArrow}>→</span>
                             <span className={styles.lineageHop}>
-                              <span className={styles.lineageVal}>{r.recommendedConfig.maxActivationLabel}</span>
+                              <span className={styles.lineageVal}>{r.maxActivationLabel}</span>
                               <span className={styles.lineageSub}>recommended PIM policy</span>
                             </span>
                           </div>
@@ -612,7 +602,7 @@ export default function EamRoleCatalog(): JSX.Element {
                           <div className={styles.why}>
                             <span className={styles.whyLbl}>why {r.securityLevel.toLowerCase()}</span>
                             <span className={styles.whyText}>
-                              {r.levelBasis === 'plane-mapping' ? `${why.rule} (${r.eamPlane} → ${r.securityLevel}).` : why.rule}{' '}
+                              {r.levelBasis === 'plane-mapping' ? `${why.rule} (${r.plane} → ${r.securityLevel}).` : why.rule}{' '}
                               <a href={why.href} target="_blank" rel="noreferrer">{why.source} ↗</a>
                             </span>
                           </div>
@@ -621,12 +611,12 @@ export default function EamRoleCatalog(): JSX.Element {
                             <div className={styles.panel}>
                               <div className={styles.panelHd}>recommended pim activation policy</div>
                               <dl className={styles.dl}>
-                                <div><dt>PIM required</dt><dd>{bool(r.recommendedConfig.pimRequired)}</dd></div>
-                                <div><dt>Max activation</dt><dd>{r.recommendedConfig.maxActivationLabel} <code>{r.recommendedConfig.maxActivation}</code></dd></div>
-                                <div><dt>MFA on activation</dt><dd>{bool(r.recommendedConfig.requireMfa)}</dd></div>
-                                <div><dt>Approval required</dt><dd>{bool(r.recommendedConfig.requireApproval)}</dd></div>
-                                <div><dt>Justification</dt><dd>{bool(r.recommendedConfig.requireJustification)}</dd></div>
-                                <div><dt>Auth context</dt><dd>{r.recommendedConfig.authContext}</dd></div>
+                                <div><dt>PIM required</dt><dd>{bool(r.pimRequired)}</dd></div>
+                                <div><dt>Max activation</dt><dd>{r.maxActivationLabel} <code>{r.expectedConfig.maxActivationDuration}</code></dd></div>
+                                <div><dt>MFA on activation</dt><dd>{bool(r.expectedConfig.requireMFA)}</dd></div>
+                                <div><dt>Approval required</dt><dd>{bool(r.expectedConfig.requireApproval)}</dd></div>
+                                <div><dt>Justification</dt><dd>{bool(r.expectedConfig.requireJustification)}</dd></div>
+                                <div><dt>Auth context</dt><dd>{authContextLabel(r.expectedConfig)}</dd></div>
                               </dl>
                             </div>
 
@@ -634,10 +624,10 @@ export default function EamRoleCatalog(): JSX.Element {
                               <div className={styles.panelHd}>where this comes from</div>
                               <dl className={styles.dl}>
                                 <div><dt>isPrivileged</dt><dd>{bool(r.isPrivileged)} <AuthorityToken authority={r.sourceAuthority.isPrivileged} /></dd></div>
-                                <div><dt>EAM plane</dt><dd>{r.eamPlane} <AuthorityToken authority={r.sourceAuthority.eamPlane} /></dd></div>
+                                <div><dt>EAM plane</dt><dd>{r.plane} <AuthorityToken authority={r.sourceAuthority.plane} /></dd></div>
                                 <div><dt>Security level</dt><dd>{r.securityLevel} <AuthorityToken authority={r.sourceAuthority.securityLevel} /></dd></div>
                                 <div><dt>Level basis</dt><dd>{BASIS_LABEL[r.levelBasis]}</dd></div>
-                                <div><dt>PIM values</dt><dd>SPA guidance <AuthorityToken authority={r.sourceAuthority.recommendedConfig} /></dd></div>
+                                <div><dt>PIM values</dt><dd>SPA guidance <AuthorityToken authority={r.sourceAuthority.expectedConfig} /></dd></div>
                               </dl>
                             </div>
                           </div>

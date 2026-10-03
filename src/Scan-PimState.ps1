@@ -661,7 +661,9 @@ catch {
 # Access Model Compliance Detection
 
 $classificationPath = Join-Path -Path (Get-Location) -ChildPath "AccessModel"
-$authContextMap = Get-AuthContextMap -InventoryPath (Join-Path -Path (Get-Location) -ChildPath "inventory")
+$authContextMap = Get-AuthContextMap -InventoryPath (Join-Path -Path (Get-Location) -ChildPath "inventory") `
+    -MappingFile (Join-Path -Path $classificationPath -ChildPath "authContexts.json") `
+    -CaPolicies @($caPolicies)
 
 if (Test-Path $classificationPath) {
     Write-StepLog "Checking access-model compliance"
@@ -686,7 +688,7 @@ if (Test-Path $classificationPath) {
     # because it is part of the access model feature set.
     Write-StepLog "Checking auth context CA policy compliance"
     try {
-        $authCtxComplianceChanges = @(Get-AuthContextPolicyCompliance -CaPolicies $caPolicies -InventoryPath $inventoryRoot)
+        $authCtxComplianceChanges = @(Get-AuthContextPolicyCompliance -CaPolicies $caPolicies -InventoryPath $inventoryRoot -AuthContextMap $authContextMap)
         Write-Host "  Auth context CA policy violations: $($authCtxComplianceChanges.Count)"
         $allChanges += $authCtxComplianceChanges
     }
@@ -711,6 +713,11 @@ if (Test-Path $groupClassificationPath) {
 
         Write-Host "  Group compliance violations: $($groupComplianceChanges.Count)"
         Write-Host "  Unclassified groups:         $($groupCoverageChanges.Count)"
+        # An unresolved auth context used by both a role tier and a group definition is one finding.
+        $groupComplianceChanges = @($groupComplianceChanges | Where-Object {
+                $c = $_
+                -not ($c.fileType -eq 'auth-context-resolution' -and @($allChanges | Where-Object { $_.fileType -eq 'auth-context-resolution' -and $_.entity -eq $c.entity }).Count -gt 0)
+            })
         $allChanges += $groupComplianceChanges + $groupCoverageChanges
     }
     catch {

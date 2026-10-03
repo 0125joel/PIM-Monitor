@@ -10,11 +10,12 @@ Files are organized by two independent EAM dimensions:
 AccessModel/
 ├── ControlPlane/
 │   ├── Privileged.json     (30 roles)
-│   ├── Specialized.json    (9 roles)
-│   └── Enterprise.json     (27 roles)
+│   ├── Specialized.json    (17 roles)
+│   └── Enterprise.json     (16 roles)
 ├── ManagementPlane/
-│   ├── Privileged.json     (14 roles - blast-radius escape clause)
-│   └── Specialized.json    (45 roles)
+│   ├── Privileged.json     (14 roles - blast-radius escalation)
+│   ├── Specialized.json    (47 roles)
+│   └── Enterprise.json     (1 role)
 └── DataWorkloadPlane/
     ├── Privileged.json     (1 role  - AI Reader, isPrivileged = true)
     └── Enterprise.json     (19 roles)
@@ -33,17 +34,17 @@ Since PIM covers only the Privileged access path, the User Access and App Access
 
 ## Classification logic
 
-Classification follows the single source of truth in [`docs/eam-pim-classification.md`](../../docs/eam-pim-classification.md):
+The permissions of a role decide its plane and its level, not its name. The full method is on the [EAM Role Catalog](../../docs-site/docs/access-model/eam-role-catalog.mdx) page; in short:
 
-**Security Level is determined by three rules in order:**
+**Plane** follows from the role's `allowedResourceActions`. Identity and security actions outrank workload actions: a role that touches authentication, authorization or the security posture is Control, even when it also touches a workload. Read-only does not lower the plane; it lowers the level.
 
-1. **MS Privileged flag** - If `roleDefinition.isPrivileged = true` in Microsoft Graph: Privileged. This is the only authoritative per-role value Microsoft publishes.
+**Security Level** follows a waterfall:
 
-2. **Blast-radius escape clause** - Full service control over a Microsoft 365 workload with direct data impact (all mailboxes, all sites, all source code, etc.) warrants Privileged regardless of the isPrivileged flag. Applies to: Exchange, SharePoint, Teams, Yammer, Power Platform, Dynamics 365, Fabric, Azure DevOps, Windows 365, Knowledge. This is a deliberate hardening: Microsoft's security-levels doc would place these workload admins at Specialized, so PIM Monitor is stricter than the Microsoft baseline here on purpose.
+1. **isPrivileged floor** - If `roleDefinition.isPrivileged = true` in Microsoft Graph: Privileged. This is the only authoritative per-role value Microsoft publishes, and nothing can lower it.
+2. **Blast-radius escalation** - Permissions that grant full data-plane control over an entire workload (all mailboxes, all sites, all source code) warrant Privileged even when Microsoft does not flag the role. This is a deliberate hardening: Microsoft's security-levels doc would place these workload admins at Specialized, so PIM Monitor is stricter than the Microsoft baseline here on purpose.
+3. **Otherwise the permissions decide** - Actions that administer a bounded service or change identity, security or access configuration: Specialized. Read-only, end-user, default or low-impact support actions: Enterprise.
 
-3. **Plane mapping** - Management plane: Specialized. Control plane non-reader/non-governance: Specialized. Control plane reader/governance/default: Enterprise. Data plane: Enterprise.
-
-**Plane** is derived from role name and description against EAM definitions. Microsoft does not publish an official per-role EAM plane mapping; the assignments here are heuristic and always reviewable.
+The per-role result is `docs-site/src/data/eam-role-catalog.json`, the single source. Microsoft publishes no per-role EAM plane, so the assignments are reviewed judgement and each role carries a note where the call is contentious.
 
 ## EAM planes
 
@@ -77,7 +78,8 @@ The scanner derives the notification severity from the security level: Privilege
 - The `roles[]` array uses Microsoft's well-known directory role template IDs. Add or remove roles; `displayName` is informational and not used for matching.
 - Tighten or loosen `expectedConfig` per your organization's maturity.
 - The complete `expectedConfig` field reference is in [`docs-site/docs/access-model/setup-compliance.mdx`](../../docs-site/docs/access-model/setup-compliance.mdx).
-- The authoritative classification reference for all 145 built-in roles is the single source of truth [`docs/eam-pim-classification.md`](../../docs/eam-pim-classification.md) (the rules) plus the generated catalog `docs-site/src/data/eam-role-catalog.json` (per-role). The older `docs/PIM-EAM-Mapping-v2.xlsx` is legacy and may be stale.
+- The authoritative classification for all 145 built-in roles is the hand-maintained catalog `docs-site/src/data/eam-role-catalog.json`. The role lists in these starter files are generated from it by `docs-site/scripts/Build-EamCatalog.ps1`, and `tests/EamCatalog.Tests.ps1` fails when they disagree. To change a classification, edit the catalog and run the script. Do not edit the generated role lists by hand.
+- The same catalog is published for other tools as `https://pimmonitor.com/catalog/v1/eam-catalog.json`, described by [`schemas/eam-catalog-v1.json`](../../schemas/eam-catalog-v1.json).
 
 ## PIM Groups
 

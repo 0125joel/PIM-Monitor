@@ -184,12 +184,18 @@
   text-decoration: none;
 }
 
+.heroMeta {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: 4px;
+}
+
 .heroTag {
   font-family: var(--pm-font-mono);
   font-size: 11px;
   color: var(--hp-text-3);
   letter-spacing: 0.1em;
-  margin-left: 4px;
 }
 
 /* ── Notification card ── */

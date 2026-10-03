@@ -1,7 +1,7 @@
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
-import { APP_VERSION } from '../constants';
+import { APP_VERSION, CATALOG_VERSION } from '../constants';
 import JsonLd from '../components/JsonLd';
 
 const softwareApplicationSchema = {
@@ -164,7 +164,10 @@ export default function Home(): JSX.Element {
                 >
                   View on GitHub
                 </a>
-                <span className={styles.heroTag}>v{APP_VERSION} · MIT</span>
+                <span className={styles.heroMeta}>
+                  <span className={styles.heroTag}>v{APP_VERSION} · MIT</span>
+                  <span className={styles.heroTag}>EAM catalog {CATALOG_VERSION}</span>
+                </span>
               </div>
             </div>
             <GitLog />
