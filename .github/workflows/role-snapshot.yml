@@ -1,0 +1,129 @@
+name: Role Snapshot
+
+# Daily snapshot of the built-in Entra role definitions, from a dedicated dev tenant, and a report of
+# what changed since the catalog was last reviewed. Runs only in the upstream repository, never in forks.
+# 04:00 UTC is 06:00 CEST (05:00 CET after the clock change).
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: role-snapshot
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: write
+  issues: write
+
+jobs:
+  snapshot:
+    if: github.repository == '0125joel/PIM-Monitor'
+    runs-on: ubuntu-latest
+    environment: role-snapshot
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout main (scripts, catalog, review state)
+        uses: actions/checkout@v4
+        with:
+          path: repo
+          fetch-depth: 0
+
+      - name: Prepare the role-snapshot branch
+        shell: bash
+        working-directory: repo
+        run: |
+          if git fetch --quiet origin role-snapshot; then
+            git worktree add ../snapshot origin/role-snapshot
+            git -C ../snapshot checkout -B role-snapshot origin/role-snapshot
+          else
+            git worktree add --detach ../snapshot
+            git -C ../snapshot checkout --orphan role-snapshot
+            git -C ../snapshot rm -rf --quiet . || true
+          fi
+          git -C ../snapshot config user.name "github-actions[bot]"
+          git -C ../snapshot config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Authenticate to the dev tenant
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_ROLE_SNAPSHOT_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_ROLE_SNAPSHOT_TENANT_ID }}
+          allow-no-subscriptions: true
+          enable-AzPSSession: true
+
+      - name: Export built-in role definitions
+        shell: pwsh
+        run: ./repo/catalog-automation/Export-RoleDefinitions.ps1 -OutputPath ./snapshot/role-definitions
+
+      - name: Commit the snapshot when it changed
+        id: commit
+        shell: bash
+        working-directory: snapshot
+        run: |
+          git add role-definitions
+          if ! git diff --cached --quiet; then
+            git commit --quiet -m "snapshot: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push origin role-snapshot
+          fi
+          echo "head=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the last reviewed snapshot as base
+        id: base
+        shell: bash
+        run: |
+          sha=$(jq -r '.lastReviewedSnapshot // empty' repo/docs-site/src/data/eam-review-state.json)
+          mkdir -p base
+          if [ -n "$sha" ] && git -C snapshot cat-file -e "$sha^{commit}" 2>/dev/null; then
+            git -C snapshot archive "$sha" role-definitions | tar -x -C base
+            echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compare with the catalog and the last reviewed snapshot
+        shell: pwsh
+        run: |
+          ./repo/catalog-automation/Compare-RoleSnapshots.ps1 `
+            -BaseDir ./base/role-definitions -HeadDir ./snapshot/role-definitions `
+            -CatalogPath ./repo/docs-site/src/data/eam-role-catalog.json `
+            -OutputPath ./snapshot/report.json `
+            -BaseSha '${{ steps.base.outputs.sha }}' -HeadSha '${{ steps.commit.outputs.head }}'
+
+      - name: Validate the report against its schema
+        shell: pwsh
+        run: |
+          if (-not (Test-Json -Json (Get-Content -Raw ./snapshot/report.json) -SchemaFile ./repo/schemas/role-snapshot-report-v1.json)) {
+            throw 'report.json does not match schemas/role-snapshot-report-v1.json'
+          }
+
+      - name: Commit the report when it changed (ignoring the timestamp)
+        shell: bash
+        working-directory: snapshot
+        run: |
+          prev=$(git show HEAD:report.json 2>/dev/null | jq -S 'del(.generatedAt)' || echo none)
+          now=$(jq -S 'del(.generatedAt)' report.json)
+          if [ "$prev" != "$now" ]; then
+            git add report.json
+            git commit --quiet -m "report: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push origin role-snapshot
+          fi
+
+      - name: Open, update or close the role-changes issue
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create role-changes --color BFD4F2 --description "Built-in role changes waiting for catalog review" --force >/dev/null
+          needs=$(jq -r .summary.needsReview snapshot/report.json)
+          body=$(jq -r '"New roles: \(.summary.newRoles)\nRemoved roles: \(.summary.removedRoles)\nChanged roles (relevant): \(.summary.changedRoles)\nRead-only changes: \(.summary.readOnlyChanges)\n\nreport.json on the role-snapshot branch has the detail. The weekly review routine turns this into a catalog PR."' snapshot/report.json)
+          existing=$(gh issue list --label role-changes --state open --json number --jq '.[0].number // empty')
+          if [ "$needs" = "true" ]; then
+            if [ -n "$existing" ]; then gh issue edit "$existing" --body "$body" >/dev/null
+            else gh issue create --title "Role changes waiting for catalog review" --label role-changes --body "$body" >/dev/null; fi
+          elif [ -n "$existing" ]; then
+            gh issue close "$existing" --comment "The catalog is up to date with the snapshot." >/dev/null
+          fi

@@ -1,0 +1,4 @@
+{
+  "_comment": "Written by the weekly catalog review PR. lastReviewedSnapshot is the commit on the role-snapshot branch the catalog was last reviewed against. null until the first review.",
+  "lastReviewedSnapshot": null
+}
