@@ -3,7 +3,6 @@ docs-site/node_modules/
 docs-site/build/
 docs-site/.docusaurus/
 docs-site/.cache-loader/
-docs-site/package-lock.json
 
 # OS metadata
 .DS_Store
