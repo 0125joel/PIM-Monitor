@@ -69,7 +69,9 @@ jobs:
             git commit --quiet -m "snapshot: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             git push origin entra-role-export
           fi
-          echo "head=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          # The last commit that changed the role files, not HEAD: HEAD moves with every report commit,
+          # which would make report.json differ on every run.
+          echo "head=$(git log -1 --format=%H -- role-definitions)" >> "$GITHUB_OUTPUT"
 
       - name: Restore the last reviewed snapshot as base
         id: base
