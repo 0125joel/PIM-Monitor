@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-10-03T12:10:34Z",
+  "base": {
+    "sha": ""
+  },
+  "head": {
+    "sha": "86ab3e7e8151d09ee3b6dd112f9d687e4f76e50d"
+  },
+  "summary": {
+    "newRoles": 0,
+    "removedRoles": 0,
+    "changedRoles": 0,
+    "readOnlyChanges": 0,
+    "needsReview": false
+  },
+  "newRoles": [],
+  "removedRoles": [],
+  "changedRoles": []
+}
