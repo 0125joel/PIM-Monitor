@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/0125joel/PIM-Monitor/compare/v0.4.0...v0.5.0) (2026-10-03)
+
+
+### Features
+
+* publish the EAM catalog for PIM Manager and report unresolved auth contexts ([a797ad1](https://github.com/0125joel/PIM-Monitor/commit/a797ad140ff11cf2231f7f76ee2ef4ac8d5d1136))
+
 ## [0.4.0](https://github.com/0125joel/PIM-Monitor/compare/v0.3.0...v0.4.0) (2026-06-13)
 
 
