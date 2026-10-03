@@ -1,0 +1,20 @@
+{
+  "assignmentMode": "allowed",
+  "categories": null,
+  "deletedDateTime": null,
+  "description": "Deprecated - Do Not Use.",
+  "displayName": "Device Users",
+  "id": "d405c6df-0af8-4e3b-95e4-4d06e542189e",
+  "inheritsPermissionsFrom": [],
+  "inheritsPermissionsFrom@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions('d405c6df-0af8-4e3b-95e4-4d06e542189e')/inheritsPermissionsFrom",
+  "isBuiltIn": true,
+  "isEnabled": true,
+  "isPrivileged": false,
+  "resourceScopes": [
+    "/"
+  ],
+  "richDescription": null,
+  "rolePermissions": [],
+  "templateId": "d405c6df-0af8-4e3b-95e4-4d06e542189e",
+  "version": "1"
+}

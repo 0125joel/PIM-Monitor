@@ -1,0 +1,36 @@
+{
+  "assignmentMode": "allowed",
+  "categories": "identity",
+  "deletedDateTime": null,
+  "description": "Can initiate governance relationships and terminate them.",
+  "displayName": "Tenant Governance Relationship Administrator",
+  "id": "b8e31d83-1534-480f-9b10-0338ded51b7e",
+  "inheritsPermissionsFrom": [
+    {
+      "id": "88d8e3e3-8f55-4a1e-953a-9b9898b8876b"
+    }
+  ],
+  "inheritsPermissionsFrom@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions('b8e31d83-1534-480f-9b10-0338ded51b7e')/inheritsPermissionsFrom",
+  "isBuiltIn": true,
+  "isEnabled": true,
+  "isPrivileged": false,
+  "resourceScopes": [
+    "/"
+  ],
+  "richDescription": "Can manage all aspects of tenant governance relationships, except accepting requests.",
+  "rolePermissions": [
+    {
+      "allowedResourceActions": [
+        "microsoft.directory/signInReports/allProperties/read",
+        "microsoft.directory/tenantGovernance/policyTemplates/allProperties/update",
+        "microsoft.directory/tenantGovernance/policyTemplates/create",
+        "microsoft.directory/tenantGovernance/relationships/create",
+        "microsoft.directory/tenantGovernance/requests/create",
+        "microsoft.office365.webPortal/allEntities/standard/read"
+      ],
+      "condition": null
+    }
+  ],
+  "templateId": "b8e31d83-1534-480f-9b10-0338ded51b7e",
+  "version": "1"
+}

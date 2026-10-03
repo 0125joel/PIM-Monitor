@@ -1,0 +1,37 @@
+{
+  "assignmentMode": "allowed",
+  "categories": "collaboration,identity",
+  "deletedDateTime": null,
+  "description": "Manage all aspects of external user profiles in the extended directory for Teams.",
+  "displayName": "Extended Directory User Administrator",
+  "id": "dd13091a-6207-4fc0-82ba-3641e056ab95",
+  "inheritsPermissionsFrom": [
+    {
+      "id": "88d8e3e3-8f55-4a1e-953a-9b9898b8876b"
+    }
+  ],
+  "inheritsPermissionsFrom@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions('dd13091a-6207-4fc0-82ba-3641e056ab95')/inheritsPermissionsFrom",
+  "isBuiltIn": true,
+  "isEnabled": true,
+  "isPrivileged": false,
+  "resourceScopes": [
+    "/"
+  ],
+  "richDescription": null,
+  "rolePermissions": [
+    {
+      "allowedResourceActions": [
+        "microsoft.directory/externalUserProfiles/basic/update",
+        "microsoft.directory/externalUserProfiles/delete",
+        "microsoft.directory/externalUserProfiles/standard/read",
+        "microsoft.directory/pendingExternalUserProfiles/basic/update",
+        "microsoft.directory/pendingExternalUserProfiles/create",
+        "microsoft.directory/pendingExternalUserProfiles/delete",
+        "microsoft.directory/pendingExternalUserProfiles/standard/read"
+      ],
+      "condition": null
+    }
+  ],
+  "templateId": "dd13091a-6207-4fc0-82ba-3641e056ab95",
+  "version": "1"
+}

@@ -1,0 +1,48 @@
+{
+  "assignmentMode": "allowed",
+  "categories": "securityAndCompliance",
+  "deletedDateTime": null,
+  "description": "Create and manage security events and perform identity containment actions during security incidents.",
+  "displayName": "Security Operator",
+  "id": "5f2222b1-57c3-48ba-8ad5-d4759f1fde6f",
+  "inheritsPermissionsFrom": [
+    {
+      "id": "88d8e3e3-8f55-4a1e-953a-9b9898b8876b"
+    }
+  ],
+  "inheritsPermissionsFrom@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions('5f2222b1-57c3-48ba-8ad5-d4759f1fde6f')/inheritsPermissionsFrom",
+  "isBuiltIn": true,
+  "isEnabled": true,
+  "isPrivileged": true,
+  "resourceScopes": [
+    "/"
+  ],
+  "richDescription": "Users with this role can manage alerts, perform identity containment actions during security incidents, and have global read-only access on security-related feature, including all information in Microsoft Defender portal, Microsoft Entra ID Protection, Privileged Identity Management, and Microsoft Purview portal.",
+  "rolePermissions": [
+    {
+      "allowedResourceActions": [
+        "microsoft.azure.advancedThreatProtection/allEntities/allTasks",
+        "microsoft.azure.supportTickets/allEntities/allTasks",
+        "microsoft.directory/auditLogs/allProperties/read",
+        "microsoft.directory/authorizationPolicy/standard/read",
+        "microsoft.directory/bulkJobs/standard/read",
+        "microsoft.directory/cloudAppSecurity/allProperties/allTasks",
+        "microsoft.directory/identityProtection/allProperties/allTasks",
+        "microsoft.directory/privilegedIdentityManagement/allProperties/read",
+        "microsoft.directory/provisioningLogs/allProperties/read",
+        "microsoft.directory/signInReports/allProperties/read",
+        "microsoft.directory/users/disable",
+        "microsoft.directory/users/enable",
+        "microsoft.directory/users/invalidateAllRefreshTokens",
+        "microsoft.directory/users/password/update",
+        "microsoft.intune/allEntities/read",
+        "microsoft.office365.securityComplianceCenter/allEntities/allTasks",
+        "microsoft.office365.supportTickets/allEntities/allTasks",
+        "microsoft.windows.defenderAdvancedThreatProtection/allEntities/allTasks"
+      ],
+      "condition": null
+    }
+  ],
+  "templateId": "5f2222b1-57c3-48ba-8ad5-d4759f1fde6f",
+  "version": "1"
+}

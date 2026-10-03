@@ -1,0 +1,28 @@
+{
+  "assignmentMode": "allowed",
+  "categories": "identity",
+  "deletedDateTime": null,
+  "description": "Create an agent identity blueprint and its agent identity blueprint principal in a tenant. User will be added as an owner of the created agent identity blueprint and its agent identity blueprint principal.",
+  "displayName": "Agent ID Developer",
+  "id": "adb2368d-a9be-41b5-8667-d96778e081b0",
+  "inheritsPermissionsFrom": [],
+  "inheritsPermissionsFrom@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions('adb2368d-a9be-41b5-8667-d96778e081b0')/inheritsPermissionsFrom",
+  "isBuiltIn": true,
+  "isEnabled": true,
+  "isPrivileged": false,
+  "resourceScopes": [
+    "/"
+  ],
+  "richDescription": "Assign the Agent ID Developer role to users who need to do the following tasks:\n- Create an agent identity blueprint and its agent identity blueprint principal in a tenant. User will be added as an owner of the created agent identity blueprint and its agent identity blueprint principal.",
+  "rolePermissions": [
+    {
+      "allowedResourceActions": [
+        "microsoft.directory/agentIdentityBlueprints/createAsOwner",
+        "microsoft.directory/servicePrincipals/standard/read"
+      ],
+      "condition": null
+    }
+  ],
+  "templateId": "adb2368d-a9be-41b5-8667-d96778e081b0",
+  "version": "1"
+}

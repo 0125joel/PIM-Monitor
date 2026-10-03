@@ -1,0 +1,27 @@
+{
+  "assignmentMode": "allowed",
+  "categories": "identity",
+  "deletedDateTime": null,
+  "description": "Only used by Microsoft Entra Connect Sync Account.",
+  "displayName": "On Premises Directory Sync Account",
+  "id": "a92aed5d-d78a-4d16-b381-09adb37eb3b0",
+  "inheritsPermissionsFrom": [],
+  "inheritsPermissionsFrom@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions('a92aed5d-d78a-4d16-b381-09adb37eb3b0')/inheritsPermissionsFrom",
+  "isBuiltIn": true,
+  "isEnabled": true,
+  "isPrivileged": false,
+  "resourceScopes": [
+    "/"
+  ],
+  "richDescription": "This role is automatically assigned to the Microsoft Entra Connect Sync Account, and is not intended or supported for any other use.",
+  "rolePermissions": [
+    {
+      "allowedResourceActions": [
+        "microsoft.directory/onPremisesSynchronization/standard/read"
+      ],
+      "condition": null
+    }
+  ],
+  "templateId": "a92aed5d-d78a-4d16-b381-09adb37eb3b0",
+  "version": "1"
+}

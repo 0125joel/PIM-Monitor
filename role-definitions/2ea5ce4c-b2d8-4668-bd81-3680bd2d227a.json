@@ -1,0 +1,40 @@
+{
+  "assignmentMode": "allowed",
+  "categories": "devices,identity",
+  "deletedDateTime": null,
+  "description": "Provision new IoT devices, manage their lifecycle, configure certificates, and manage device templates.",
+  "displayName": "IoT Device Administrator",
+  "id": "2ea5ce4c-b2d8-4668-bd81-3680bd2d227a",
+  "inheritsPermissionsFrom": [
+    {
+      "id": "88d8e3e3-8f55-4a1e-953a-9b9898b8876b"
+    }
+  ],
+  "inheritsPermissionsFrom@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions('2ea5ce4c-b2d8-4668-bd81-3680bd2d227a')/inheritsPermissionsFrom",
+  "isBuiltIn": true,
+  "isEnabled": true,
+  "isPrivileged": false,
+  "resourceScopes": [
+    "/"
+  ],
+  "richDescription": "Assign the IoT Device Administrator role to users who need to do the following tasks:\n* Provision new IoT devices using device templates\n* Manage the lifecycle of IoT devices\n* Configure certificates used for IoT device authentication\n* Manage the lifecycle of IoT device templates",
+  "rolePermissions": [
+    {
+      "allowedResourceActions": [
+        "microsoft.directory/certificateBasedDeviceAuthConfigurations/create",
+        "microsoft.directory/certificateBasedDeviceAuthConfigurations/credentials/update",
+        "microsoft.directory/certificateBasedDeviceAuthConfigurations/delete",
+        "microsoft.directory/certificateBasedDeviceAuthConfigurations/standard/read",
+        "microsoft.directory/deviceTemplates/create",
+        "microsoft.directory/deviceTemplates/createDeviceFromTemplate",
+        "microsoft.directory/deviceTemplates/delete",
+        "microsoft.directory/deviceTemplates/deviceInstances/read",
+        "microsoft.directory/deviceTemplates/owners/read",
+        "microsoft.directory/deviceTemplates/owners/update"
+      ],
+      "condition": null
+    }
+  ],
+  "templateId": "2ea5ce4c-b2d8-4668-bd81-3680bd2d227a",
+  "version": "1"
+}

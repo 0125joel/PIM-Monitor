@@ -1,0 +1,32 @@
+{
+  "assignmentMode": "allowed",
+  "categories": "identity",
+  "deletedDateTime": null,
+  "description": "Can read all tenant governance data.",
+  "displayName": "Tenant Governance Reader",
+  "id": "e0a4caa6-fe82-443f-b92f-d87341d17b2e",
+  "inheritsPermissionsFrom": [
+    {
+      "id": "88d8e3e3-8f55-4a1e-953a-9b9898b8876b"
+    }
+  ],
+  "inheritsPermissionsFrom@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions('e0a4caa6-fe82-443f-b92f-d87341d17b2e')/inheritsPermissionsFrom",
+  "isBuiltIn": true,
+  "isEnabled": true,
+  "isPrivileged": false,
+  "resourceScopes": [
+    "/"
+  ],
+  "richDescription": "Can read all aspects of tenant governance.",
+  "rolePermissions": [
+    {
+      "allowedResourceActions": [
+        "microsoft.directory/signInReports/allProperties/read",
+        "microsoft.office365.webPortal/allEntities/standard/read"
+      ],
+      "condition": null
+    }
+  ],
+  "templateId": "e0a4caa6-fe82-443f-b92f-d87341d17b2e",
+  "version": "1"
+}

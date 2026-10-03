@@ -1,0 +1,53 @@
+{
+  "assignmentMode": "allowed",
+  "categories": "identity",
+  "deletedDateTime": null,
+  "description": "Can create application registrations independent of the 'Users can register applications' setting.",
+  "displayName": "Application Developer",
+  "id": "cf1c38e5-3621-4004-a7cb-879624dced7c",
+  "inheritsPermissionsFrom": [
+    {
+      "id": "88d8e3e3-8f55-4a1e-953a-9b9898b8876b"
+    }
+  ],
+  "inheritsPermissionsFrom@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions('cf1c38e5-3621-4004-a7cb-879624dced7c')/inheritsPermissionsFrom",
+  "isBuiltIn": true,
+  "isEnabled": true,
+  "isPrivileged": true,
+  "resourceScopes": [
+    "/"
+  ],
+  "richDescription": "Users in this role will continue to be able to register app registrations even if the Global Admin has turned off the tenant level switch for \"Users can register apps\".",
+  "rolePermissions": [
+    {
+      "allowedResourceActions": [
+        "microsoft.directory/applications/createAsOwner",
+        "microsoft.directory/oAuth2PermissionGrants/createAsOwner",
+        "microsoft.directory/servicePrincipals/createAsOwner"
+      ],
+      "condition": null
+    },
+    {
+      "allowedResourceActions": [
+        "microsoft.directory/applications/appRoles/update",
+        "microsoft.directory/applications/audience/update",
+        "microsoft.directory/applications/authentication/update",
+        "microsoft.directory/applications/basic/update",
+        "microsoft.directory/applications/credentials/update",
+        "microsoft.directory/applications/delete",
+        "microsoft.directory/applications/disablement/update",
+        "microsoft.directory/applications/extensionProperties/update",
+        "microsoft.directory/applications/notes/update",
+        "microsoft.directory/applications/owners/update",
+        "microsoft.directory/applications/permissions/update",
+        "microsoft.directory/applications/policies/update",
+        "microsoft.directory/applications/tag/update",
+        "microsoft.directory/applications/verification/update",
+        "microsoft.directory/deletedItems.applications/delete"
+      ],
+      "condition": "$SubjectIsOwner"
+    }
+  ],
+  "templateId": "cf1c38e5-3621-4004-a7cb-879624dced7c",
+  "version": "1"
+}

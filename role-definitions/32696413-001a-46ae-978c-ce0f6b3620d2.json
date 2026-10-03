@@ -1,0 +1,31 @@
+{
+  "assignmentMode": "allowed",
+  "categories": "collaboration,identity",
+  "deletedDateTime": null,
+  "description": "Can create and manage all aspects of Windows Update deployments through the Windows Update for Business deployment service.",
+  "displayName": "Windows Update Deployment Administrator",
+  "id": "32696413-001a-46ae-978c-ce0f6b3620d2",
+  "inheritsPermissionsFrom": [
+    {
+      "id": "88d8e3e3-8f55-4a1e-953a-9b9898b8876b"
+    }
+  ],
+  "inheritsPermissionsFrom@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions('32696413-001a-46ae-978c-ce0f6b3620d2')/inheritsPermissionsFrom",
+  "isBuiltIn": true,
+  "isEnabled": true,
+  "isPrivileged": false,
+  "resourceScopes": [
+    "/"
+  ],
+  "richDescription": "Users in this role can create and manage all aspects of Windows Update deployments through the Windows Update for Business deployment service. The deployment service enables users to define settings for when and how updates are deployed and specify which updates are offered to groups of devices in their tenant. It also allows users to monitor the update progress.",
+  "rolePermissions": [
+    {
+      "allowedResourceActions": [
+        "microsoft.windows.updatesDeployments/allEntities/allProperties/allTasks"
+      ],
+      "condition": null
+    }
+  ],
+  "templateId": "32696413-001a-46ae-978c-ce0f6b3620d2",
+  "version": "1"
+}
