@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "catalogVersion": "2026-10-03",
-  "publishedAt": "2026-10-03T00:00:00Z",
+  "catalogVersion": "2026-10-03.1",
+  "publishedAt": "2026-10-03T15:20:12Z",
   "source": {
     "repository": "https://github.com/0125joel/PIM-Monitor",
     "path": "docs-site/src/data/eam-role-catalog.json"
@@ -58,7 +58,7 @@
     {
       "templateId": "d2562ede-74db-457e-a7b6-544e236ebb61",
       "displayName": "AI Administrator",
-      "plane": "Management",
+      "plane": "Control",
       "securityLevel": "Privileged",
       "isPrivileged": true,
       "expectedConfig": {
@@ -68,7 +68,7 @@
         "requireJustification": true,
         "requireApproval": true
       },
-      "note": null,
+      "note": "isPrivileged. Writes agent identities, agent identity blueprints and OAuth2 permission grants, which gate access, so the plane is Control like Agent ID Administrator.",
       "reviewNeeded": false
     },
     {
@@ -2077,15 +2077,16 @@
       "templateId": "b8e31d83-1534-480f-9b10-0338ded51b7e",
       "displayName": "Tenant Governance Relationship Administrator",
       "plane": "Control",
-      "securityLevel": "Enterprise",
+      "securityLevel": "Specialized",
       "isPrivileged": false,
       "expectedConfig": {
-        "maxActivationDuration": "PT8H",
+        "maxActivationDuration": "PT4H",
         "requireMFA": true,
+        "authContext": "phish-resistant-no-sif",
         "requireJustification": true,
-        "requireApproval": false
+        "requireApproval": true
       },
-      "note": null,
+      "note": "Creates tenantGovernance relationships, requests and policy templates, which shape cross-tenant access. Writing access-shaping configuration is Specialized, like Tenant Governance Administrator; the readers stay Enterprise.",
       "reviewNeeded": false
     },
     {

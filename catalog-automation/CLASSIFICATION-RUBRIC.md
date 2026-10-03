@@ -83,6 +83,15 @@ After the isPrivileged floor:
   for an admin role: a role that writes something that shapes identity or access is at least
   Specialized.
 
+## Privileged comes from two places only
+
+In the catalog, Privileged is reached in exactly two ways: Microsoft's `isPrivileged` flag (34 roles)
+or the workload escalation above (11 roles). No role that Microsoft does not flag is Privileged because
+of its identity control. Tenant-wide identity or security control that Microsoft does not flag is
+Specialized: Authentication Policy Administrator writes tenant-wide authentication settings and has as
+many actions as Authentication Administrator, but only the latter is flagged, so only the latter is
+Privileged. Do not assign Privileged to an unflagged role on the strength of its identity actions.
+
 ## Tie-breakers
 
 1. Identity and security actions outrank workload actions. A role that writes `conditionalAccessPolicies`
@@ -127,6 +136,11 @@ After the isPrivileged floor:
 | On Premises Directory Sync Account | Control | Specialized | Service-account-only role; read-only, but no human should hold it |
 | Partner Tier2 Support | Control | Privileged | Microsoft-internal "do not use" role; any assignment is a finding |
 | Teams Reader | Data | Enterprise | Only reads the Teams workload; a workload reader is Data |
+| SharePoint Advanced Management Administrator | Management | Specialized | Holds sharePoint allTasks and backup, but is a scoped sub-role like SharePoint Backup Administrator, not the full administrator |
+| Entra Backup Administrator | Management | Specialized | Backup roles (Microsoft 365, Exchange, SharePoint, Entra) are Management and Specialized |
+| Authentication Policy Administrator | Control | Specialized | Tenant-wide authentication settings, but not flagged isPrivileged, so not Privileged |
+| Tenant Governance Relationship Administrator | Control | Specialized | Writes tenantGovernance relationships and policy templates; access-shaping write is Specialized |
+| AI Administrator | Control | Privileged | isPrivileged; writes agent identities and permission grants, so Control like Agent ID Administrator |
 | Attribute Definition Administrator | Control | Specialized | Writes `customSecurityAttributeDefinitions`; access-shaping write is Specialized |
 
 ## Output per role

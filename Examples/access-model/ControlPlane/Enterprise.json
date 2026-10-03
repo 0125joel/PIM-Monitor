@@ -17,7 +17,6 @@
     { "id": "2af84b1e-32c8-42b7-82bc-daa82404023b", "displayName": "Restricted Guest User" },
     { "id": "112ca1a2-15ad-4102-995e-45b0bc479a6a", "displayName": "Tenant Creator" },
     { "id": "e0a4caa6-fe82-443f-b92f-d87341d17b2e", "displayName": "Tenant Governance Reader" },
-    { "id": "b8e31d83-1534-480f-9b10-0338ded51b7e", "displayName": "Tenant Governance Relationship Administrator" },
     { "id": "124577f8-48ed-456a-839f-13b419002e33", "displayName": "Tenant Governance Relationship Reader" },
     { "id": "a0b1b346-4d3e-4e8b-98f8-753987be4970", "displayName": "User" }
   ],
