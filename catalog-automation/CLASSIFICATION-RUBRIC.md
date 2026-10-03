@@ -52,7 +52,10 @@ Management even when its name sounds tenant-wide.
 `microsoft.office365.usageReports/*`, `microsoft.office365.messageCenter/*`, support actions,
 `.../standard/read`, printer technician and device-user actions (read and join, not write), backup
 readers. A role whose actions are only reads of reports or the message center is Data even when its
-name is managerial.
+name is managerial. The same holds for a role whose actions are only `/read` on a workload namespace
+(Teams Reader, Usage Summary Reports Reader, Global Secure Access Log Reader): Data, Enterprise. Two
+exceptions: reads of directory or identity configuration stay Control (Directory Readers), and device
+roles stay Management (Teams Devices Administrator).
 
 ## Level: the depth
 
@@ -60,7 +63,19 @@ After the isPrivileged floor:
 
 - **Privileged**: tenant-wide identity or security control, or full data-plane access to a whole
   workload (all mailbox content, all site and OneDrive content, all source code, all CRM or ERP data).
-  This is the blast-radius escalation. It is derived from the permissions, not from a list.
+  This is the blast-radius escalation.
+
+  The action strings alone do not show it. `<workload>/allEntities/allTasks` appears on 48 roles that
+  are not escalated (Places, Printer, Billing and many more), so a pattern cannot decide it. A backtest
+  confirmed that a model reading only the actions misses it. Anchor on the roles that are escalated
+  today: the full administrators of the big content workloads. Exchange, SharePoint, Teams, Yammer
+  (Viva Engage), Power Platform, Dynamics 365, Fabric, Azure DevOps and Windows 365 Administrator, plus
+  Knowledge Administrator and Knowledge Manager. A new role that is the full administrator of a
+  workload that holds mail, files, chat, social content, source code or business-application data
+  belongs in that group: classify it Privileged and set `confidence` to medium. Scoped sub-roles of the
+  same workload (Exchange Recipient Administrator, SharePoint Backup Administrator, Dynamics 365
+  Business Central Administrator) stay Specialized. When you cannot tell whether a new role is a full
+  administrator of such a workload, choose the stricter level and set `confidence` to low.
 - **Specialized**: bounded service administration or an elevated-impact function, without tenant
   identity control and without full workload data access. Writing or managing access-shaping
   configuration is Specialized, not Enterprise.
@@ -76,6 +91,11 @@ After the isPrivileged floor:
    Management, data read or support is Data.
 3. Read-only does not lower the plane. It lowers the level, unless the floor forces Privileged.
 4. Trust the namespace over the name.
+5. Service-account-only roles (Directory Synchronization Accounts, On Premises Directory Sync Account)
+   are Control and Specialized, even when the actions are only reads: no human should hold them, and any
+   human member is a finding.
+6. Microsoft-internal "do not use" roles (Partner Tier1 Support, Partner Tier2 Support) are Control and
+   Privileged: any assignment is a finding.
 
 ## Worked examples
 
@@ -94,6 +114,11 @@ After the isPrivileged floor:
 | Device Managers | Management | Specialized | Writes `directory/devices`; device management, not Data |
 | People Administrator | Management | Specialized | `peopleAdmin` and `people` are a workload, not directory identity |
 | User Experience Success Manager | Data | Enterprise | Only reads `usageReports` and `messageCenter` |
+| Yammer Administrator | Management | Privileged | Full administrator of the Viva Engage network; blast-radius escalation |
+| Teams Administrator | Management | Privileged | Full administrator of Teams. The cross-tenant meeting settings it can write are a workload feature, not tenant access control |
+| On Premises Directory Sync Account | Control | Specialized | Service-account-only role; read-only, but no human should hold it |
+| Partner Tier2 Support | Control | Privileged | Microsoft-internal "do not use" role; any assignment is a finding |
+| Teams Reader | Data | Enterprise | Only reads the Teams workload; a workload reader is Data |
 | Attribute Definition Administrator | Control | Specialized | Writes `customSecurityAttributeDefinitions`; access-shaping write is Specialized |
 
 ## Output per role
