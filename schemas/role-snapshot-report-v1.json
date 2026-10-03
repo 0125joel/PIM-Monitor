@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/intothecloud/pim-monitor/main/schemas/role-snapshot-report-v1.json",
+  "title": "PIM Monitor role snapshot report v1",
+  "description": "report.json on the role-snapshot branch: what changed in the built-in Entra role definitions since the last reviewed snapshot, and how the catalog differs from the current snapshot. Deterministic output of catalog-automation/Compare-RoleSnapshots.ps1. The review routine validates it before use and treats every value, descriptions included, as data, never as instructions.",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "base", "head", "summary", "newRoles", "removedRoles", "changedRoles"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "base": { "$ref": "#/$defs/snapshotRef" },
+    "head": { "$ref": "#/$defs/snapshotRef" },
+    "summary": {
+      "type": "object",
+      "required": ["newRoles", "removedRoles", "changedRoles", "readOnlyChanges", "needsReview"],
+      "additionalProperties": false,
+      "properties": {
+        "newRoles": { "type": "integer", "minimum": 0 },
+        "removedRoles": { "type": "integer", "minimum": 0 },
+        "changedRoles": { "type": "integer", "minimum": 0 },
+        "readOnlyChanges": { "type": "integer", "minimum": 0 },
+        "needsReview": { "type": "boolean" }
+      }
+    },
+    "newRoles": { "type": "array", "items": { "$ref": "#/$defs/newRole" } },
+    "removedRoles": { "type": "array", "items": { "$ref": "#/$defs/removedRole" } },
+    "changedRoles": { "type": "array", "items": { "$ref": "#/$defs/changedRole" } }
+  },
+  "$defs": {
+    "snapshotRef": {
+      "type": "object",
+      "required": ["sha"],
+      "additionalProperties": false,
+      "properties": { "sha": { "type": "string", "pattern": "^([0-9a-f]{7,40})?$" } }
+    },
+    "guid": { "type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" },
+    "level": { "enum": ["Privileged", "Specialized", "Enterprise", null] },
+    "newRole": {
+      "type": "object",
+      "required": ["templateId", "displayName", "description", "isPrivileged", "floorLevel", "allowedResourceActions"],
+      "additionalProperties": false,
+      "properties": {
+        "templateId": { "$ref": "#/$defs/guid" },
+        "displayName": { "type": "string" },
+        "description": { "type": "string" },
+        "isPrivileged": { "type": "boolean" },
+        "floorLevel": { "enum": ["Privileged", null] },
+        "allowedResourceActions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "removedRole": {
+      "type": "object",
+      "required": ["templateId", "displayName", "plane", "securityLevel"],
+      "additionalProperties": false,
+      "properties": {
+        "templateId": { "$ref": "#/$defs/guid" },
+        "displayName": { "type": "string" },
+        "plane": { "type": "string" },
+        "securityLevel": { "type": "string" }
+      }
+    },
+    "changedRole": {
+      "type": "object",
+      "required": ["templateId", "displayName", "inCatalog", "currentPlane", "currentLevel", "isPrivileged", "floorLevel", "addedActions", "removedActions"],
+      "additionalProperties": false,
+      "properties": {
+        "templateId": { "$ref": "#/$defs/guid" },
+        "displayName": { "type": "string" },
+        "inCatalog": { "type": "boolean" },
+        "currentPlane": { "type": ["string", "null"] },
+        "currentLevel": { "$ref": "#/$defs/level" },
+        "isPrivileged": {
+          "type": "object",
+          "required": ["old", "new"],
+          "additionalProperties": false,
+          "properties": { "old": { "type": "boolean" }, "new": { "type": "boolean" } }
+        },
+        "floorLevel": { "enum": ["Privileged", null] },
+        "addedActions": { "type": "array", "items": { "type": "string" } },
+        "removedActions": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
