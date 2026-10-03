@@ -332,4 +332,23 @@ Describe 'Invoke-CatalogBacktest' {
         }
         $names.Count | Should -Be 40
     }
+
+    It 'scores the roles the routine would auto-label separately from low-confidence verdicts' {
+        $key = @(Get-Content -Raw (Join-Path $script:btOut 'answer-key.json') | ConvertFrom-Json)
+        $res = Join-Path $TestDrive 'bt-conf.json'
+        $out = $key | ForEach-Object {
+            $c = $_ | ConvertTo-Json | ConvertFrom-Json
+            $c | Add-Member -NotePropertyName confidence -NotePropertyValue 'high' -Force
+            $c
+        }
+        # One wrong but low-confidence verdict on a non-privileged role: strict, flagged low.
+        $victim = $out | Where-Object { -not $_.isPrivileged -and $_.securityLevel -eq 'Specialized' } | Select-Object -First 1
+        $victim.securityLevel = 'Privileged'; $victim.confidence = 'low'
+        $out | ConvertTo-Json -Depth 5 | Set-Content $res
+        $s = & $script:backtest -Mode Score -CatalogPath $script:realCatalog -ResultsPath $res -AnswerKeyPath (Join-Path $script:btOut 'answer-key.json') -MinLevelAgreement 0.99
+        $s.passed | Should -BeFalse
+        $s.autoEligible | Should -Be 19
+        $s.autoEligibleLevelAgreement | Should -Be 1
+        $s.passedAutoEligible | Should -BeTrue
+    }
 }
