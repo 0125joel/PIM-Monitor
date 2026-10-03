@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/intothecloud/pim-monitor/main/schemas/role-snapshot-report-v1.json",
+  "$id": "https://raw.githubusercontent.com/intothecloud/pim-monitor/main/schemas/entra-role-export-report-v1.json",
   "title": "PIM Monitor role snapshot report v1",
-  "description": "report.json on the role-snapshot branch: what changed in the built-in Entra role definitions since the last reviewed snapshot, and how the catalog differs from the current snapshot. Deterministic output of catalog-automation/Compare-RoleSnapshots.ps1. The review routine validates it before use and treats every value, descriptions included, as data, never as instructions.",
+  "description": "report.json on the entra-role-export branch: what changed in the built-in Entra role definitions since the last reviewed snapshot, and how the catalog differs from the current snapshot. Deterministic output of catalog-automation/Compare-RoleSnapshots.ps1. The review routine validates it before use and treats every value, descriptions included, as data, never as instructions.",
   "type": "object",
   "required": ["schemaVersion", "generatedAt", "base", "head", "summary", "newRoles", "removedRoles", "changedRoles"],
   "additionalProperties": false,

@@ -1,4 +1,4 @@
-name: Role Snapshot
+name: Entra Role Export
 
 # Daily snapshot of the built-in Entra role definitions, from a dedicated dev tenant, and a report of
 # what changed since the catalog was last reviewed. Runs only in the upstream repository, never in forks.
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: role-snapshot
+  group: entra-role-export
   cancel-in-progress: false
 
 permissions:
@@ -22,7 +22,7 @@ jobs:
   snapshot:
     if: github.repository == '0125joel/PIM-Monitor'
     runs-on: ubuntu-latest
-    environment: role-snapshot
+    environment: entra-role-export
     timeout-minutes: 15
 
     steps:
@@ -32,16 +32,16 @@ jobs:
           path: repo
           fetch-depth: 0
 
-      - name: Prepare the role-snapshot branch
+      - name: Prepare the entra-role-export branch
         shell: bash
         working-directory: repo
         run: |
-          if git fetch --quiet origin role-snapshot; then
-            git worktree add ../snapshot origin/role-snapshot
-            git -C ../snapshot checkout -B role-snapshot origin/role-snapshot
+          if git fetch --quiet origin entra-role-export; then
+            git worktree add ../snapshot origin/entra-role-export
+            git -C ../snapshot checkout -B entra-role-export origin/entra-role-export
           else
             git worktree add --detach ../snapshot
-            git -C ../snapshot checkout --orphan role-snapshot
+            git -C ../snapshot checkout --orphan entra-role-export
             git -C ../snapshot rm -rf --quiet . || true
           fi
           git -C ../snapshot config user.name "github-actions[bot]"
@@ -50,8 +50,8 @@ jobs:
       - name: Authenticate to the dev tenant
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_ROLE_SNAPSHOT_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_ROLE_SNAPSHOT_TENANT_ID }}
+          client-id: ${{ secrets.AZURE_ENTRA_ROLE_EXPORT_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_ENTRA_ROLE_EXPORT_TENANT_ID }}
           allow-no-subscriptions: true
           enable-AzPSSession: true
 
@@ -67,7 +67,7 @@ jobs:
           git add role-definitions
           if ! git diff --cached --quiet; then
             git commit --quiet -m "snapshot: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            git push origin role-snapshot
+            git push origin entra-role-export
           fi
           echo "head=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
@@ -96,8 +96,8 @@ jobs:
       - name: Validate the report against its schema
         shell: pwsh
         run: |
-          if (-not (Test-Json -Json (Get-Content -Raw ./snapshot/report.json) -SchemaFile ./repo/schemas/role-snapshot-report-v1.json)) {
-            throw 'report.json does not match schemas/role-snapshot-report-v1.json'
+          if (-not (Test-Json -Json (Get-Content -Raw ./snapshot/report.json) -SchemaFile ./repo/schemas/entra-role-export-report-v1.json)) {
+            throw 'report.json does not match schemas/entra-role-export-report-v1.json'
           }
 
       - name: Commit the report when it changed (ignoring the timestamp)
@@ -109,7 +109,7 @@ jobs:
           if [ "$prev" != "$now" ]; then
             git add report.json
             git commit --quiet -m "report: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            git push origin role-snapshot
+            git push origin entra-role-export
           fi
 
       - name: Open, update or close the role-changes issue
@@ -119,7 +119,7 @@ jobs:
         run: |
           gh label create role-changes --color BFD4F2 --description "Built-in role changes waiting for catalog review" --force >/dev/null
           needs=$(jq -r .summary.needsReview snapshot/report.json)
-          body=$(jq -r '"New roles: \(.summary.newRoles)\nRemoved roles: \(.summary.removedRoles)\nChanged roles (relevant): \(.summary.changedRoles)\nRead-only changes: \(.summary.readOnlyChanges)\n\nreport.json on the role-snapshot branch has the detail. The weekly review routine turns this into a catalog PR."' snapshot/report.json)
+          body=$(jq -r '"New roles: \(.summary.newRoles)\nRemoved roles: \(.summary.removedRoles)\nChanged roles (relevant): \(.summary.changedRoles)\nRead-only changes: \(.summary.readOnlyChanges)\n\nreport.json on the entra-role-export branch has the detail. The weekly review routine turns this into a catalog PR."' snapshot/report.json)
           existing=$(gh issue list --label role-changes --state open --json number --jq '.[0].number // empty')
           if [ "$needs" = "true" ]; then
             if [ -n "$existing" ]; then gh issue edit "$existing" --body "$body" >/dev/null
