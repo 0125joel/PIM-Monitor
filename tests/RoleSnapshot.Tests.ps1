@@ -7,7 +7,7 @@ BeforeAll {
     $script:export = Join-Path $script:repoRoot 'catalog-automation/Export-RoleDefinitions.ps1'
     $script:compare = Join-Path $script:repoRoot 'catalog-automation/Compare-RoleSnapshots.ps1'
     $script:gate = Join-Path $script:repoRoot 'catalog-automation/Test-CatalogChangeIsAutoSafe.ps1'
-    $script:schema = Join-Path $script:repoRoot 'schemas/role-snapshot-report-v1.json'
+    $script:schema = Join-Path $script:repoRoot 'schemas/entra-role-export-report-v1.json'
     $script:realCatalog = Join-Path $script:repoRoot 'docs-site/src/data/eam-role-catalog.json'
     $script:realDefaults = Join-Path $script:repoRoot 'docs-site/src/data/eam-catalog-defaults.json'
 

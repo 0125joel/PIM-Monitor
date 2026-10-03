@@ -1,7 +1,7 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Compares two role snapshots and the catalog, and writes report.json (schemas/role-snapshot-report-v1.json).
+    Compares two role snapshots and the catalog, and writes report.json (schemas/entra-role-export-report-v1.json).
 
 .DESCRIPTION
     Deterministic: no judgement here. The routine that reads the report decides plane and level.

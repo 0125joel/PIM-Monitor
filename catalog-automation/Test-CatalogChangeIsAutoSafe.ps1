@@ -30,7 +30,7 @@
     Repo-relative paths changed by the PR.
 
 .PARAMETER SnapshotDir
-    Current role snapshot (role-snapshot branch). When given, the catalog must agree with it:
+    Current role snapshot (entra-role-export branch). When given, the catalog must agree with it:
     every snapshot role is listed with the same isPrivileged value. This stops a proposal from
     leaving a privileged role at a lower level by copying the flag wrongly.
 
