@@ -102,14 +102,14 @@ jobs:
             throw 'report.json does not match schemas/entra-role-export-report-v1.json'
           }
 
-      - name: Commit the report when it changed (ignoring the timestamp)
+      - name: Commit the report on every run
         shell: bash
         working-directory: snapshot
         run: |
-          prev=$(git show HEAD:report.json 2>/dev/null | jq -S 'del(.generatedAt)' || echo none)
-          now=$(jq -S 'del(.generatedAt)' report.json)
-          if [ "$prev" != "$now" ]; then
-            git add report.json
+          # The weekly review reads generatedAt to tell whether the export still runs (36-hour limit). It must
+          # change on every run, even when no role changed, so the report is committed every day.
+          git add report.json
+          if ! git diff --cached --quiet; then
             git commit --quiet -m "report: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             git push origin entra-role-export
           fi
