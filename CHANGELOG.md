@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.1](https://github.com/0125joel/PIM-Monitor/compare/v0.6.0...v0.6.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* apply the email severity filter to subject, counts and every section, and render scan errors as Outlook-safe tables ([cfb54bc](https://github.com/0125joel/PIM-Monitor/commit/cfb54bc89b8224f8721f9d82b4171cb9dcfda6e1))
+* list permanent directory role assignments once, not also under active ([cfb54bc](https://github.com/0125joel/PIM-Monitor/commit/cfb54bc89b8224f8721f9d82b4171cb9dcfda6e1))
+* push inventory changes to branches whose name contains a slash ([cfb54bc](https://github.com/0125joel/PIM-Monitor/commit/cfb54bc89b8224f8721f9d82b4171cb9dcfda6e1))
+
 ## [0.6.0](https://github.com/0125joel/PIM-Monitor/compare/v0.5.0...v0.6.0) (2026-11-02)
 
 
