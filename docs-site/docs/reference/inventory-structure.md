@@ -120,6 +120,8 @@ PIM policy assignment with expanded rules:
 }
 ```
 
+`active` holds the PIM activations and the time-bound direct assignments. Permanent direct assignments are listed once, under `permanent`. Microsoft also returns them from the schedules endpoint, and the scan drops them from `active` so they do not appear twice.
+
 ## PIM Groups
 
 ```

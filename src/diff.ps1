@@ -65,6 +65,47 @@ $script:DefaultCategorySeverity  = "Medium"   # unknown assignment category type
 # storing it creates spurious commits on every scan run.
 $script:AssignmentNoisePaths = @('scheduleInfo.startDateTime')
 
+function Test-PermanentScheduleEntry {
+    <#
+    .SYNOPSIS
+        True when a roleAssignmentSchedules entry is a permanent direct assignment.
+
+    .DESCRIPTION
+        Graph returns permanent assignments in roleAssignmentSchedules too, with
+        assignmentType 'Assigned' and expiration 'noExpiration'. Those are already listed
+        under permanent, so they are dropped from active. PIM activations ('Activated') and
+        time-bound direct assignments keep a finite expiration and are kept.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [AllowNull()]
+        $Entry
+    )
+
+    if ($null -eq $Entry) { return $false }
+
+    $assignmentType = Get-EntryField -Object $Entry -Name 'assignmentType'
+    $scheduleInfo   = Get-EntryField -Object $Entry -Name 'scheduleInfo'
+    $expiration     = Get-EntryField -Object $scheduleInfo -Name 'expiration'
+    $expirationType = Get-EntryField -Object $expiration -Name 'type'
+
+    return ($assignmentType -eq 'Assigned' -and $expirationType -eq 'noExpiration')
+}
+
+function Get-EntryField {
+    # Reads a field from a PSCustomObject (Graph responses) or a hashtable, StrictMode-safe.
+    [CmdletBinding()]
+    param(
+        [AllowNull()] $Object,
+        [Parameter(Mandatory)] [string] $Name
+    )
+
+    if ($null -eq $Object) { return $null }
+    if ($Object -is [System.Collections.IDictionary]) { return $Object[$Name] }
+    return $Object.PSObject.Properties[$Name]?.Value
+}
+
 function Test-ObjectEqual {
     [CmdletBinding()]
     param(

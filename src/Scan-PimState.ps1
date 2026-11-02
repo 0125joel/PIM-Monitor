@@ -439,6 +439,12 @@ try {
 
         $folderPath = New-InventoryFolder -Workload "directory-roles" -Slug $result.slug
 
+        # roleAssignmentSchedules also returns permanent (direct, no-expiration) assignments.
+        # Those are already listed under permanent, so drop them from active to avoid duplicates.
+        # Runs here, not inside the -Parallel block: functions from diff.ps1 are not loaded there.
+        $result.assignments['active'] = @(($result.assignments['active'] ?? @()) |
+            Where-Object { -not (Test-PermanentScheduleEntry -Entry $_) })
+
         # Normalize before diff and write: strips heartbeat fields (scheduleInfo.startDateTime)
         # that Microsoft updates every ~30 min without any user action.
         $cleanAssignments = Remove-AssignmentNoise -Assignments $result.assignments

@@ -79,7 +79,8 @@ function Publish-InventoryChanges {
                     throw "Rebase failed after fetch — manual intervention required"
                 }
             }
-            $pushOutput = git push origin "HEAD:$targetBranch" 2>&1
+            # Full refname: a short "HEAD:feature/x" is ambiguous for branch names with a slash.
+            $pushOutput = git push origin "HEAD:refs/heads/$targetBranch" 2>&1
             if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
             Write-Warning "Push attempt $attempt failed: $pushOutput"
         }
