@@ -34,3 +34,6 @@ tests/output/
 # Environment variables (if used)
 .env.local
 .env.*.local
+
+# Persoonlijke Claude Code-notities, nooit committen (validate-context.py faalt op een getrackte kopie)
+CLAUDE.local.md
