@@ -8,10 +8,6 @@
 * apply the email severity filter to subject, counts and every section, and render scan errors as Outlook-safe tables ([cfb54bc](https://github.com/0125joel/PIM-Monitor/commit/cfb54bc89b8224f8721f9d82b4171cb9dcfda6e1))
 * list permanent directory role assignments once, not also under active ([cfb54bc](https://github.com/0125joel/PIM-Monitor/commit/cfb54bc89b8224f8721f9d82b4171cb9dcfda6e1))
 * push inventory changes to branches whose name contains a slash ([cfb54bc](https://github.com/0125joel/PIM-Monitor/commit/cfb54bc89b8224f8721f9d82b4171cb9dcfda6e1))
-* read the release subject from the GitHub API in CI ([6d02ac5](https://github.com/0125joel/PIM-Monitor/commit/6d02ac5dee0520d63793ba57b8df0b87ab06ef46))
-* release commits list every dev change for release-please ([6d02ac5](https://github.com/0125joel/PIM-Monitor/commit/6d02ac5dee0520d63793ba57b8df0b87ab06ef46))
-* release release-2026-11-02-g ([6d02ac5](https://github.com/0125joel/PIM-Monitor/commit/6d02ac5dee0520d63793ba57b8df0b87ab06ef46))
-* release release-2026-11-02-g ([c66de2e](https://github.com/0125joel/PIM-Monitor/commit/c66de2ea06d225e096f57e4da775fcdc32d91a67))
 
 ## [0.6.0](https://github.com/0125joel/PIM-Monitor/compare/v0.5.0...v0.6.0) (2026-11-02)
 
