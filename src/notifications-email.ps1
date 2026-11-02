@@ -2,36 +2,75 @@ function Build-EmailSubject {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)] $ChangesBySeverity,
-        [Parameter(Mandatory)] [int] $RelevantCount,
-        [int] $CoverageCount = 0,
+        [ValidateSet('High', 'Medium', 'Low', 'Informational')]
+        [string] $MinSeverity = 'Medium',
         [string] $TenantName
     )
 
+    $emailChanges = Get-EmailChangesAtMinimumSeverity -ChangesBySeverity $ChangesBySeverity -MinSeverity $MinSeverity
+    $relevantCount = $emailChanges.Total
+    $coverageCount = $emailChanges.Coverage.Count
     $sevParts = @()
-    if ($ChangesBySeverity.High.Count -gt 0)          { $sevParts += "$($ChangesBySeverity.High.Count) High" }
-    if ($ChangesBySeverity.Medium.Count -gt 0)        { $sevParts += "$($ChangesBySeverity.Medium.Count) Medium" }
-    if ($ChangesBySeverity.Low.Count -gt 0)           { $sevParts += "$($ChangesBySeverity.Low.Count) Low" }
-    if ($ChangesBySeverity.Informational.Count -gt 0) { $sevParts += "$($ChangesBySeverity.Informational.Count) Info" }
-    if ($CoverageCount -gt 0)                         { $sevParts += "$CoverageCount Classification" }
+    if ($emailChanges.High.Count -gt 0)          { $sevParts += "$($emailChanges.High.Count) High" }
+    if ($emailChanges.Medium.Count -gt 0)        { $sevParts += "$($emailChanges.Medium.Count) Medium" }
+    if ($emailChanges.Low.Count -gt 0)           { $sevParts += "$($emailChanges.Low.Count) Low" }
+    if ($emailChanges.Informational.Count -gt 0) { $sevParts += "$($emailChanges.Informational.Count) Info" }
+    if ($coverageCount -gt 0)                         { $sevParts += "$coverageCount Classification" }
 
     $tenantTag = if ($TenantName) { "$TenantName" } else { 'PIM Monitor' }
     $prefix    = if ($TenantName) { "[PIM Monitor] ${tenantTag}: " } else { '[PIM Monitor] ' }
 
     # Lead with the highest severity present so triage is immediate from the inbox
-    $top = if     ($ChangesBySeverity.High.Count    -gt 0) { @{ Label = 'HIGH';   Count = $ChangesBySeverity.High.Count } }
-           elseif ($ChangesBySeverity.Medium.Count  -gt 0) { @{ Label = 'MEDIUM'; Count = $ChangesBySeverity.Medium.Count } }
-           elseif ($ChangesBySeverity.Low.Count     -gt 0) { @{ Label = 'LOW';    Count = $ChangesBySeverity.Low.Count } }
-           elseif ($CoverageCount -gt 0)                   { @{ Label = 'CLASSIFICATION'; Count = $CoverageCount } }
-           elseif ($ChangesBySeverity.Informational.Count -gt 0) { @{ Label = 'INFO'; Count = $ChangesBySeverity.Informational.Count } }
+    $top = if     ($emailChanges.High.Count    -gt 0) { @{ Label = 'HIGH';   Count = $emailChanges.High.Count } }
+           elseif ($emailChanges.Medium.Count  -gt 0) { @{ Label = 'MEDIUM'; Count = $emailChanges.Medium.Count } }
+           elseif ($emailChanges.Low.Count     -gt 0) { @{ Label = 'LOW';    Count = $emailChanges.Low.Count } }
+           elseif ($coverageCount -gt 0)                   { @{ Label = 'CLASSIFICATION'; Count = $coverageCount } }
+           elseif ($emailChanges.Informational.Count -gt 0) { @{ Label = 'INFO'; Count = $emailChanges.Informational.Count } }
            else { $null }
 
-    $s = if ($RelevantCount -eq 1) { 'change' } else { 'changes' }
+    $s = if ($relevantCount -eq 1) { 'change' } else { 'changes' }
 
     if ($top) {
         $detail = if ($sevParts.Count -gt 1) { " ($($sevParts -join ', '))" } else { '' }
-        return "${prefix}$($top.Label) severity, $RelevantCount $s$detail"
+        return "${prefix}$($top.Label) severity, $relevantCount $s$detail"
     }
-    return "${prefix}$RelevantCount $s"
+    return "${prefix}$relevantCount $s"
+}
+
+function Get-EmailChangesAtMinimumSeverity {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] $ChangesBySeverity,
+        [ValidateSet('High', 'Medium', 'Low', 'Informational')]
+        [string] $MinSeverity = 'Medium'
+    )
+
+    $emailChanges = [ordered]@{
+        High          = @()
+        Medium        = @()
+        Low           = @()
+        Informational = @()
+        Coverage      = @()
+        Total         = 0
+    }
+
+    foreach ($severity in $script:SeverityOrder) {
+        if ($script:SeverityRank[$severity] -ge $script:SeverityRank[$MinSeverity]) {
+            $items = $ChangesBySeverity[$severity]
+            if ($items) { $emailChanges[$severity] = @($items) }
+        }
+    }
+
+    if ($script:SeverityRank['Medium'] -ge $script:SeverityRank[$MinSeverity]) {
+        $coverageItems = $ChangesBySeverity['Coverage']
+        if ($coverageItems) { $emailChanges.Coverage = @($coverageItems) }
+    }
+
+    foreach ($severity in $script:SeverityOrder) {
+        $emailChanges.Total += $emailChanges[$severity].Count
+    }
+    $emailChanges.Total += $emailChanges.Coverage.Count
+    return $emailChanges
 }
 
 function Send-EmailNotification {
@@ -48,17 +87,8 @@ function Send-EmailNotification {
         [string] $TenantName
     )
 
-    # Coverage violations always count as Medium regardless of MinSeverity
-    $relevantCount = 0
-    foreach ($sev in $script:SeverityOrder) {
-        if ($script:SeverityRank[$sev] -ge $script:SeverityRank[$MinSeverity]) {
-            $relevantCount += $ChangesBySeverity.$sev.Count
-        }
-    }
-    $covCount = if ($ChangesBySeverity['Coverage']) { $ChangesBySeverity.Coverage.Count } else { 0 }
-    if ($script:SeverityRank['Medium'] -ge $script:SeverityRank[$MinSeverity]) {
-        $relevantCount += $covCount
-    }
+    $emailChanges = Get-EmailChangesAtMinimumSeverity -ChangesBySeverity $ChangesBySeverity -MinSeverity $MinSeverity
+    $relevantCount = $emailChanges.Total
 
     if ($relevantCount -eq 0) {
         Write-Host "  No changes at or above $MinSeverity severity — skipping email"
@@ -66,17 +96,18 @@ function Send-EmailNotification {
     }
 
     $commitUrl = if ($CommitSha) { Get-CommitDiffUrl -CommitSha $CommitSha } else { $null }
+    $reportUrl = Get-ArtifactReportUrl
     $htmlBody = Build-EmailChangeHtml `
         -ChangesBySeverity $ChangesBySeverity `
         -MinSeverity $MinSeverity `
         -CommitUrl $commitUrl `
+        -ReportUrl $reportUrl `
         -AuthContextLookup $AuthContextLookup `
         -TenantName $TenantName
 
     $subject = Build-EmailSubject `
         -ChangesBySeverity $ChangesBySeverity `
-        -RelevantCount $relevantCount `
-        -CoverageCount $covCount `
+        -MinSeverity $MinSeverity `
         -TenantName $TenantName
 
     $payload = @{
@@ -127,11 +158,10 @@ function Build-ScanErrorEmailHtml {
         $compE  = [System.Web.HttpUtility]::HtmlEncode($err.Component)
         $errE   = [System.Web.HttpUtility]::HtmlEncode($truncatedError)
 
-        $rows += "<tr><td style=`"padding:2px 32px;`">" +
-            "<details style=`"border-left:3px solid #ef4444;background-color:#fef2f2;border-radius:0 3px 3px 0;`">" +
-            "<summary style=`"padding:10px 14px;cursor:pointer;list-style:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;color:#1a1a1a;`">$compE</summary>" +
-            "<div style=`"padding:4px 14px 10px;border-top:1px solid #d4d4d4;font-family:'Courier New','Lucida Console',monospace;font-size:11px;color:#b91c1c;line-height:1.6;`">$errE</div>" +
-            "</details></td></tr>"
+        $rows += "<tr><td style=`"padding:2px 32px;`"><table role=`"presentation`" width=`"100%`" cellpadding=`"0`" cellspacing=`"0`" border=`"0`" style=`"border-left:3px solid #ef4444;background-color:#fef2f2;`">" +
+            "<tr><td style=`"padding:10px 14px 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;color:#1a1a1a;`">$compE</td></tr>" +
+            "<tr><td style=`"padding:4px 14px 10px;border-top:1px solid #d4d4d4;font-family:'Courier New','Lucida Console',monospace;font-size:11px;color:#b91c1c;line-height:1.6;word-break:break-word;`">$errE</td></tr>" +
+            "</table></td></tr>"
     }
     $rowsHtml = $rows -join ''
 
@@ -184,6 +214,9 @@ $rowsHtml
 .PARAMETER CommitUrl
     Optional URL to link to the scan commit.
 
+.PARAMETER ReportUrl
+    Optional URL to the current pipeline run's HTML report artifact.
+
 .PARAMETER TenantName
     Optional tenant display name, shown in header and preheader for triage.
 #>
@@ -194,6 +227,7 @@ function Build-EmailChangeHtml {
         [ValidateSet('High', 'Medium', 'Low', 'Informational')]
         [string] $MinSeverity = 'Medium',
         [string] $CommitUrl,
+        [string] $ReportUrl,
         [hashtable] $AuthContextLookup = @{},
         [string] $TenantName
     )
@@ -202,29 +236,31 @@ function Build-EmailChangeHtml {
     $sevBorder     = @{ High = '#ef4444'; Medium = '#d97706'; Low = '#22c55e'; Informational = '#737373' }
     $sevBgLight    = @{ High = '#fef2f2'; Medium = '#fffbeb'; Low = '#f0fdf4'; Informational = '#f9fafb' }
     $sevLabelLight = @{ High = '#b91c1c'; Medium = '#92400e'; Low = '#166534'; Informational = '#374151' }
+    $sevGlyph      = @{ High = '[!!]'; Medium = '[!]'; Low = '[~]'; Informational = '[·]' }
 
+    $emailChanges = Get-EmailChangesAtMinimumSeverity -ChangesBySeverity $ChangesBySeverity -MinSeverity $MinSeverity
     $timestamp = Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ'
-    $hi  = $ChangesBySeverity.High.Count
-    $med = $ChangesBySeverity.Medium.Count
-    $lo  = $ChangesBySeverity.Low.Count
-    $inf = $ChangesBySeverity.Informational.Count
-    $cov = if ($ChangesBySeverity['Coverage']) { $ChangesBySeverity.Coverage.Count } else { 0 }
-    $tot = $ChangesBySeverity.Total
+    $hi  = $emailChanges.High.Count
+    $med = $emailChanges.Medium.Count
+    $lo  = $emailChanges.Low.Count
+    $inf = $emailChanges.Informational.Count
+    $cov = $emailChanges.Coverage.Count
+    $tot = $emailChanges.Total
 
     # Stat row: only colorize counts that are > 0; mute zeros
     $hiColor  = if ($hi  -gt 0) { '#b91c1c' } else { '#a3a3a3' }
     $medColor = if ($med -gt 0) { '#92400e' } else { '#a3a3a3' }
     $loColor  = if ($lo  -gt 0) { '#166534' } else { '#a3a3a3' }
-    $covColor = if ($cov -gt 0) { '#1d4ed8' } else { '#a3a3a3' }
+    $covColor = if ($cov -gt 0) { '#525252' } else { '#a3a3a3' }
 
     # Shared HashSet (defined at the top of this file).
     $complianceTypes = $script:ComplianceFileTypes
 
-    # Split counts for the stats row second line (unfiltered, like Total/High/Med/Low)
+    # Split the filtered counts for the stats row second line.
     $gitCount = 0
     $complianceCount = 0
     foreach ($sev in $script:SeverityOrder) {
-        foreach ($chg in $ChangesBySeverity.$sev) {
+        foreach ($chg in $emailChanges[$sev]) {
             $ft = $chg['fileType']
             if ($ft -and $complianceTypes.Contains($ft)) { $complianceCount++ } else { $gitCount++ }
         }
@@ -277,7 +313,7 @@ function Build-EmailChangeHtml {
         return ''
     }
 
-    # Renders a single change entry as a collapsible <details> table row.
+    # Renders a single change entry as an always-expanded table row.
     # $oldLabel / $newLabel are passed explicitly so each rendering pass controls labels independently.
     $renderChangeItem = {
         param($change, $bc, $bg, [string]$oldLabel, [string]$newLabel)
@@ -387,7 +423,7 @@ function Build-EmailChangeHtml {
     $gitRows = @()
     foreach ($severity in $script:SeverityOrder) {
         if ($script:SeverityRank[$severity] -lt $script:SeverityRank[$MinSeverity]) { continue }
-        $gitItems = @($ChangesBySeverity.$severity | Where-Object { -not $complianceTypes.Contains($_['fileType']) })
+        $gitItems = @($emailChanges[$severity] | Where-Object { -not $complianceTypes.Contains($_['fileType']) })
         if ($gitItems.Count -eq 0) { continue }
         $hasGitChanges = $true
 
@@ -397,7 +433,7 @@ function Build-EmailChangeHtml {
         $sevClass = "pm-sev-$($severity.ToLower())"
 
         $labelStyle = "font-family:'Courier New','Lucida Console',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:$lc;"
-        $gitRows += "<tr><td style=`"padding:14px 32px 6px;`"><div class=`"$sevClass`" style=`"$labelStyle`">$severity ($($gitItems.Count))</div></td></tr>"
+        $gitRows += "<tr><td style=`"padding:14px 32px 6px;`"><div class=`"$sevClass`" style=`"$labelStyle`">$($sevGlyph[$severity]) $severity ($($gitItems.Count))</div></td></tr>"
 
         foreach ($change in @($gitItems | Sort-Object { $_['changeType'] })) {
             $gitRows += & $renderChangeItem $change $bc $bg 'was' 'changed to'
@@ -421,7 +457,7 @@ function Build-EmailChangeHtml {
         $rows += & $renderSubLabel 'Compliance'
         foreach ($severity in $script:SeverityOrder) {
             if ($script:SeverityRank[$severity] -lt $script:SeverityRank[$MinSeverity]) { continue }
-            $compItems = @($ChangesBySeverity.$severity | Where-Object { $complianceTypes.Contains($_['fileType']) })
+            $compItems = @($emailChanges[$severity] | Where-Object { $complianceTypes.Contains($_['fileType']) })
             if ($compItems.Count -eq 0) { continue }
 
             $bc  = $sevBorder[$severity]
@@ -430,7 +466,7 @@ function Build-EmailChangeHtml {
             $sevClass = "pm-sev-$($severity.ToLower())"
 
             $labelStyle = "font-family:'Courier New','Lucida Console',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:$lc;"
-            $rows += "<tr><td style=`"padding:14px 32px 6px;`"><div class=`"$sevClass`" style=`"$labelStyle`">$severity ($($compItems.Count))</div></td></tr>"
+            $rows += "<tr><td style=`"padding:14px 32px 6px;`"><div class=`"$sevClass`" style=`"$labelStyle`">$($sevGlyph[$severity]) $severity ($($compItems.Count))</div></td></tr>"
 
             foreach ($change in @($compItems | Sort-Object { $_['changeType'] })) {
                 $rows += & $renderChangeItem $change $bc $bg 'actual' 'expected'
@@ -444,7 +480,7 @@ function Build-EmailChangeHtml {
         $rows += & $renderSubLabel "Coverage ($cov)"
         $rows += "<tr><td class=`"pm-muted`" style=`"padding:0 32px 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:11px;color:#737373;`">Roles in inventory not in any access model definition. Add to <code>AccessModel/*.json</code> or <code>AccessModel/coverage-exclusions.json</code> to suppress.</td></tr>"
 
-        foreach ($change in @($ChangesBySeverity.Coverage | Sort-Object { $_['context'] })) {
+        foreach ($change in @($emailChanges.Coverage | Sort-Object { $_['context'] })) {
             $ctx  = [System.Web.HttpUtility]::HtmlEncode($change['context'])
             $id   = if ($change['entity']) { [System.Web.HttpUtility]::HtmlEncode($change['entity']) } else { '' }
             $rows += "<tr><td style=`"padding:1px 32px;`">" +
@@ -460,6 +496,7 @@ function Build-EmailChangeHtml {
 
     # Bulletproof button (table + VML for Outlook desktop). Renders inside an outer <tr>.
     $buttonHtml = ''
+    $secondaryReportHtml = ''
     if ($CommitUrl) {
         $safeUrl   = [System.Web.HttpUtility]::HtmlAttributeEncode($CommitUrl)
         $btnColor  = '#d97706'
@@ -477,11 +514,36 @@ function Build-EmailChangeHtml {
   <!--<![endif]-->
 </td></tr>
 "@
+        if ($ReportUrl) {
+            $safeReportUrl = [System.Web.HttpUtility]::HtmlAttributeEncode($ReportUrl)
+            $secondaryReportHtml = @"
+<tr><td style="padding:8px 32px 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;">
+  <a href="$safeReportUrl" style="color:#92400e;text-decoration:underline;">Open HTML report</a>
+</td></tr>
+"@
+        }
+    } elseif ($ReportUrl) {
+        $safeUrl   = [System.Web.HttpUtility]::HtmlAttributeEncode($ReportUrl)
+        $btnColor  = '#d97706'
+        $btnLabel  = 'Open HTML report'
+        $buttonHtml = @"
+<tr><td style="padding:16px 32px 4px;">
+  <!--[if mso]>
+  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="$safeUrl" style="height:36px;v-text-anchor:middle;width:160px;" arcsize="10%" strokecolor="$btnColor" fillcolor="$btnColor">
+    <w:anchorlock/>
+    <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;letter-spacing:1px;">$btnLabel</center>
+  </v:roundrect>
+  <![endif]-->
+  <!--[if !mso]><!-- -->
+  <a href="$safeUrl" style="background-color:$btnColor;border:1px solid $btnColor;border-radius:4px;color:#ffffff;display:inline-block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;line-height:36px;text-align:center;text-decoration:none;width:160px;-webkit-text-size-adjust:none;">$btnLabel</a>
+  <!--<![endif]-->
+</td></tr>
+"@
     }
 
     # Executive summary: one sentence describing the scan outcome at a glance.
     $tenantNameEnc = if ($TenantName) { [System.Web.HttpUtility]::HtmlEncode($TenantName) } else { '' }
-    $execLine = Get-ExecutiveSummaryLine -ChangesBySeverity $ChangesBySeverity -TenantName $TenantName
+    $execLine = Get-ExecutiveSummaryLine -ChangesBySeverity $emailChanges -TenantName $TenantName
     $execLine = [System.Web.HttpUtility]::HtmlEncode($execLine)
 
     # Preheader: hidden inbox-preview text (~90 chars). Format: count-by-severity + tenant.
@@ -510,8 +572,7 @@ function Build-EmailChangeHtml {
 <title>PIM Monitor change report</title>
 <style>
   /* Dark-mode overrides — !important so they beat inline color styles that older email
-     clients (and Outlook) need for baseline rendering. Severity tones (red/amber/green/zinc)
-     swap to the brighter dark-mode variants from docs/Design/visual-style-guide.md. */
+     clients (and Outlook) need for baseline rendering. Severity tones follow STYLEGUIDE.md. */
   @media (prefers-color-scheme: dark) {
     .pm-bg          { background-color: #0a0a0a !important; }
     .pm-card-bg    { background-color: #18181b !important; border-color: #27272a !important; }
@@ -524,6 +585,7 @@ function Build-EmailChangeHtml {
     .pm-sev-medium        { color: #d97706 !important; }
     .pm-sev-low           { color: #22c55e !important; }
     .pm-sev-informational { color: #a1a1aa !important; }
+    .pm-sev-coverage      { color: #a1a1aa !important; }
   }
   /* Outlook.com dark-mode targeting */
   [data-ogsc] .pm-bg          { background-color: #0a0a0a !important; }
@@ -537,6 +599,7 @@ function Build-EmailChangeHtml {
   [data-ogsc] .pm-sev-medium        { color: #d97706 !important; }
   [data-ogsc] .pm-sev-low           { color: #22c55e !important; }
   [data-ogsc] .pm-sev-informational { color: #a1a1aa !important; }
+  [data-ogsc] .pm-sev-coverage      { color: #a1a1aa !important; }
 </style>
 </head>
 <body class="pm-bg" style="margin:0;padding:0;background-color:#fafafa;">
@@ -550,21 +613,22 @@ function Build-EmailChangeHtml {
 </td></tr>
 <tr><td class="pm-band pm-border" style="padding:16px 32px;background-color:#fafafa;border-top:1px solid #e5e5e5;border-bottom:1px solid #e5e5e5;">
   <div class="pm-text" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;line-height:1.5;color:#1a1a1a;">$execLine</div>
-  <div class="pm-muted" style="font-family:'Courier New','Lucida Console',monospace;font-size:11px;color:#737373;margin-top:6px;letter-spacing:0.04em;">Scan completed $timestamp$(if ($CommitUrl) { " · commit linked below" })</div>
+  <div class="pm-muted" style="font-family:'Courier New','Lucida Console',monospace;font-size:11px;color:#737373;margin-top:6px;letter-spacing:0.04em;">Minimum severity: $MinSeverity · scan completed $timestamp$(if ($CommitUrl) { " · commit linked below" })</div>
 </td></tr>
 <tr><td class="pm-band pm-border" style="padding:14px 32px;background-color:#fafafa;border-bottom:1px solid #e5e5e5;">
   <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
     <td class="pm-muted" style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#525252;">Total <b class="pm-text" style="color:#0a0a0a;">$tot</b></td>
-    <td class="$(if ($hi  -gt 0) { 'pm-sev-high' }  else { 'pm-muted' })" style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;color:$hiColor;" aria-label="High severity count">High $hi</td>
-    <td class="$(if ($med -gt 0) { 'pm-sev-medium' } else { 'pm-muted' })" style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;color:$medColor;" aria-label="Medium severity count">Medium $med</td>
-    <td class="$(if ($lo  -gt 0) { 'pm-sev-low' }    else { 'pm-muted' })" style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;color:$loColor;" aria-label="Low severity count">Low $lo</td>
-    <td class="pm-muted" style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#525252;">Info $inf</td>
-    $(if ($cov -gt 0) { "<td class=`"pm-sev-medium`" style=`"font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;color:$covColor;`" aria-label=`"Classification coverage count`">Classification $cov</td>" })
+    <td class="$(if ($hi  -gt 0) { 'pm-sev-high' }  else { 'pm-muted' })" style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;color:$hiColor;" aria-label="High severity count">[!!] High $hi</td>
+    <td class="$(if ($med -gt 0) { 'pm-sev-medium' } else { 'pm-muted' })" style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;color:$medColor;" aria-label="Medium severity count">[!] Medium $med</td>
+    <td class="$(if ($lo  -gt 0) { 'pm-sev-low' }    else { 'pm-muted' })" style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;color:$loColor;" aria-label="Low severity count">[~] Low $lo</td>
+    <td class="pm-muted" style="padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#525252;">[·] Info $inf</td>
+    $(if ($cov -gt 0) { "<td class=`"pm-sev-coverage`" style=`"font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;color:$covColor;`" aria-label=`"Classification coverage count`">Classification $cov</td>" })
   </tr></table>
   $(if ($complianceCount -gt 0) { "<table role=`"presentation`" cellpadding=`"0`" cellspacing=`"0`" border=`"0`" style=`"margin-top:6px;`"><tr><td class=`"pm-muted`" style=`"padding-right:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:11px;color:#525252;`">Git <b class=`"pm-text`" style=`"color:#0a0a0a;`">$gitCount</b></td><td class=`"pm-muted`" style=`"font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:11px;color:#525252;`">Compliance <b class=`"pm-text`" style=`"color:#0a0a0a;`">$complianceCount</b></td></tr></table>" })
 </td></tr>
 $sectionsHtml
 $buttonHtml
+$secondaryReportHtml
 <tr><td class="pm-border" style="padding:20px 32px 24px;border-top:1px solid #e5e5e5;">
   <div class="pm-muted" style="font-family:'Courier New','Lucida Console',monospace;font-size:10px;color:#a3a3a3;letter-spacing:0.06em;">PIM Monitor · automated scan notification</div>
 </td></tr>

@@ -24,6 +24,9 @@ docs/Design/
 # Live scan state (tenant-specific; never commit to the public repo)
 # Anchored to repo root so it does not match tests/fixtures/inventory/.
 /inventory/
+!/inventory/
+/inventory/*
+!/inventory/AGENTS.md
 
 # Preview-script outputs (regeneratable via tests/scripts/Preview-*.ps1)
 tests/output/
@@ -31,4 +34,3 @@ tests/output/
 # Environment variables (if used)
 .env.local
 .env.*.local
-

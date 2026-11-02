@@ -74,6 +74,7 @@ jobs:
           NOTIFICATION_TEAMS_MENTION: ${{ vars.NOTIFICATION_TEAMS_MENTION }}
           FAIL_ON_COMPONENT_ERROR: ${{ vars.FAIL_ON_COMPONENT_ERROR }}
           REPORT_ARTIFACT: ${{ vars.REPORT_ARTIFACT }}
+          BUILD_ARTIFACTSTAGINGDIRECTORY: ${{ github.workspace }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}

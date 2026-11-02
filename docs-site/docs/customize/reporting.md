@@ -27,6 +27,8 @@ The HTML report is a comprehensive, standalone document of a complete scan. Unli
 3. Download `scan-report.html` from pipeline artifacts
 4. Open in browser
 
+When email notifications are configured, the change email includes an `Open HTML report` link when the run URL is available. The link opens the pipeline run page; the artifact appears there after the upload step completes.
+
 ## Enabling Reports
 
 ### Azure DevOps
@@ -60,8 +62,8 @@ The HTML report is a comprehensive, standalone document of a complete scan. Unli
 
 1. Go to **Actions** → **PIM Change Scan** → **[latest run]**
 2. Scroll to **Artifacts** section
-3. Click **scan-report.html**
-4. Download and open in browser
+3. Download the `pim-monitor-report` artifact
+4. Open `scan-report.html` in a browser
 
 ## Report Structure
 

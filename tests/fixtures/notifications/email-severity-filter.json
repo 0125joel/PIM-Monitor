@@ -1,0 +1,88 @@
+{
+  "High": [
+    {
+      "severity": "High",
+      "changeType": "added",
+      "description": "High change",
+      "context": "Fictional High role",
+      "fileType": "git",
+      "old": null,
+      "new": {
+        "id": "fictional-high"
+      }
+    }
+  ],
+  "Medium": [
+    {
+      "severity": "Medium",
+      "changeType": "updated",
+      "description": "Medium change",
+      "context": "Fictional Medium role",
+      "fileType": "git",
+      "old": {
+        "level": "old"
+      },
+      "new": {
+        "level": "new"
+      }
+    },
+    {
+      "severity": "Medium",
+      "changeType": "updated",
+      "description": "Compliance change",
+      "context": "Fictional Tier-0 Admins",
+      "fileType": "access-model-compliance",
+      "old": {
+        "actual": "none"
+      },
+      "new": {
+        "expected": "configured"
+      }
+    }
+  ],
+  "Low": [
+    {
+      "severity": "Low",
+      "changeType": "updated",
+      "description": "Low change",
+      "context": "Fictional Low role",
+      "fileType": "git",
+      "old": {
+        "value": "old"
+      },
+      "new": {
+        "value": "new"
+      }
+    }
+  ],
+  "Informational": [
+    {
+      "severity": "Informational",
+      "changeType": "updated",
+      "description": "Informational change",
+      "context": "Fictional Information role",
+      "fileType": "git",
+      "old": {
+        "value": "old"
+      },
+      "new": {
+        "value": "new"
+      }
+    }
+  ],
+  "Coverage": [
+    {
+      "severity": "Coverage",
+      "changeType": "added",
+      "description": "Coverage gap",
+      "context": "Fictional unclassified role",
+      "entity": "fictional-role-id",
+      "fileType": "access-model-coverage",
+      "old": null,
+      "new": {
+        "id": "fictional-role-id"
+      }
+    }
+  ],
+  "Total": 6
+}

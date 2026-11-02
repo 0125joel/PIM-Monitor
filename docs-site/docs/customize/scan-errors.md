@@ -117,9 +117,10 @@ Subject: `[PIM Monitor] Scan completed with errors (2 component(s) failed)`
 HTML body:
 - Red header (to distinguish from regular change notifications)
 - Count of failed components
-- List of each failed component with truncated error message (~200 characters)
+- Always-expanded table card for each failed component, with a truncated error message (about 200 characters)
 - Timestamp
-- Collapsible details for each error
+
+The email uses table-based cards instead of `<details>` and `<summary>`, because classic Outlook does not reliably render disclosure controls.
 
 **Example email:**
 ```
@@ -128,11 +129,11 @@ HTML body:
 2 component(s) failed. Partial scan data may be incomplete.
 2026-04-27T18:42:15Z
 
-▶ Directory Role: Global Administrator
-  Error: The operation timed out. No response was received from the remote server.
+Directory Role: Global Administrator
+Error: The operation timed out. No response was received from the remote server.
 
-▶ Activation Events
-  Error: AuditLog.Read.All permission not granted. User does not have permissions...
+Activation Events
+Error: AuditLog.Read.All permission not granted. User does not have permissions...
 ```
 
 #### Teams Adaptive Card

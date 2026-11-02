@@ -114,11 +114,11 @@ Complete reference of all environment variables that PIM Monitor recognizes.
 - **Default**: Unset (disabled)
 - **Behavior**:
   - Only published when changes are detected
-  - Stored in `BUILD_ARTIFACTSTAGINGDIRECTORY` (Azure DevOps) or artifacts folder (GitHub Actions)
+  - Written to `BUILD_ARTIFACTSTAGINGDIRECTORY`; GitHub Actions maps this path to the workspace before uploading `scan-report.html`
   - Report includes severity breakdown, detailed change listing, and diffs
   - Cannot be disabled once enabled: no `false` value needed
-  - When enabled, the Slack notification adds an **Open HTML Report** button linking to the pipeline run page (Azure DevOps Build Results or GitHub Actions run). Teams gets the same treatment in a future phase.
-- **Requirements**: Azure DevOps artifact staging directory must be available
+  - When a run URL is available, the change email, Slack, Discord and generic webhook notifications link to the pipeline run page. Teams cards do not currently include this report link.
+- **Requirements**: The pipeline must provide `BUILD_ARTIFACTSTAGINGDIRECTORY`. Azure DevOps supplies it; GitHub Actions maps it to the workspace.
 - **See also**: [Reporting & Artifacts](./reporting.md)
 
 ### **EAM_COVERAGE_SCOPE**

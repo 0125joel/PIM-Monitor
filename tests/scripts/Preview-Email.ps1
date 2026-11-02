@@ -41,16 +41,16 @@ $html = Build-EmailChangeHtml `
     -ChangesBySeverity $changes `
     -MinSeverity 'Low' `
     -CommitUrl 'https://github.com/example/repo/commit/a1b2c3d4e5' `
+    -ReportUrl 'https://github.com/example/repo/actions/runs/12345' `
     -TenantName 'Contoso Demo'
 
 $outPath = Join-Path $PSScriptRoot '../output/email-preview.html'
+New-Item -ItemType Directory -Path (Split-Path $outPath -Parent) -Force | Out-Null
 Set-Content -Path $outPath -Value $html -Encoding UTF8
 
-$relevantCount = ($changes.High.Count + $changes.Medium.Count + $changes.Low.Count + $changes.Informational.Count + $changes.Coverage.Count)
 $subject = Build-EmailSubject `
     -ChangesBySeverity $changes `
-    -RelevantCount $relevantCount `
-    -CoverageCount $changes.Coverage.Count `
+    -MinSeverity 'Low' `
     -TenantName 'Contoso Demo'
 
 Write-Host "Preview written: $outPath"

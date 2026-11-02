@@ -28,7 +28,7 @@ Configure email notifications for PIM Monitor scan results.
 Formatted to enable triage from the inbox without opening the email. The highest severity present leads, followed by tenant name and a breakdown.
 
 ```
-[PIM Monitor] Contoso: HIGH severity, 7 changes (3 High, 2 Medium, 1 Low, 1 Classification)
+[PIM Monitor] Contoso: HIGH severity, 6 changes (3 High, 2 Medium, 1 Classification)
 ```
 
 When no tenant name is available (older deployments), the prefix falls back to `[PIM Monitor] `.
@@ -38,7 +38,7 @@ When no tenant name is available (older deployments), the prefix falls back to `
 A hidden span at the top of the body that most mail clients show next to the subject in the inbox list. Format:
 
 ```
-3H / 2M / 1L / 1C detected in Contoso at 2026-05-21T11:36:24Z
+3H / 2M / 1C detected in Contoso at 2026-05-21T11:36:24Z
 ```
 
 ### Header
@@ -58,7 +58,7 @@ Scan completed 2026-05-21T11:36:24Z, commit linked below.
 
 ### Severity counts
 
-A compact row showing Total / High / Medium / Low / Info, with non-zero severities color-coded and zeros muted. A secondary Git vs Compliance split is shown when compliance findings are present.
+A compact row shows Total / High / Medium / Low / Info, with non-zero severities color-coded and zeros muted. A secondary Git vs Compliance split appears when compliance findings are present. The subject, preheader, executive summary, counts and visible sections all use the same `NOTIFICATION_MIN_SEVERITY` threshold. Coverage is included at `Medium` or lower and excluded at `High`. PIM Monitor skips the change email when no matching changes remain.
 
 ### Change cards
 
@@ -74,6 +74,8 @@ Sections are grouped by severity, then split into Git changes (with `was` / `cha
 
 A standards-compliant button with a VML fallback for Outlook desktop. Links to the scan commit in GitHub or Azure DevOps when `CommitSha` is available.
 
+When `REPORT_ARTIFACT=true` and a run URL is available, the email adds an `Open HTML report` link. `View diff` remains the primary button when a commit exists.
+
 ### Dark mode
 
 The body declares `color-scheme: light dark` and includes both a `prefers-color-scheme: dark` media query and an Outlook.com `[data-ogsc]` selector. In dark-mode-capable clients (Apple Mail, iOS Mail, Outlook 2019+, Outlook.com), the email switches to the dark palette: `#0a0a0a` background, `#e5e5e5` text, `#27272a` borders.
@@ -87,10 +89,7 @@ The body declares `color-scheme: light dark` and includes both a `prefers-color-
 
 ### Footer
 
-Scan metadata:
-- **Scanned entities**: Count of roles, groups, units checked
-- **Scan time**: When the scan ran (ISO 8601 UTC)
-- **Commit SHA**: Git commit hash (if pushed)
+The footer identifies PIM Monitor as the automated sender. The scan timestamp appears below the executive summary; the commit and report links appear when available.
 
 ## Customizing Email Format
 

@@ -7,6 +7,8 @@ BeforeAll {
     . (Join-Path -Path $srcPath -ChildPath "diff.ps1")
     . (Join-Path -Path $srcPath -ChildPath "notifications-shared.ps1")
     . (Join-Path -Path $srcPath -ChildPath "notifications-email.ps1")
+    $script:emailSeverityFixture = Get-Content (Join-Path -Path $PSScriptRoot -ChildPath "fixtures/notifications/email-severity-filter.json") -Raw |
+        ConvertFrom-Json -AsHashtable
 }
 
 Describe "Get-InventoryFileUrl" {
@@ -15,6 +17,19 @@ Describe "Get-InventoryFileUrl" {
         $script:savedBranchEnv = @{
             BUILD_SOURCEBRANCHNAME = $env:BUILD_SOURCEBRANCHNAME
             GITHUB_REF_NAME        = $env:GITHUB_REF_NAME
+        }
+
+        It "renders the report link beside the commit button" {
+            $html = Build-EmailChangeHtml `
+                -ChangesBySeverity $script:fixture `
+                -MinSeverity Low `
+                -CommitUrl 'https://example.com/commit/abc' `
+                -ReportUrl 'https://example.com/run?view=artifacts'
+
+            $html | Should -Match 'View diff'
+            $html | Should -Match 'Open HTML report'
+            $html | Should -Match 'href="https://example\.com/commit/abc"'
+            $html | Should -Match 'href="https://example\.com/run\?view=artifacts"'
         }
     }
 
@@ -133,33 +148,57 @@ Describe "Build-EmailSubject" {
             Low           = @()
             Informational = @()
         }
-        Build-EmailSubject -ChangesBySeverity $changes -RelevantCount 3 -CoverageCount 0 -TenantName 'Contoso' |
+        Build-EmailSubject -ChangesBySeverity $changes -TenantName 'Contoso' |
             Should -BeLike '*HIGH severity*'
     }
 
     It "includes tenant name in the subject when supplied" {
         $changes = @{ High=@(@{}); Medium=@(); Low=@(); Informational=@() }
-        $subject = Build-EmailSubject -ChangesBySeverity $changes -RelevantCount 1 -CoverageCount 0 -TenantName 'Contoso'
+        $subject = Build-EmailSubject -ChangesBySeverity $changes -TenantName 'Contoso'
         $subject | Should -BeLike '*Contoso*'
     }
 
     It "omits tenant name and uses generic prefix when not supplied" {
         $changes = @{ High=@(); Medium=@(@{}); Low=@(); Informational=@() }
-        $subject = Build-EmailSubject -ChangesBySeverity $changes -RelevantCount 1 -CoverageCount 0
+        $subject = Build-EmailSubject -ChangesBySeverity $changes
         $subject.StartsWith('[PIM Monitor] ') | Should -BeTrue
         $subject | Should -Not -BeLike '*Contoso*'
     }
 
     It "falls back to CLASSIFICATION when only coverage is present" {
         $changes = @{ High=@(); Medium=@(); Low=@(); Informational=@() }
-        Build-EmailSubject -ChangesBySeverity $changes -RelevantCount 2 -CoverageCount 2 -TenantName 'Contoso' |
+        $changes.Coverage = @(@{}, @{})
+        Build-EmailSubject -ChangesBySeverity $changes -TenantName 'Contoso' |
             Should -BeLike '*CLASSIFICATION severity*'
     }
 
     It "uses singular 'change' for count of 1" {
         $changes = @{ High=@(@{}); Medium=@(); Low=@(); Informational=@() }
-        Build-EmailSubject -ChangesBySeverity $changes -RelevantCount 1 -CoverageCount 0 |
+        Build-EmailSubject -ChangesBySeverity $changes |
             Should -BeLike '*1 change*'
+    }
+
+    It "filters subject counts and coverage to the selected minimum severity" {
+        Build-EmailSubject -ChangesBySeverity $script:emailSeverityFixture -MinSeverity High |
+            Should -BeLike '*HIGH severity, 1 change*'
+        Build-EmailSubject -ChangesBySeverity $script:emailSeverityFixture -MinSeverity Medium |
+            Should -BeLike '*4 changes (1 High, 2 Medium, 1 Classification)'
+    }
+}
+
+Describe "Get-EmailChangesAtMinimumSeverity" {
+    It "filters all severity thresholds and treats Coverage as Medium" {
+        $high = Get-EmailChangesAtMinimumSeverity -ChangesBySeverity $script:emailSeverityFixture -MinSeverity High
+        $medium = Get-EmailChangesAtMinimumSeverity -ChangesBySeverity $script:emailSeverityFixture -MinSeverity Medium
+        $low = Get-EmailChangesAtMinimumSeverity -ChangesBySeverity $script:emailSeverityFixture -MinSeverity Low
+        $informational = Get-EmailChangesAtMinimumSeverity -ChangesBySeverity $script:emailSeverityFixture -MinSeverity Informational
+
+        $high.Total | Should -Be 1
+        $high.Coverage.Count | Should -Be 0
+        $medium.Total | Should -Be 4
+        $medium.Coverage.Count | Should -Be 1
+        $low.Total | Should -Be 5
+        $informational.Total | Should -Be 6
     }
 }
 
@@ -329,6 +368,29 @@ Describe "Build-EmailChangeHtml" {
         $html | Should -Match 'href="https://example\.com/commit/abc"'
     }
 
+    It "renders an HTML report link when ReportUrl is supplied" {
+        $html = Build-EmailChangeHtml -ChangesBySeverity $script:fixture -MinSeverity Low -ReportUrl 'https://example.com/run?view=artifacts'
+        $html | Should -Match 'Open HTML report'
+        $html | Should -Match 'href="https://example\.com/run\?view=artifacts"'
+    }
+
+    It "keeps counts, summary and sections aligned with the severity threshold" {
+        $html = Build-EmailChangeHtml -ChangesBySeverity $script:emailSeverityFixture -MinSeverity High
+        $html | Should -Match 'Total\s*<b[^>]*>1</b>'
+        $html | Should -Match '1 High-severity'
+        $html | Should -Match '\[!!\] High'
+        $html | Should -Match 'Minimum severity: High'
+        $html | Should -Not -Match 'Medium change|Compliance change|Coverage gap|ACCESS MODEL'
+    }
+
+    It "counts visible compliance and coverage in the filtered total" {
+        $html = Build-EmailChangeHtml -ChangesBySeverity $script:emailSeverityFixture -MinSeverity Medium
+        $html | Should -Match 'Total\s*<b[^>]*>4</b>'
+        $html | Should -Match 'Compliance change'
+        $html | Should -Match 'Coverage \(1\)'
+        $html | Should -Not -Match 'Low change|Informational change'
+    }
+
     It "omits the button block entirely when CommitUrl is null" {
         $html = Build-EmailChangeHtml -ChangesBySeverity $script:fixture -MinSeverity 'Low'
         $html | Should -Not -Match 'v:roundrect'
@@ -353,5 +415,60 @@ Describe "Build-EmailChangeHtml" {
     It "renders an executive summary line that mentions the High count" {
         $html = Build-EmailChangeHtml -ChangesBySeverity $script:fixture -MinSeverity 'Low'
         $html | Should -Match '1 High-severity'
+    }
+}
+
+Describe "Build-ScanErrorEmailHtml" {
+    It "renders error details expanded in Outlook-safe tables and encodes untrusted text" {
+        $html = Build-ScanErrorEmailHtml -ScanErrors @(
+            @{ Component = 'Role <script>'; Error = '<script>alert(1)</script>' }
+        )
+
+        $html | Should -Match 'role="presentation"'
+        $html | Should -Not -Match '<details|<summary'
+        $html | Should -Match 'Role &lt;script&gt;'
+        $html | Should -Match '&lt;script&gt;alert\(1\)&lt;/script&gt;'
+    }
+}
+
+Describe "Send-EmailNotification" {
+    BeforeEach {
+        $env:REPORT_ARTIFACT = $null
+        $env:BUILD_REPOSITORY_URI = $null
+        $env:GITHUB_SERVER_URL = $null
+        $env:GITHUB_REPOSITORY = $null
+        $env:GITHUB_RUN_ID = $null
+    }
+
+    It "skips delivery when no changes meet the minimum severity" {
+        Mock Invoke-WithRetry {}
+        $mediumOnly = @{
+            High          = @()
+            Medium        = @(@{ severity='Medium'; description='Medium change' })
+            Low           = @()
+            Informational = @()
+            Coverage      = @()
+            Total         = 1
+        }
+
+        Send-EmailNotification -ChangesBySeverity $mediumOnly `
+            -ToAddress 'monitor@example.invalid' `
+            -FromAddress 'sender@example.invalid' `
+            -AccessToken 'test-token' `
+            -MinSeverity High
+
+        Should -Invoke Invoke-WithRetry -Times 0 -Exactly
+    }
+
+    It "dispatches when at least one change meets the minimum severity" {
+        Mock Invoke-WithRetry {}
+
+        Send-EmailNotification -ChangesBySeverity $script:emailSeverityFixture `
+            -ToAddress 'monitor@example.invalid' `
+            -FromAddress 'sender@example.invalid' `
+            -AccessToken 'test-token' `
+            -MinSeverity High
+
+        Should -Invoke Invoke-WithRetry -Times 1 -Exactly
     }
 }
