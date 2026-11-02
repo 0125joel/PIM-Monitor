@@ -68,8 +68,10 @@ $script:AssignmentNoisePaths = @('scheduleInfo.startDateTime')
 function Test-ObjectEqual {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)] $Left,
-        [Parameter(Mandatory)] $Right
+        # AllowNull: a stored JSON null (e.g. "richDescription": null) is a valid value. Without it,
+        # Mandatory rejects $null and the scan fails as soon as the entity changes.
+        [Parameter(Mandatory)] [AllowNull()] $Left,
+        [Parameter(Mandatory)] [AllowNull()] $Right
     )
 
     $leftJson  = ConvertTo-DeterministicJson -InputObject $Left
