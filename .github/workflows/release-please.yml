@@ -1,15 +1,11 @@
 name: Release Please
 
+# Runs on every push to main, also empty release commits. The old paths filter skipped
+# those, so a release without a file change never opened a release PR.
 on:
   push:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'monitor-pipeline.yml'
-      - 'scan.yml'
-      - '.github/workflows/scan.yml'
-      - 'CHANGELOG.md'
-      - '.release-please-manifest.json'
+  workflow_dispatch:
 
 permissions:
   contents: write
