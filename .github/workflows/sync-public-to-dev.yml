@@ -1,0 +1,38 @@
+# Brengt wijzigingen van public main (review-routine) terug naar dev en main.
+# Draait dagelijks (schedule werkt alleen vanaf de default branch, main) en bij elke push naar dev.
+# Het sync-script staat in .github/sync/ en wordt niet gefilterd, want deze workflow moet op main.
+name: Sync public main back to dev
+
+on:
+  schedule:
+    - cron: '30 5 * * *'
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mirror-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == '0125joel/PIM-Monitor-private'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Bring public main into dev, then fast-forward main
+        env:
+          PUBLIC_REPO_TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          bash .github/sync/public-to-dev.sh
