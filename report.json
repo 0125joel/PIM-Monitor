@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-11-12T04:08:14Z",
+  "generatedAt": "2026-11-13T04:08:51Z",
   "base": {
     "sha": ""
   },
   "head": {
-    "sha": "39c5eb2d65f66e9d046a9fb1035ff7bf04b43fb4"
+    "sha": "57767cbec65e705117ed981c4d903b14907d62b3"
   },
   "summary": {
-    "newRoles": 3,
+    "newRoles": 4,
     "removedRoles": 0,
     "changedRoles": 0,
     "readOnlyChanges": 0,
@@ -59,6 +59,14 @@
         "microsoft.directory/resourcePolicy/evaluateAssignedPolicies",
         "microsoft.directory/resourcePolicy/evaluatePolicy"
       ]
+    },
+    {
+      "templateId": "ddc7372f-4ece-4e8d-8010-1b36d9992d23",
+      "displayName": "B2B Policy Administrator",
+      "description": "Create, read, update, and delete B2B management policies, and set the tenant-default policy.",
+      "isPrivileged": false,
+      "floorLevel": null,
+      "allowedResourceActions": []
     }
   ],
   "removedRoles": [],
