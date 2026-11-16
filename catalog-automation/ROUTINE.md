@@ -1,18 +1,26 @@
 # Weekly catalog review routine
 
-Prompt for the scheduled Claude routine (cloud, weekly, Monday 07:00 CEST). It reads the role export
+Prompt for the scheduled Claude routine (cloud, weekly, Monday 05:00 UTC). It reads the role export
 report, classifies new and changed roles with `CLASSIFICATION-RUBRIC.md`, and proposes catalog changes.
 It never pushes to `main` and never merges.
 
 ## Routine configuration (set in the routine, not in this file)
 
 ```
-Follow catalog-automation/ROUTINE.md on the main branch of 0125joel/PIM-Monitor.
-MODE: dry-run
+Follow catalog-automation/ROUTINE.md as it is at commit <sha>
+(read it with: git show <sha>:catalog-automation/ROUTINE.md).
+Repository: 0125joel/PIM-Monitor.
+MODE: pr
 ```
 
-`MODE: dry-run` is the starting point (first two weeks): the routine only comments, it opens no
-pull request. Change the line to `MODE: pr` in the routine settings to go live. Nothing else changes.
+The routine is pinned to a commit, not to `main`. It reads this file and the rubric at that commit
+(step "Inputs"), so a change on `main` has no effect until the pin moves, and a bad change can be rolled
+back by moving the pin back. After every merge that changes this file or `CLASSIFICATION-RUBRIC.md`,
+set `<sha>` to that merge commit in the routine settings. Only a person can do this: the routine was
+created in the settings, and agents cannot edit it.
+
+`MODE: dry-run` only comments and opens no pull request. `MODE: pr` opens pull requests. The routine
+went live in `MODE: pr` on 2026-11-16 (see Go-live).
 
 ## Access it needs
 
@@ -63,9 +71,13 @@ Steps
    when you choose a stricter level out of doubt. A low verdict is never labelled auto. A role with no
    allowedResourceActions is always low.
 7. In your working copy: run docs-site/scripts/Build-EamCatalog.ps1, update roleCount, set
-   lastReviewedSnapshot in eam-review-state.json to report.head.sha, bump catalogVersion and
-   publishedAt in eam-catalog-defaults.json, run the Pester tests. Then run
-   catalog-automation/Test-CatalogChangeIsAutoSafe.ps1 and keep its verdict and reasons.
+   lastReviewedSnapshot in eam-review-state.json to report.head.sha, bump catalogVersion and set
+   publishedAt in eam-catalog-defaults.json to the current UTC time (date -u +%Y-%m-%dT%H:%M:%SZ, never a
+   made-up or future time), run the Pester tests. Make every edit first. Then, as the last step, run
+   catalog-automation/Test-CatalogChangeIsAutoSafe.ps1 with -SnapshotDir set to the role-definitions
+   folder of the entra-role-export branch and -ChangedFiles set to the full list from
+   `git diff --name-only origin/main` of the final working copy. Keep its verdict and reasons. A
+   verdict from a run without -SnapshotDir, or before the last edit, does not count.
 8. MODE: dry-run. Do not push. Comment on the role-changes issue: per role the verdict, the deciding
    actions, and the gate verdict you got in step 7 ("would have opened a PR, gate: merge-now").
    MODE: pr. Push `catalog-auto/<date>`, open a pull request to main titled
@@ -86,25 +98,40 @@ no changes.
 Do not touch any other file. Do not change levels[], groups[] or authContexts[] in the defaults file.
 ```
 
+## After the pull request
+
+Every new role lands with `reviewNeeded: true` and `sourceAuthority.plane: "heuristic"`, shown as
+"unreviewed" on the catalog page. The routine never clears that. A person does, per role, after
+checking the verdict: set `reviewNeeded` to false and `sourceAuthority.plane` to `"curated"`, adjust
+plane or level first if the verdict was wrong, rebuild and open a pull request. Do it in the review
+pull request itself before merging, or in a follow-up. Answer every low-confidence question from the
+pull request description before you clear a role. When a review shows that the rubric missed a
+namespace or a pattern, add it to the rubric with the role as a worked example, then follow Go-live
+step 2 before the pin moves.
+
 ## Go-live
 
-Backtest results with the rubric as of 2026-10-03, same model as the routine, blind samples of 20:
+Backtest results, same model as the routine, blind samples of 20. Round 4 used the rubric that spells
+every anchor role out in full, so `-RubricPath` leaves out every role the rubric names; rounds 1 to 3
+matched only the examples table and a hand-written exclusion list.
 
-| Round | Level | Plane | Lenient | Floor violations |
-|---|---|---|---|---|
-| 1 | 65% | 80% | 3 | 0 |
-| 2 | 75% | 85% | 0 | 0 |
-| 3 | 90% | 95% | 0 | 0 |
+| Round | Date | Seed | Level | Level (high + medium) | Plane | Lenient | Floor violations | passedAutoEligible |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 2026-10-03 | not recorded | 65% | not measured | 80% | 3 | 0 | not measured |
+| 2 | 2026-10-03 | 2 | 75% | not measured | 85% | 0 | 0 | not measured |
+| 3 | 2026-10-03 | not recorded | 90% | 94.7% (19) | 95% | 0 | 0 | yes |
+| 4 | 2026-11-16 | 4 | 85% | 94.4% (18) | 95% | 0 | 0 | yes |
 
-Round 3 passed both `passed` and `passedAutoEligible` (94.7% on the 19 verdicts with confidence high or
-medium). 20 roles is a small sample and the rubric was tuned on rounds 1 and 2, so treat round 3 as
-the first honest measurement, not as proof.
+Round 4 is recorded in `backtests/2026-11-16-seed4.json`. Its three level misses are all stricter than
+the catalog, two of them low confidence. The rubric was not changed after round 4, so it was not tuned
+on that sample. 20 roles is a small sample: treat each round as a measurement, not as proof.
 
-1. Stay in dry-run for at least two weeks. Compare the comments with your own judgement. Note that a
-   quiet tenant produces no review at all, so the backtest may be all the evidence there is.
-2. Before every rubric change, run `Invoke-CatalogBacktest.ps1` again with a new seed and
-   `-RubricPath` and `-ExcludeDisplayNames` (the roles the rubric names in prose). Go live, and stay
-   live, only while `passedAutoEligible` is true: no isPrivileged role below Privileged, nothing more
-   lenient than the catalog, and at least 90% level agreement on the high and medium verdicts.
-3. Switch the routine configuration to `MODE: pr`. The pull requests are merged by a person until
-   auto-merge exists.
+1. Stay in dry-run for at least two weeks. Done: dry-run from 2026-10-03 to 2026-11-16.
+2. Before the pin moves to a rubric change, run `Invoke-CatalogBacktest.ps1 -Mode Prepare` with a seed
+   not in the table above and `-RubricPath`. Let a fresh session that sees only `input.json`,
+   `catalog-without-sample.json` and the rubric write the verdicts; whoever wrote the rubric change has
+   seen the catalog and is not blind. Score it, add a row above and the record under `backtests/`. Go
+   live, and stay live, only while `passedAutoEligible` is true: no isPrivileged role below
+   Privileged, nothing more lenient than the catalog, and at least 90% level agreement on the high and
+   medium verdicts. Do not change the rubric to fix the misses of the same round.
+3. The pull requests are merged by a person until auto-merge exists.

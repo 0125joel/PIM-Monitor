@@ -1,0 +1,336 @@
+{
+  "round": 4,
+  "date": "2026-11-16",
+  "seed": 4,
+  "count": 20,
+  "prepare": "Invoke-CatalogBacktest.ps1 -Mode Prepare -Count 20 -Seed 4 -RubricPath catalog-automation/CLASSIFICATION-RUBRIC.md (rubric and catalog as in the pull request that adds this file)",
+  "snapshot": "entra-role-export@936d394223b733c94e0aa88db04778e2434c8970",
+  "classifier": "fresh session, same model as the routine, read only input.json, catalog-without-sample.json and the rubric",
+  "score": {
+    "roles": 20,
+    "planeAgreement": 0.95,
+    "levelAgreement": 0.85,
+    "floorViolations": [],
+    "lenient": [],
+    "strict": [
+      "Attribute Log Administrator",
+      "Organizational Branding Administrator",
+      "SharePoint Embedded Administrator"
+    ],
+    "missing": [],
+    "mismatches": [
+      "Attribute Log Administrator: level Specialized, catalog Enterprise",
+      "Cloud App Security Administrator: plane Management, catalog Control",
+      "Organizational Branding Administrator: level Specialized, catalog Enterprise",
+      "SharePoint Embedded Administrator: level Privileged, catalog Specialized"
+    ],
+    "passed": false,
+    "autoEligible": 18,
+    "autoEligibleLevelAgreement": 0.944,
+    "passedAutoEligible": true
+  },
+  "answerKey": [
+    {
+      "templateId": "5b784334-f94b-471a-a387-e7219fc49ca2",
+      "displayName": "Attribute Log Administrator",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "966707d0-3269-4727-9be2-8c3a10f19b9d",
+      "displayName": "Password Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "892c5842-a9a6-463a-8041-72aa08ca3cf6",
+      "displayName": "Cloud App Security Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "281fe777-fb20-4fbb-b7a3-ccebce5b0d96",
+      "displayName": "Microsoft Hardware Warranty Specialist",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "3a2c62db-5318-420d-8d74-23affee5d9d5",
+      "displayName": "Intune Administrator",
+      "plane": "Management",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "e6d1a23a-da11-4be4-9570-befc86d067a7",
+      "displayName": "Compliance Data Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "92ed04bf-c94a-4b82-9729-b799a7a4c178",
+      "displayName": "Organizational Branding Administrator",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3",
+      "displayName": "Application Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "3edaf663-341e-4475-9f94-5c398ef6c070",
+      "displayName": "B2C IEF Policy Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "e8cef6f1-e4bd-4ea8-bc07-4b8d950f4477",
+      "displayName": "Printer Technician",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "7698a772-787b-4ac8-901f-60d6b08affd2",
+      "displayName": "Cloud Device Administrator",
+      "plane": "Management",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "1a7d78b6-429f-476b-b8eb-35fb715fffd4",
+      "displayName": "SharePoint Embedded Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "2af84b1e-32c8-42b7-82bc-daa82404023b",
+      "displayName": "Restricted Guest User",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "b1be1c3e-b65d-4f19-8427-f6fa0d97feb9",
+      "displayName": "Conditional Access Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "0f971eea-41eb-4569-a71e-57bb8a3eff1e",
+      "displayName": "External ID User Flow Attribute Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "31e939ad-9672-4796-9c2e-873181342d2d",
+      "displayName": "Insights Business Leader",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "e300d9e7-4a2b-4295-9eff-f1c78b36cc98",
+      "displayName": "Virtual Visits Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "e0a4caa6-fe82-443f-b92f-d87341d17b2e",
+      "displayName": "Tenant Governance Reader",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "158c047a-c907-4556-b7ef-446551a6b5f7",
+      "displayName": "Cloud Application Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "6e591065-9bad-43ed-90f3-e9424366d2f0",
+      "displayName": "External ID User Flow Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    }
+  ],
+  "verdicts": [
+    {
+      "templateId": "5b784334-f94b-471a-a387-e7219fc49ca2",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "Writes customSecurityAttributeDiagnosticSettings (allTasks) and reads customSecurityAttributeAuditLogs; managing access-shaping attribute logging is a Control write, not flagged, so Specialized.",
+      "confidence": "medium",
+      "signal": "microsoft.azure.customSecurityAttributeDiagnosticSettings"
+    },
+    {
+      "templateId": "966707d0-3269-4727-9be2-8c3a10f19b9d",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "users/password/update resets credentials; isPrivileged floor sets Privileged.",
+      "confidence": "high",
+      "signal": "microsoft.directory/users/password"
+    },
+    {
+      "templateId": "892c5842-a9a6-463a-8041-72aa08ca3cf6",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "directory/cloudAppSecurity allTasks administers the Defender for Cloud Apps workload; service-bounded security workload admin, not flagged, no tenant identity control.",
+      "confidence": "medium",
+      "signal": "microsoft.directory/cloudAppSecurity"
+    },
+    {
+      "templateId": "281fe777-fb20-4fbb-b7a3-ccebce5b0d96",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "hardware.support reads plus warrantyClaims/createAsOwner and supportTickets; support function with no service configuration, lower than Warranty Administrator.",
+      "confidence": "medium",
+      "signal": "microsoft.hardware.support"
+    },
+    {
+      "templateId": "3a2c62db-5318-420d-8d74-23affee5d9d5",
+      "plane": "Management",
+      "securityLevel": "Privileged",
+      "note": "intune allTasks, cloudPC allTasks, directory/devices writes, BitLocker and LAPS reads; device/workload management; isPrivileged floor. Security group and user writes noted.",
+      "confidence": "medium",
+      "signal": "microsoft.intune"
+    },
+    {
+      "templateId": "e6d1a23a-da11-4be4-9570-befc86d067a7",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "informationProtection, complianceManager and cloudAppSecurity allTasks; Purview compliance workload administration, bounded, not flagged.",
+      "confidence": "high",
+      "signal": "microsoft.office365.complianceManager"
+    },
+    {
+      "templateId": "92ed04bf-c94a-4b82-9729-b799a7a4c178",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "loginOrganizationBranding allTasks writes the tenant sign-in page branding; part of the authentication surface, an admin write so at least Specialized. Plane uncertain (Control vs Management).",
+      "confidence": "low",
+      "signal": "microsoft.directory/loginOrganizationBranding"
+    },
+    {
+      "templateId": "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "applications/servicePrincipals create, credentials/update, oAuth2PermissionGrants allTasks, managePermissionGrantsForAll; isPrivileged floor.",
+      "confidence": "high",
+      "signal": "microsoft.directory/applications"
+    },
+    {
+      "templateId": "3edaf663-341e-4475-9f94-5c398ef6c070",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "b2cTrustFrameworkPolicy allTasks defines B2C/External ID authentication journeys; identity control write, not flagged isPrivileged, so Specialized.",
+      "confidence": "high",
+      "signal": "microsoft.directory/b2cTrustFrameworkPolicy"
+    },
+    {
+      "templateId": "e8cef6f1-e4bd-4ea8-bc07-4b8d950f4477",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "azure.print printers register/unregister/basic update and reads; printer technician actions are Data per rubric, low impact.",
+      "confidence": "high",
+      "signal": "microsoft.azure.print"
+    },
+    {
+      "templateId": "7698a772-787b-4ac8-901f-60d6b08affd2",
+      "plane": "Management",
+      "securityLevel": "Privileged",
+      "note": "directory/devices delete/enable/disable, deviceRegistrationPolicy and deviceManagementPolicies update, BitLocker and LAPS reads; device management; isPrivileged floor.",
+      "confidence": "high",
+      "signal": "microsoft.directory/devices"
+    },
+    {
+      "templateId": "1a7d78b6-429f-476b-b8eb-35fb715fffd4",
+      "plane": "Management",
+      "securityLevel": "Privileged",
+      "note": "fileStorageContainers allTasks: full admin of SharePoint Embedded file containers. Unclear if full file-workload admin or scoped SharePoint sub-role; stricter level chosen.",
+      "confidence": "low",
+      "signal": "microsoft.office365.fileStorageContainers"
+    },
+    {
+      "templateId": "2af84b1e-32c8-42b7-82bc-daa82404023b",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "note": "Default guest role: limitedRead of directory objects plus self-service authenticationMethods and password update; Control by function, Enterprise by level.",
+      "confidence": "high",
+      "signal": "microsoft.directory/users"
+    },
+    {
+      "templateId": "b1be1c3e-b65d-4f19-8427-f6fa0d97feb9",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "conditionalAccessPolicies create/update/delete, namedLocations, authenticationContext update; tenant-wide access control; isPrivileged floor.",
+      "confidence": "high",
+      "signal": "microsoft.directory/conditionalAccessPolicies"
+    },
+    {
+      "templateId": "0f971eea-41eb-4569-a71e-57bb8a3eff1e",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "b2cUserAttribute allTasks writes the user flow attribute schema; Control signal, not flagged, so Specialized.",
+      "confidence": "high",
+      "signal": "microsoft.directory/b2cUserAttribute"
+    },
+    {
+      "templateId": "31e939ad-9672-4796-9c2e-873181342d2d",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "insights/reports read and programs update; consumes and shares Insights dashboards, business data read with low-impact write.",
+      "confidence": "medium",
+      "signal": "microsoft.insights"
+    },
+    {
+      "templateId": "e300d9e7-4a2b-4295-9eff-f1c78b36cc98",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "virtualVisits allTasks administers the Virtual Visits workload; service-bounded administration, no full content workload.",
+      "confidence": "medium",
+      "signal": "microsoft.virtualVisits"
+    },
+    {
+      "templateId": "e0a4caa6-fe82-443f-b92f-d87341d17b2e",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "note": "Only signInReports read and webPortal standard read; reader of identity sign-in data and tenant governance stays Control, read-only lowers level.",
+      "confidence": "medium",
+      "signal": "microsoft.directory/signInReports"
+    },
+    {
+      "templateId": "158c047a-c907-4556-b7ef-446551a6b5f7",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "applications/servicePrincipals create, credentials/update, oAuth2PermissionGrants allTasks, managePermissionGrantsForAll; isPrivileged floor.",
+      "confidence": "high",
+      "signal": "microsoft.directory/applications"
+    },
+    {
+      "templateId": "6e591065-9bad-43ed-90f3-e9424366d2f0",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "b2cUserFlow allTasks defines External ID sign-up/sign-in flows; Control signal, not flagged, so Specialized.",
+      "confidence": "high",
+      "signal": "microsoft.directory/b2cUserFlow"
+    }
+  ]
+}

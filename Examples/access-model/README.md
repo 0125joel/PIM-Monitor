@@ -1,6 +1,6 @@
 # Access Model Examples
 
-Starter files mapping all 148 built-in Entra ID directory roles against the Microsoft Enterprise Access Model (EAM). Drop the folders into an `AccessModel/` directory in your repository root and edit the role lists to match your tenant.
+Starter files mapping every built-in Entra ID directory role against the Microsoft Enterprise Access Model (EAM). Drop the folders into an `AccessModel/` directory in your repository root and edit the role lists to match your tenant.
 
 ## Structure
 
@@ -78,7 +78,7 @@ The scanner derives the notification severity from the security level: Privilege
 - The `roles[]` array uses Microsoft's well-known directory role template IDs. Add or remove roles; `displayName` is informational and not used for matching.
 - Tighten or loosen `expectedConfig` per your organization's maturity.
 - The complete `expectedConfig` field reference is in [`docs-site/docs/access-model/setup-compliance.mdx`](../../docs-site/docs/access-model/setup-compliance.mdx).
-- The authoritative classification for all 148 built-in roles is the hand-maintained catalog `docs-site/src/data/eam-role-catalog.json`. The role lists in these starter files are generated from it by `docs-site/scripts/Build-EamCatalog.ps1`, and `tests/EamCatalog.Tests.ps1` fails when they disagree. To change a classification, edit the catalog and run the script. Do not edit the generated role lists by hand.
+- The authoritative classification for every built-in role is the hand-maintained catalog `docs-site/src/data/eam-role-catalog.json`. The role lists in these starter files are generated from it by `docs-site/scripts/Build-EamCatalog.ps1`, and `tests/EamCatalog.Tests.ps1` fails when they disagree. To change a classification, edit the catalog and run the script. Do not edit the generated role lists by hand.
 - The same catalog is published for other tools as `https://pimmonitor.com/catalog/v1/eam-catalog.json`, described by [`schemas/eam-catalog-v1.json`](../../schemas/eam-catalog-v1.json).
 
 ## PIM Groups

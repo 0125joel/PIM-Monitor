@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "catalogVersion": "2026-11-16.2",
-  "publishedAt": "2026-11-16T13:00:00Z",
+  "catalogVersion": "2026-11-16.3",
+  "publishedAt": "2026-11-16T05:49:48Z",
   "source": {
     "repository": "https://github.com/0125joel/PIM-Monitor",
     "path": "docs-site/src/data/eam-role-catalog.json"
@@ -1726,7 +1726,7 @@
         "requireApproval": true
       },
       "note": "Creates, updates and deletes resourcePolicy definitions, assignments and tenant configuration. Access-shaping write without isPrivileged is Specialized.",
-      "reviewNeeded": true
+      "reviewNeeded": false
     },
     {
       "templateId": "1dae4b79-8aea-40ab-9ad0-30d3ab1fa9c1",
@@ -1740,8 +1740,8 @@
         "requireJustification": true,
         "requireApproval": false
       },
-      "note": "Only resourcePolicy/evaluatePolicy, no read or write of definitions. Low impact. Plane confirmed Control by the maintainer on 2026-11-16.",
-      "reviewNeeded": true
+      "note": "Only resourcePolicy/evaluatePolicy, no read or write of definitions. Evaluating access policy is Control by function, not Data; low impact, so Enterprise.",
+      "reviewNeeded": false
     },
     {
       "templateId": "311877b7-9a2e-4337-81c2-068a250eaa22",
@@ -1756,7 +1756,7 @@
         "requireApproval": false
       },
       "note": "Reads resourcePolicy definitions, assignments and configuration and evaluates them. Reader of access-policy configuration stays Control; read-only lowers the level.",
-      "reviewNeeded": true
+      "reviewNeeded": false
     },
     {
       "templateId": "2af84b1e-32c8-42b7-82bc-daa82404023b",

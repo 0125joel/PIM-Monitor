@@ -333,6 +333,26 @@ Describe 'Invoke-CatalogBacktest' {
         $names.Count | Should -Be 40
     }
 
+    It 'leaves out every role the rubric names in prose, also across a line break' {
+        $rubric = Join-Path $TestDrive 'mini-rubric.md'
+        # Anchor in prose, one name broken over two lines, one only in the table; none of them may be sampled.
+        @(
+            'Anchor on SharePoint Administrator and Azure DevOps'
+            'Administrator. Exchange Recipient Administrator stays Specialized.'
+            ''
+            '| Role | Plane | Level | Why |'
+            '| Reports Reader | Data | Enterprise | example |'
+        ) | Set-Content $rubric
+        $o = Join-Path $TestDrive 'bt-prose'
+        & $script:backtest -Mode Prepare -CatalogPath $script:realCatalog -SnapshotDir $script:btSnap -OutDir $o -Count 200 -RubricPath $rubric | Out-Null
+        $names = @(Get-Content -Raw (Join-Path $o 'answer-key.json') | ConvertFrom-Json).displayName
+        foreach ($named in 'SharePoint Administrator', 'Azure DevOps Administrator', 'Exchange Recipient Administrator', 'Reports Reader') {
+            $names | Should -Not -Contain $named
+        }
+        $names | Should -Contain 'Exchange Administrator' -Because 'a name that is only part of a longer named role is not named itself'
+        $names.Count | Should -Be (@((Get-Content -Raw $script:realCatalog | ConvertFrom-Json).roles).Count - 4)
+    }
+
     It 'scores the roles the routine would auto-label separately from low-confidence verdicts' {
         $key = @(Get-Content -Raw (Join-Path $script:btOut 'answer-key.json') | ConvertFrom-Json)
         $res = Join-Path $TestDrive 'bt-conf.json'

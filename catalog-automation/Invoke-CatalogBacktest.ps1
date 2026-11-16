@@ -4,7 +4,7 @@
     Measures how well the review routine classifies roles, against the hand-reconciled catalog.
 
 .DESCRIPTION
-    The 145 roles in the catalog were reconciled by hand, so they are a ground truth. The routine
+    The roles in the catalog were reconciled by hand, so they are a ground truth. The routine
     must re-derive plane and level for a blind sample of them from the role facts alone.
 
       -Mode Prepare   picks a stratified sample, writes input.json (facts and actions, no
@@ -19,12 +19,13 @@
     because too strict is annoying and too lenient is the real risk.
 
 .PARAMETER RubricPath
-    CLASSIFICATION-RUBRIC.md. Roles in its worked-examples table are left out of the sample: the routine
-    has seen their answers, so scoring it on them would measure nothing.
+    CLASSIFICATION-RUBRIC.md. Every role the rubric names, in the worked-examples table or in the
+    prose (anchors, tie-breakers), is left out of the sample: the routine has been told about them, so
+    scoring it on them would measure nothing. Names are matched by their full display name, case-
+    sensitive, with line breaks treated as spaces, so the rubric must spell roles out in full.
 
 .PARAMETER ExcludeDisplayNames
-    More roles to leave out, for names the rubric mentions in prose (the escalation anchor) rather
-    than in the examples table.
+    More roles to leave out by name, on top of what -RubricPath finds.
 
 .PARAMETER SnapshotDir
     A role snapshot folder (role-definitions/). Supplies description and allowedResourceActions.
@@ -62,9 +63,16 @@ if ($Mode -eq 'Prepare') {
         $roles = @($roles | Where-Object { $_.displayName -notin $ExcludeDisplayNames })
     }
     if ($RubricPath) {
-        $known = @(Select-String -Path $RubricPath -Pattern '^\| (.+?) \| (Control|Management|Data) \|' | ForEach-Object { $_.Matches[0].Groups[1].Value })
+        # Leave out every role the rubric names anywhere: the worked-examples table, and the prose
+        # (anchors, tie-breakers). Whitespace is collapsed first, so a name broken over two lines
+        # still counts. A role the routine has been told about cannot measure anything.
+        $text = (Get-Content -Raw -Path $RubricPath) -replace '\s+', ' '
+        $known = @($roles | Where-Object {
+                $text -cmatch ('(?<![A-Za-z0-9])' + ([regex]::Escape($_.displayName) -replace '\\ ', ' ') + '(?![A-Za-z0-9])')
+            } | ForEach-Object displayName)
+        $before = $roles.Count
         $roles = @($roles | Where-Object { $_.displayName -notin $known })
-        Write-Host "Left out $($catalog.roles.Count - $roles.Count) roles that the rubric uses as examples."
+        Write-Host "Left out $($before - $roles.Count) roles that the rubric names (examples table and prose)."
     }
 
     # Stratified: round-robin over (plane, level) groups, each group shuffled with the seed, so
