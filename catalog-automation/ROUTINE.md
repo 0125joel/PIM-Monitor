@@ -151,6 +151,8 @@ above 4, each seed once.
 | 5B | 2026-11-16 | 94 (full pool) | 6 | 95.7% | 95.5% (88) | 94.7% | 1 | 0 | **no** |
 | 6A | 2026-11-16 | 90 (full pool) | 7 | 95.6% | 97.6% (83) | 97.8% | 1 | 0 | **no** |
 | 6B | 2026-11-16 | 90 (full pool) | 8 | 95.6% | 95.2% (84) | 97.8% | 1 | 0 | **no** |
+| 7A | 2026-11-16 | 88 (full pool) | 9 | 95.5% | 98.7% (79) | 98.9% | 0 | 0 | **yes** |
+| 7B | 2026-11-16 | 88 (full pool) | 10 | 96.6% | 96.3% (81) | 97.7% | 0 | 0 | **yes** |
 
 Rounds 1 to 4 are samples of 20, kept for history. Rounds 1 to 3 matched only the examples table and a
 hand-written exclusion list. Round 4 (`backtests/2026-11-16-seed4.json`) left out every role the rubric
@@ -173,6 +175,16 @@ is exposed), so the new rule "only support actions and reads is Data" caught it.
 correct. The round 5 decision caused the round 6 miss. Compliance Data Administrator moved to Control
 in both passes because of the new `cloudAppSecurity` signal; the level, and so the policy, is the same.
 The pin did not move on round 6.
+
+Round 7 measured the rubric with the two decisions from round 6 (`backtests/2026-11-16-seed9.json`,
+`-seed10.json`, `-stability-seed9-seed10.json`) and **passed** every criterion: both passes
+`passedAutoEligible`, no lenient verdict and no floor violation in either pass, Stability 96.6% same
+level. Every level miss is stricter than the catalog (SharePoint Embedded Administrator, Attribute Log
+Administrator, Tenant Creator, Dragon Administrator, Teams Communications Support Engineer). One role got
+two confident verdicts that disagree: Teams Communications Support Engineer, Data/Enterprise in one pass
+and Management/Specialized in the other, both medium; the catalog says Data/Enterprise. It is the one
+role to watch in the first live reviews. The pin moves to the merge commit of the pull request that
+holds this rubric.
 
 ### Before go-live (done)
 

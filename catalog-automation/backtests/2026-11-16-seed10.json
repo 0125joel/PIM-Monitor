@@ -1,0 +1,1815 @@
+{
+  "meta": [
+    {
+      "seed": 10,
+      "folds": 5,
+      "fold": 1,
+      "count": null,
+      "poolSize": 88,
+      "sampleSize": 18,
+      "excluded": [
+        "Agent ID Administrator",
+        "AI Administrator",
+        "AI Reader",
+        "Attribute Definition Administrator",
+        "Authentication Administrator",
+        "Authentication Policy Administrator",
+        "Azure DevOps Administrator",
+        "Billing Administrator",
+        "Cloud App Security Administrator",
+        "Compliance Data Administrator",
+        "Customer LockBox Access Approver",
+        "Device Managers",
+        "Directory Readers",
+        "Directory Synchronization Accounts",
+        "Dynamics 365 Administrator",
+        "Dynamics 365 Business Central Administrator",
+        "Entra Backup Administrator",
+        "Entra Customer Lockbox Approver",
+        "Exchange Administrator",
+        "Exchange Recipient Administrator",
+        "Fabric Administrator",
+        "Global Administrator",
+        "Global Reader",
+        "Global Secure Access Administrator",
+        "Global Secure Access Log Reader",
+        "Groups Administrator",
+        "Guest Inviter",
+        "Guest User",
+        "Kaizala Administrator",
+        "Knowledge Administrator",
+        "Knowledge Manager",
+        "On Premises Directory Sync Account",
+        "Organizational Branding Administrator",
+        "Organizational Messages Approver",
+        "Organizational Messages Writer",
+        "Partner Tier1 Support",
+        "Partner Tier2 Support",
+        "People Administrator",
+        "Power Platform Administrator",
+        "Purview Workload Content Administrator",
+        "Purview Workload Content Writer",
+        "Reports Reader",
+        "Resource Policy Administrator",
+        "Resource Policy Evaluator",
+        "Resource Policy Reader",
+        "Search Editor",
+        "Security Reader",
+        "Service Support Administrator",
+        "SharePoint Administrator",
+        "SharePoint Advanced Management Administrator",
+        "SharePoint Backup Administrator",
+        "Teams Administrator",
+        "Teams Devices Administrator",
+        "Teams Reader",
+        "Tenant Governance Relationship Administrator",
+        "Usage Summary Reports Reader",
+        "User",
+        "User Experience Success Manager",
+        "Windows 365 Administrator",
+        "Yammer Administrator"
+      ],
+      "catalogSha256": "c14a823d6f57c0be0404aafdd45bc44434aa6ffd3dc57d0dc92f4674c334f0c7",
+      "rubricSha256": "8176662404084e37c456b428a5192c216dbefbcdb0028c85f7c138b9cfeb342b",
+      "snapshotSha256": "c376892943208fe685aae6186240d018347025e52cc2276f7fe0c41fee54cf82",
+      "sampleTemplateIds": [
+        "9c99539d-8186-4804-835f-fd51ef9e2dcd",
+        "87761b17-1ed2-4af3-9acd-92a150038160",
+        "7698a772-787b-4ac8-901f-60d6b08affd2",
+        "f42252d9-5400-4d7b-b9ef-cc582dbb8577",
+        "31e939ad-9672-4796-9c2e-873181342d2d",
+        "25df335f-86eb-4119-b717-0ff02de207e9",
+        "fcf91098-03e3-41a9-b5ba-6f0ec8188a12",
+        "e07494ad-1654-4dd2-922e-6f81a71bf00f",
+        "e8cef6f1-e4bd-4ea8-bc07-4b8d950f4477",
+        "eb1f4a8d-243a-41f0-9fbd-c7cdf6c5ef7c",
+        "ac16e43d-7b2d-40e0-ac05-243ff356ab5b",
+        "966707d0-3269-4727-9be2-8c3a10f19b9d",
+        "194ae4cb-b126-40b2-bd5b-6091b380977d",
+        "1a7d78b6-429f-476b-b8eb-35fb715fffd4",
+        "be2f45a1-457d-42af-a067-6ec1fa63bc45",
+        "e93e3737-fa85-474a-aee4-7d3fb86510f3",
+        "d37c8bed-0711-4417-ba38-b4abe66ce4c2",
+        "baf37b3a-610e-45da-9e62-d9d1e5e8914b"
+      ]
+    },
+    {
+      "seed": 10,
+      "folds": 5,
+      "fold": 2,
+      "count": null,
+      "poolSize": 88,
+      "sampleSize": 18,
+      "excluded": [
+        "Agent ID Administrator",
+        "AI Administrator",
+        "AI Reader",
+        "Attribute Definition Administrator",
+        "Authentication Administrator",
+        "Authentication Policy Administrator",
+        "Azure DevOps Administrator",
+        "Billing Administrator",
+        "Cloud App Security Administrator",
+        "Compliance Data Administrator",
+        "Customer LockBox Access Approver",
+        "Device Managers",
+        "Directory Readers",
+        "Directory Synchronization Accounts",
+        "Dynamics 365 Administrator",
+        "Dynamics 365 Business Central Administrator",
+        "Entra Backup Administrator",
+        "Entra Customer Lockbox Approver",
+        "Exchange Administrator",
+        "Exchange Recipient Administrator",
+        "Fabric Administrator",
+        "Global Administrator",
+        "Global Reader",
+        "Global Secure Access Administrator",
+        "Global Secure Access Log Reader",
+        "Groups Administrator",
+        "Guest Inviter",
+        "Guest User",
+        "Kaizala Administrator",
+        "Knowledge Administrator",
+        "Knowledge Manager",
+        "On Premises Directory Sync Account",
+        "Organizational Branding Administrator",
+        "Organizational Messages Approver",
+        "Organizational Messages Writer",
+        "Partner Tier1 Support",
+        "Partner Tier2 Support",
+        "People Administrator",
+        "Power Platform Administrator",
+        "Purview Workload Content Administrator",
+        "Purview Workload Content Writer",
+        "Reports Reader",
+        "Resource Policy Administrator",
+        "Resource Policy Evaluator",
+        "Resource Policy Reader",
+        "Search Editor",
+        "Security Reader",
+        "Service Support Administrator",
+        "SharePoint Administrator",
+        "SharePoint Advanced Management Administrator",
+        "SharePoint Backup Administrator",
+        "Teams Administrator",
+        "Teams Devices Administrator",
+        "Teams Reader",
+        "Tenant Governance Relationship Administrator",
+        "Usage Summary Reports Reader",
+        "User",
+        "User Experience Success Manager",
+        "Windows 365 Administrator",
+        "Yammer Administrator"
+      ],
+      "catalogSha256": "c14a823d6f57c0be0404aafdd45bc44434aa6ffd3dc57d0dc92f4674c334f0c7",
+      "rubricSha256": "8176662404084e37c456b428a5192c216dbefbcdb0028c85f7c138b9cfeb342b",
+      "snapshotSha256": "c376892943208fe685aae6186240d018347025e52cc2276f7fe0c41fee54cf82",
+      "sampleTemplateIds": [
+        "59d46f88-662b-457b-bceb-5c3809e5908f",
+        "e0a4caa6-fe82-443f-b92f-d87341d17b2e",
+        "1501b917-7653-4ff9-a4b5-203eaf33784f",
+        "0964bb5e-9bdb-4d7b-ac29-58e794862a40",
+        "9f06204d-73c1-4d4c-880a-6edb90606fd8",
+        "2ea5ce4c-b2d8-4668-bd81-3680bd2d227a",
+        "2fe872fb-daa8-4afc-8f6c-53c4565cfef4",
+        "75941009-915a-4869-abe7-691bff18279e",
+        "2b745bdf-0803-4d80-aa65-822c4493daac",
+        "8ac3fc64-6eca-42ea-9e69-59f4c7b60eb2",
+        "0ec3f692-38d6-4d14-9e69-0377ca7797ad",
+        "f70938a0-fc10-4177-9e90-2178f8765737",
+        "9d70768a-0cbc-4b4c-aea3-2e124b2477f4",
+        "9360feb5-f418-4baa-8175-e2a00bac4301",
+        "32696413-001a-46ae-978c-ce0f6b3620d2",
+        "158c047a-c907-4556-b7ef-446551a6b5f7",
+        "17315797-102d-40b4-93e0-432062caca18",
+        "38a96431-2bdf-4b4c-8b6e-5d3d8abac1a4"
+      ]
+    },
+    {
+      "seed": 10,
+      "folds": 5,
+      "fold": 3,
+      "count": null,
+      "poolSize": 88,
+      "sampleSize": 18,
+      "excluded": [
+        "Agent ID Administrator",
+        "AI Administrator",
+        "AI Reader",
+        "Attribute Definition Administrator",
+        "Authentication Administrator",
+        "Authentication Policy Administrator",
+        "Azure DevOps Administrator",
+        "Billing Administrator",
+        "Cloud App Security Administrator",
+        "Compliance Data Administrator",
+        "Customer LockBox Access Approver",
+        "Device Managers",
+        "Directory Readers",
+        "Directory Synchronization Accounts",
+        "Dynamics 365 Administrator",
+        "Dynamics 365 Business Central Administrator",
+        "Entra Backup Administrator",
+        "Entra Customer Lockbox Approver",
+        "Exchange Administrator",
+        "Exchange Recipient Administrator",
+        "Fabric Administrator",
+        "Global Administrator",
+        "Global Reader",
+        "Global Secure Access Administrator",
+        "Global Secure Access Log Reader",
+        "Groups Administrator",
+        "Guest Inviter",
+        "Guest User",
+        "Kaizala Administrator",
+        "Knowledge Administrator",
+        "Knowledge Manager",
+        "On Premises Directory Sync Account",
+        "Organizational Branding Administrator",
+        "Organizational Messages Approver",
+        "Organizational Messages Writer",
+        "Partner Tier1 Support",
+        "Partner Tier2 Support",
+        "People Administrator",
+        "Power Platform Administrator",
+        "Purview Workload Content Administrator",
+        "Purview Workload Content Writer",
+        "Reports Reader",
+        "Resource Policy Administrator",
+        "Resource Policy Evaluator",
+        "Resource Policy Reader",
+        "Search Editor",
+        "Security Reader",
+        "Service Support Administrator",
+        "SharePoint Administrator",
+        "SharePoint Advanced Management Administrator",
+        "SharePoint Backup Administrator",
+        "Teams Administrator",
+        "Teams Devices Administrator",
+        "Teams Reader",
+        "Tenant Governance Relationship Administrator",
+        "Usage Summary Reports Reader",
+        "User",
+        "User Experience Success Manager",
+        "Windows 365 Administrator",
+        "Yammer Administrator"
+      ],
+      "catalogSha256": "c14a823d6f57c0be0404aafdd45bc44434aa6ffd3dc57d0dc92f4674c334f0c7",
+      "rubricSha256": "8176662404084e37c456b428a5192c216dbefbcdb0028c85f7c138b9cfeb342b",
+      "snapshotSha256": "c376892943208fe685aae6186240d018347025e52cc2276f7fe0c41fee54cf82",
+      "sampleTemplateIds": [
+        "af78dc32-cf4d-46f9-ba4e-4428526346b5",
+        "fe930be7-5e62-47db-91af-98c3a49a38b1",
+        "ffd52fa5-98dc-465c-991d-fc073eb59f8f",
+        "2af84b1e-32c8-42b7-82bc-daa82404023b",
+        "5b784334-f94b-471a-a387-e7219fc49ca2",
+        "124577f8-48ed-456a-839f-13b419002e33",
+        "1d336d2c-4ae8-42ef-9711-b3604ce3fc2c",
+        "112ca1a2-15ad-4102-995e-45b0bc479a6a",
+        "58f930cc-fcf4-4152-852c-1d7dbf502139",
+        "c34f683f-4d5a-4403-affd-6615e00e3a7f",
+        "25a516ed-2fa0-40ea-a2d0-12923a21473a",
+        "9c6df0f2-1e7c-4dc3-b195-66dfbd24aa8f",
+        "422218e4-db15-4ef9-bbe0-8afb41546d79",
+        "49eb8f75-97e9-4e37-9b2b-6c3ebfcffa31",
+        "729827e3-9c14-49f7-bb1b-9608f156bbb8",
+        "c430b396-e693-46cc-96f3-db01bf8bb62a",
+        "4d6ac14f-3453-41d0-bef9-a3e0c569773a",
+        "644ef478-e28f-4e28-b9dc-3fdde9aa0b1f"
+      ]
+    },
+    {
+      "seed": 10,
+      "folds": 5,
+      "fold": 4,
+      "count": null,
+      "poolSize": 88,
+      "sampleSize": 17,
+      "excluded": [
+        "Agent ID Administrator",
+        "AI Administrator",
+        "AI Reader",
+        "Attribute Definition Administrator",
+        "Authentication Administrator",
+        "Authentication Policy Administrator",
+        "Azure DevOps Administrator",
+        "Billing Administrator",
+        "Cloud App Security Administrator",
+        "Compliance Data Administrator",
+        "Customer LockBox Access Approver",
+        "Device Managers",
+        "Directory Readers",
+        "Directory Synchronization Accounts",
+        "Dynamics 365 Administrator",
+        "Dynamics 365 Business Central Administrator",
+        "Entra Backup Administrator",
+        "Entra Customer Lockbox Approver",
+        "Exchange Administrator",
+        "Exchange Recipient Administrator",
+        "Fabric Administrator",
+        "Global Administrator",
+        "Global Reader",
+        "Global Secure Access Administrator",
+        "Global Secure Access Log Reader",
+        "Groups Administrator",
+        "Guest Inviter",
+        "Guest User",
+        "Kaizala Administrator",
+        "Knowledge Administrator",
+        "Knowledge Manager",
+        "On Premises Directory Sync Account",
+        "Organizational Branding Administrator",
+        "Organizational Messages Approver",
+        "Organizational Messages Writer",
+        "Partner Tier1 Support",
+        "Partner Tier2 Support",
+        "People Administrator",
+        "Power Platform Administrator",
+        "Purview Workload Content Administrator",
+        "Purview Workload Content Writer",
+        "Reports Reader",
+        "Resource Policy Administrator",
+        "Resource Policy Evaluator",
+        "Resource Policy Reader",
+        "Search Editor",
+        "Security Reader",
+        "Service Support Administrator",
+        "SharePoint Administrator",
+        "SharePoint Advanced Management Administrator",
+        "SharePoint Backup Administrator",
+        "Teams Administrator",
+        "Teams Devices Administrator",
+        "Teams Reader",
+        "Tenant Governance Relationship Administrator",
+        "Usage Summary Reports Reader",
+        "User",
+        "User Experience Success Manager",
+        "Windows 365 Administrator",
+        "Yammer Administrator"
+      ],
+      "catalogSha256": "c14a823d6f57c0be0404aafdd45bc44434aa6ffd3dc57d0dc92f4674c334f0c7",
+      "rubricSha256": "8176662404084e37c456b428a5192c216dbefbcdb0028c85f7c138b9cfeb342b",
+      "snapshotSha256": "c376892943208fe685aae6186240d018347025e52cc2276f7fe0c41fee54cf82",
+      "sampleTemplateIds": [
+        "d405c6df-0af8-4e3b-95e4-4d06e542189e",
+        "58a13ea3-c632-46ae-9ee0-9c0d43cd7f3d",
+        "e8611ab8-c189-46e8-94e1-60213ab1f814",
+        "8329153b-31d0-4727-b945-745eb3bc5f31",
+        "7be44c8a-adaf-4e2a-84d6-ab2649e08a13",
+        "5f2222b1-57c3-48ba-8ad5-d4759f1fde6f",
+        "0b00bede-4072-4d22-b441-e7df02a1ef63",
+        "1981f584-96e9-4a6f-95b0-f522373f8fae",
+        "dd13091a-6207-4fc0-82ba-3641e056ab95",
+        "aa38014f-0993-46e9-9b45-30501a20909d",
+        "281fe777-fb20-4fbb-b7a3-ccebce5b0d96",
+        "b1be1c3e-b65d-4f19-8427-f6fa0d97feb9",
+        "92b086b3-e367-4ef2-b869-1de128fb986e",
+        "ecb2c6bf-0ab6-418e-bd87-7986f8d63bbe",
+        "8c8b803f-96e1-4129-9349-20738d9f9652",
+        "45d8d3c5-c802-45c6-b32a-1d70b5e1e86e",
+        "ee67aa9c-e510-4759-b906-227085a7fd4d"
+      ]
+    },
+    {
+      "seed": 10,
+      "folds": 5,
+      "fold": 5,
+      "count": null,
+      "poolSize": 88,
+      "sampleSize": 17,
+      "excluded": [
+        "Agent ID Administrator",
+        "AI Administrator",
+        "AI Reader",
+        "Attribute Definition Administrator",
+        "Authentication Administrator",
+        "Authentication Policy Administrator",
+        "Azure DevOps Administrator",
+        "Billing Administrator",
+        "Cloud App Security Administrator",
+        "Compliance Data Administrator",
+        "Customer LockBox Access Approver",
+        "Device Managers",
+        "Directory Readers",
+        "Directory Synchronization Accounts",
+        "Dynamics 365 Administrator",
+        "Dynamics 365 Business Central Administrator",
+        "Entra Backup Administrator",
+        "Entra Customer Lockbox Approver",
+        "Exchange Administrator",
+        "Exchange Recipient Administrator",
+        "Fabric Administrator",
+        "Global Administrator",
+        "Global Reader",
+        "Global Secure Access Administrator",
+        "Global Secure Access Log Reader",
+        "Groups Administrator",
+        "Guest Inviter",
+        "Guest User",
+        "Kaizala Administrator",
+        "Knowledge Administrator",
+        "Knowledge Manager",
+        "On Premises Directory Sync Account",
+        "Organizational Branding Administrator",
+        "Organizational Messages Approver",
+        "Organizational Messages Writer",
+        "Partner Tier1 Support",
+        "Partner Tier2 Support",
+        "People Administrator",
+        "Power Platform Administrator",
+        "Purview Workload Content Administrator",
+        "Purview Workload Content Writer",
+        "Reports Reader",
+        "Resource Policy Administrator",
+        "Resource Policy Evaluator",
+        "Resource Policy Reader",
+        "Search Editor",
+        "Security Reader",
+        "Service Support Administrator",
+        "SharePoint Administrator",
+        "SharePoint Advanced Management Administrator",
+        "SharePoint Backup Administrator",
+        "Teams Administrator",
+        "Teams Devices Administrator",
+        "Teams Reader",
+        "Tenant Governance Relationship Administrator",
+        "Usage Summary Reports Reader",
+        "User",
+        "User Experience Success Manager",
+        "Windows 365 Administrator",
+        "Yammer Administrator"
+      ],
+      "catalogSha256": "c14a823d6f57c0be0404aafdd45bc44434aa6ffd3dc57d0dc92f4674c334f0c7",
+      "rubricSha256": "8176662404084e37c456b428a5192c216dbefbcdb0028c85f7c138b9cfeb342b",
+      "snapshotSha256": "c376892943208fe685aae6186240d018347025e52cc2276f7fe0c41fee54cf82",
+      "sampleTemplateIds": [
+        "3a2c62db-5318-420d-8d74-23affee5d9d5",
+        "790c1fb9-7f7d-4f88-86a1-ef1f95c05c1b",
+        "fc8ad4e2-40e4-4724-8317-bcda7503ecbf",
+        "adb2368d-a9be-41b5-8667-d96778e081b0",
+        "6b942400-691f-4bf0-9d12-d8a254a2baf5",
+        "3edaf663-341e-4475-9f94-5c398ef6c070",
+        "6e591065-9bad-43ed-90f3-e9424366d2f0",
+        "0f971eea-41eb-4569-a71e-57bb8a3eff1e",
+        "9c094953-4995-41c8-84c8-3ebb9b32c93f",
+        "cf1c38e5-3621-4004-a7cb-879624dced7c",
+        "3f1acade-1e04-4fbc-9b69-f0302cd84aef",
+        "78b0ccd1-afc2-4f92-9116-b41aedd09592",
+        "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3",
+        "e300d9e7-4a2b-4295-9eff-f1c78b36cc98",
+        "aaf43236-0c0d-4d5f-883a-6955382ac081",
+        "1707125e-0aa2-4d4d-8655-a7c786c76a25",
+        "7495fdc4-34c4-4d15-a289-98788ce399fd"
+      ]
+    }
+  ],
+  "score": {
+    "roles": 88,
+    "planeAgreement": 0.977,
+    "levelAgreement": 0.966,
+    "floorViolations": [],
+    "lenient": [],
+    "strict": [
+      "SharePoint Embedded Administrator",
+      "Teams Communications Support Engineer",
+      "Attribute Log Administrator"
+    ],
+    "missing": [],
+    "mismatches": [
+      "SharePoint Embedded Administrator: level Privileged, catalog Specialized",
+      "Teams Communications Support Engineer: plane Management, catalog Data",
+      "Teams Communications Support Engineer: level Specialized, catalog Enterprise",
+      "Attribute Log Administrator: level Specialized, catalog Enterprise",
+      "Microsoft Hardware Warranty Specialist: plane Management, catalog Data"
+    ],
+    "passed": true,
+    "autoEligible": 81,
+    "autoEligibleLevelAgreement": 0.963,
+    "passedAutoEligible": true
+  },
+  "answerKey": [
+    {
+      "templateId": "9c99539d-8186-4804-835f-fd51ef9e2dcd",
+      "displayName": "Attribute Log Reader",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "87761b17-1ed2-4af3-9acd-92a150038160",
+      "displayName": "Viva Pulse Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "7698a772-787b-4ac8-901f-60d6b08affd2",
+      "displayName": "Cloud Device Administrator",
+      "plane": "Management",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "f42252d9-5400-4d7b-b9ef-cc582dbb8577",
+      "displayName": "Entra Backup Reader",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "31e939ad-9672-4796-9c2e-873181342d2d",
+      "displayName": "Insights Business Leader",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "25df335f-86eb-4119-b717-0ff02de207e9",
+      "displayName": "Insights Analyst",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "fcf91098-03e3-41a9-b5ba-6f0ec8188a12",
+      "displayName": "Teams Communications Support Specialist",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "e07494ad-1654-4dd2-922e-6f81a71bf00f",
+      "displayName": "Purview Workload Content Reader",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "e8cef6f1-e4bd-4ea8-bc07-4b8d950f4477",
+      "displayName": "Printer Technician",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "eb1f4a8d-243a-41f0-9fbd-c7cdf6c5ef7c",
+      "displayName": "Insights Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "ac16e43d-7b2d-40e0-ac05-243ff356ab5b",
+      "displayName": "Message Center Privacy Reader",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "966707d0-3269-4727-9be2-8c3a10f19b9d",
+      "displayName": "Password Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "194ae4cb-b126-40b2-bd5b-6091b380977d",
+      "displayName": "Security Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "1a7d78b6-429f-476b-b8eb-35fb715fffd4",
+      "displayName": "SharePoint Embedded Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "be2f45a1-457d-42af-a067-6ec1fa63bc45",
+      "displayName": "External Identity Provider Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "e93e3737-fa85-474a-aee4-7d3fb86510f3",
+      "displayName": "Dragon Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "d37c8bed-0711-4417-ba38-b4abe66ce4c2",
+      "displayName": "Network Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "baf37b3a-610e-45da-9e62-d9d1e5e8914b",
+      "displayName": "Teams Communications Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "59d46f88-662b-457b-bceb-5c3809e5908f",
+      "displayName": "Lifecycle Workflows Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "e0a4caa6-fe82-443f-b92f-d87341d17b2e",
+      "displayName": "Tenant Governance Reader",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "1501b917-7653-4ff9-a4b5-203eaf33784f",
+      "displayName": "Microsoft Hardware Warranty Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "0964bb5e-9bdb-4d7b-ac29-58e794862a40",
+      "displayName": "Search Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "9f06204d-73c1-4d4c-880a-6edb90606fd8",
+      "displayName": "Azure AD Joined Device Local Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "2ea5ce4c-b2d8-4668-bd81-3680bd2d227a",
+      "displayName": "IoT Device Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "2fe872fb-daa8-4afc-8f6c-53c4565cfef4",
+      "displayName": "Teams External Collaboration Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "75941009-915a-4869-abe7-691bff18279e",
+      "displayName": "Skype for Business Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "2b745bdf-0803-4d80-aa65-822c4493daac",
+      "displayName": "Office Apps Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "8ac3fc64-6eca-42ea-9e69-59f4c7b60eb2",
+      "displayName": "Hybrid Identity Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "0ec3f692-38d6-4d14-9e69-0377ca7797ad",
+      "displayName": "Viva Glint Tenant Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "f70938a0-fc10-4177-9e90-2178f8765737",
+      "displayName": "Teams Communications Support Engineer",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "9d70768a-0cbc-4b4c-aea3-2e124b2477f4",
+      "displayName": "Organizational Data Source Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "9360feb5-f418-4baa-8175-e2a00bac4301",
+      "displayName": "Directory Writers",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "32696413-001a-46ae-978c-ce0f6b3620d2",
+      "displayName": "Windows Update Deployment Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "158c047a-c907-4556-b7ef-446551a6b5f7",
+      "displayName": "Cloud Application Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "17315797-102d-40b4-93e0-432062caca18",
+      "displayName": "Compliance Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "38a96431-2bdf-4b4c-8b6e-5d3d8abac1a4",
+      "displayName": "Desktop Analytics Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "af78dc32-cf4d-46f9-ba4e-4428526346b5",
+      "displayName": "Permissions Management Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "fe930be7-5e62-47db-91af-98c3a49a38b1",
+      "displayName": "User Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "ffd52fa5-98dc-465c-991d-fc073eb59f8f",
+      "displayName": "Attribute Assignment Reader",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "2af84b1e-32c8-42b7-82bc-daa82404023b",
+      "displayName": "Restricted Guest User",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "5b784334-f94b-471a-a387-e7219fc49ca2",
+      "displayName": "Attribute Log Administrator",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "124577f8-48ed-456a-839f-13b419002e33",
+      "displayName": "Tenant Governance Relationship Reader",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "1d336d2c-4ae8-42ef-9711-b3604ce3fc2c",
+      "displayName": "Attribute Definition Reader",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "112ca1a2-15ad-4102-995e-45b0bc479a6a",
+      "displayName": "Tenant Creator",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "58f930cc-fcf4-4152-852c-1d7dbf502139",
+      "displayName": "Entra SOC Identity Responder",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "c34f683f-4d5a-4403-affd-6615e00e3a7f",
+      "displayName": "Workplace Device Join",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "25a516ed-2fa0-40ea-a2d0-12923a21473a",
+      "displayName": "Authentication Extensibility Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "9c6df0f2-1e7c-4dc3-b195-66dfbd24aa8f",
+      "displayName": "Attack Payload Author",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "422218e4-db15-4ef9-bbe0-8afb41546d79",
+      "displayName": "Attribute Provisioning Reader",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "49eb8f75-97e9-4e37-9b2b-6c3ebfcffa31",
+      "displayName": "Exchange Backup Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "729827e3-9c14-49f7-bb1b-9608f156bbb8",
+      "displayName": "Helpdesk Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "c430b396-e693-46cc-96f3-db01bf8bb62a",
+      "displayName": "Attack Simulation Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "4d6ac14f-3453-41d0-bef9-a3e0c569773a",
+      "displayName": "License Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "644ef478-e28f-4e28-b9dc-3fdde9aa0b1f",
+      "displayName": "Printer Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "d405c6df-0af8-4e3b-95e4-4d06e542189e",
+      "displayName": "Device Users",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "58a13ea3-c632-46ae-9ee0-9c0d43cd7f3d",
+      "displayName": "Attribute Assignment Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "e8611ab8-c189-46e8-94e1-60213ab1f814",
+      "displayName": "Privileged Role Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "8329153b-31d0-4727-b945-745eb3bc5f31",
+      "displayName": "Domain Name Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "7be44c8a-adaf-4e2a-84d6-ab2649e08a13",
+      "displayName": "Privileged Authentication Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "5f2222b1-57c3-48ba-8ad5-d4759f1fde6f",
+      "displayName": "Security Operator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "0b00bede-4072-4d22-b441-e7df02a1ef63",
+      "displayName": "Authentication Extensibility Password Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "1981f584-96e9-4a6f-95b0-f522373f8fae",
+      "displayName": "Tenant Governance Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "dd13091a-6207-4fc0-82ba-3641e056ab95",
+      "displayName": "Extended Directory User Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "aa38014f-0993-46e9-9b45-30501a20909d",
+      "displayName": "Teams Telephony Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "281fe777-fb20-4fbb-b7a3-ccebce5b0d96",
+      "displayName": "Microsoft Hardware Warranty Specialist",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "b1be1c3e-b65d-4f19-8427-f6fa0d97feb9",
+      "displayName": "Conditional Access Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "92b086b3-e367-4ef2-b869-1de128fb986e",
+      "displayName": "Viva Goals Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "ecb2c6bf-0ab6-418e-bd87-7986f8d63bbe",
+      "displayName": "Attribute Provisioning Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "8c8b803f-96e1-4129-9349-20738d9f9652",
+      "displayName": "Microsoft 365 Migration Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "45d8d3c5-c802-45c6-b32a-1d70b5e1e86e",
+      "displayName": "Identity Governance Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "ee67aa9c-e510-4759-b906-227085a7fd4d",
+      "displayName": "Microsoft Graph Data Connect Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "3a2c62db-5318-420d-8d74-23affee5d9d5",
+      "displayName": "Intune Administrator",
+      "plane": "Management",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "790c1fb9-7f7d-4f88-86a1-ef1f95c05c1b",
+      "displayName": "Message Center Reader",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "fc8ad4e2-40e4-4724-8317-bcda7503ecbf",
+      "displayName": "Customer Delegated Admin Relationship Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "adb2368d-a9be-41b5-8667-d96778e081b0",
+      "displayName": "Agent ID Developer",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "6b942400-691f-4bf0-9d12-d8a254a2baf5",
+      "displayName": "Agent Registry Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "3edaf663-341e-4475-9f94-5c398ef6c070",
+      "displayName": "B2C IEF Policy Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "6e591065-9bad-43ed-90f3-e9424366d2f0",
+      "displayName": "External ID User Flow Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "0f971eea-41eb-4569-a71e-57bb8a3eff1e",
+      "displayName": "External ID User Flow Attribute Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "9c094953-4995-41c8-84c8-3ebb9b32c93f",
+      "displayName": "Device Join",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "cf1c38e5-3621-4004-a7cb-879624dced7c",
+      "displayName": "Application Developer",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "3f1acade-1e04-4fbc-9b69-f0302cd84aef",
+      "displayName": "Edge Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "78b0ccd1-afc2-4f92-9116-b41aedd09592",
+      "displayName": "Places Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3",
+      "displayName": "Application Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "e300d9e7-4a2b-4295-9eff-f1c78b36cc98",
+      "displayName": "Virtual Visits Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "aaf43236-0c0d-4d5f-883a-6955382ac081",
+      "displayName": "B2C IEF Keyset Administrator",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "isPrivileged": true
+    },
+    {
+      "templateId": "1707125e-0aa2-4d4d-8655-a7c786c76a25",
+      "displayName": "Microsoft 365 Backup Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    },
+    {
+      "templateId": "7495fdc4-34c4-4d15-a289-98788ce399fd",
+      "displayName": "Azure Information Protection Administrator",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "isPrivileged": false
+    }
+  ],
+  "verdicts": [
+    {
+      "templateId": "9c99539d-8186-4804-835f-fd51ef9e2dcd",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "note": "Only reads customSecurityAttributeAuditLogs; reader of access-shaping (attribute) configuration stays Control, read-only lowers level, like Attribute Log Administrator.",
+      "confidence": "high",
+      "signal": "microsoft.directory/customSecurityAttributeAuditLogs"
+    },
+    {
+      "templateId": "87761b17-1ed2-4af3-9acd-92a150038160",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "viva.pulse allEntities allTasks: bounded administration of one Viva workload, like Viva Goals/Glint admins; support and report reads do not decide.",
+      "confidence": "high",
+      "signal": "microsoft.viva.pulse"
+    },
+    {
+      "templateId": "7698a772-787b-4ac8-901f-60d6b08affd2",
+      "plane": "Management",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; writes directory/devices (delete, disable, enable), deviceRegistrationPolicy and reads bitlockerKeys and deviceLocalCredentials: device management.",
+      "confidence": "high",
+      "signal": "microsoft.directory/devices"
+    },
+    {
+      "templateId": "f42252d9-5400-4d7b-b9ef-cc582dbb8577",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "Only directory/backup standard/read plus preview create/cancel; backup readers are Data, no restore or configuration write.",
+      "confidence": "medium",
+      "signal": "microsoft.directory/backup"
+    },
+    {
+      "templateId": "31e939ad-9672-4796-9c2e-873181342d2d",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "Reads insights reports and updates insights programs; serves analytics data, low-impact write, no service or identity control.",
+      "confidence": "medium",
+      "signal": "microsoft.insights/reports"
+    },
+    {
+      "templateId": "25df335f-86eb-4119-b717-0ff02de207e9",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "insights/queries allTasks runs analytical queries over Viva Insights data plus support tickets; serves data, no service configuration.",
+      "confidence": "medium",
+      "signal": "microsoft.insights/queries"
+    },
+    {
+      "templateId": "fcf91098-03e3-41a9-b5ba-6f0ec8188a12",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "Reads teams/callQuality plus skypeForBusiness tasks and support/serviceHealth; troubleshooting support role like Teams Communications Support Engineer.",
+      "confidence": "high",
+      "signal": "microsoft.teams/callQuality"
+    },
+    {
+      "templateId": "e07494ad-1654-4dd2-922e-6f81a71bf00f",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "No allowedResourceActions; classified by function as a reader of Microsoft 365 data via Purview (tie-breaker 8).",
+      "confidence": "low",
+      "signal": "none"
+    },
+    {
+      "templateId": "e8cef6f1-e4bd-4ea8-bc07-4b8d950f4477",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "azure.print printers register/unregister/basic update and reads; printer technician actions are Data per rubric.",
+      "confidence": "high",
+      "signal": "microsoft.azure.print/printers"
+    },
+    {
+      "templateId": "eb1f4a8d-243a-41f0-9fbd-c7cdf6c5ef7c",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "microsoft.insights allEntities allTasks: bounded administration of the M365 Insights workload; support and serviceHealth do not decide.",
+      "confidence": "medium",
+      "signal": "microsoft.insights"
+    },
+    {
+      "templateId": "ac16e43d-7b2d-40e0-ac05-243ff356ab5b",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "Only messageCenter messages and securityMessages read plus webPortal read; message center reader is Data.",
+      "confidence": "high",
+      "signal": "microsoft.office365.messageCenter"
+    },
+    {
+      "templateId": "966707d0-3269-4727-9be2-8c3a10f19b9d",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; users/password/update resets credentials, an authentication control action.",
+      "confidence": "high",
+      "signal": "microsoft.directory/users/password"
+    },
+    {
+      "templateId": "194ae4cb-b126-40b2-bd5b-6091b380977d",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; writes conditionalAccessPolicies, crossTenantAccessPolicy, domains federation, identityProtection, users/password and policies: tenant-wide security control.",
+      "confidence": "high",
+      "signal": "microsoft.directory/conditionalAccessPolicies"
+    },
+    {
+      "templateId": "1a7d78b6-429f-476b-b8eb-35fb715fffd4",
+      "plane": "Management",
+      "securityLevel": "Privileged",
+      "note": "fileStorageContainers allEntities allTasks: full administrator of SharePoint Embedded containers, a workload holding file content; workload escalation.",
+      "confidence": "medium",
+      "signal": "microsoft.office365.fileStorageContainers"
+    },
+    {
+      "templateId": "be2f45a1-457d-42af-a067-6ec1fa63bc45",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; identityProviders allTasks and domains/federation/update govern federated authentication.",
+      "confidence": "high",
+      "signal": "microsoft.directory/identityProviders"
+    },
+    {
+      "templateId": "e93e3737-fa85-474a-aee4-7d3fb86510f3",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "healthPlatform allEntities allTasks: bounded administration of the Dragon admin center workload; support, serviceHealth and report reads do not decide.",
+      "confidence": "medium",
+      "signal": "microsoft.healthPlatform"
+    },
+    {
+      "templateId": "d37c8bed-0711-4417-ba38-b4abe66ce4c2",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "office365.network/locations allTasks and performance read: IT network management, bounded to a service.",
+      "confidence": "high",
+      "signal": "microsoft.office365.network"
+    },
+    {
+      "templateId": "baf37b3a-610e-45da-9e62-d9d1e5e8914b",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "teams/meetings and teams/voice allTasks plus skypeForBusiness: scoped Teams sub-admin (calling and meetings), not the full Teams administrator.",
+      "confidence": "high",
+      "signal": "microsoft.teams"
+    },
+    {
+      "templateId": "59d46f88-662b-457b-bceb-5c3809e5908f",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; directory/lifecycleWorkflows allTasks automates joiner/mover/leaver changes to user identities, a Control-plane write.",
+      "confidence": "high",
+      "signal": "microsoft.directory/lifecycleWorkflows"
+    },
+    {
+      "templateId": "e0a4caa6-fe82-443f-b92f-d87341d17b2e",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "note": "Only reads directory/signInReports and webPortal standard read; a reader of identity sign-in data and governance stays Control, read-only lowers the level (like Tenant Governance Relationship Reader).",
+      "confidence": "medium",
+      "signal": "microsoft.directory/signInReports"
+    },
+    {
+      "templateId": "1501b917-7653-4ff9-a4b5-203eaf33784f",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "hardware.support warrantyClaims and shippingAddress allTasks plus supportTickets; writes warranty claims, a bounded IT management function. Could be read as support-only (Data); stricter chosen out of doubt.",
+      "confidence": "low",
+      "signal": "microsoft.hardware.support"
+    },
+    {
+      "templateId": "0964bb5e-9bdb-4d7b-ac29-58e794862a40",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "office365.search/content/manage authors and manages Microsoft Search content every user sees; support and usageReports reads do not decide. Like Search Editor.",
+      "confidence": "high",
+      "signal": "microsoft.office365.search"
+    },
+    {
+      "templateId": "9f06204d-73c1-4d4c-880a-6edb90606fd8",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "Only groupSettings/groupSettingTemplates reads exposed; function grants local admin on all Entra joined devices. Device role stays Management (like Teams Devices Administrator); stricter level out of doubt.",
+      "confidence": "low",
+      "signal": "microsoft.directory/groupSettings"
+    },
+    {
+      "templateId": "2ea5ce4c-b2d8-4668-bd81-3680bd2d227a",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "Creates/deletes directory/deviceTemplates and devices from templates, manages certificateBasedDeviceAuthConfigurations incl. credentials; device management, bounded to IoT devices.",
+      "confidence": "medium",
+      "signal": "microsoft.directory/deviceTemplates"
+    },
+    {
+      "templateId": "2fe872fb-daa8-4afc-8f6c-53c4565cfef4",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "teams/policies/externalAccessPolicy allTasks; Teams external access settings are a workload feature, not tenant access control (cf. Teams Administrator). authorizationPolicy is read only.",
+      "confidence": "medium",
+      "signal": "microsoft.teams/policies/externalAccessPolicy"
+    },
+    {
+      "templateId": "75941009-915a-4869-abe7-691bff18279e",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "office365.skypeForBusiness allEntities/allTasks administers the Skype for Business service; configuration bounded to one workload, not in the escalated content-workload group.",
+      "confidence": "medium",
+      "signal": "microsoft.office365.skypeForBusiness"
+    },
+    {
+      "templateId": "2b745bdf-0803-4d80-aa65-822c4493daac",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "office365.userCommunication allTasks manages Office apps policy and what's-new content published to users; bounded service administration, support actions do not decide.",
+      "confidence": "high",
+      "signal": "microsoft.office365.userCommunication"
+    },
+    {
+      "templateId": "8ac3fc64-6eca-42ea-9e69-59f4c7b60eb2",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; writes domains/federation, onPremisesSynchronization, passwordHashSync, hybridAuthenticationPolicy, applications and servicePrincipals.",
+      "confidence": "high",
+      "signal": "microsoft.directory/domains/federation"
+    },
+    {
+      "templateId": "0ec3f692-38d6-4d14-9e69-0377ca7797ad",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "viva.glint allEntities/allProperties/allTasks administers Viva Glint; bounded workload configuration, like Viva Pulse Administrator.",
+      "confidence": "high",
+      "signal": "microsoft.viva.glint"
+    },
+    {
+      "templateId": "f70938a0-fc10-4177-9e90-2178f8765737",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "office365.skypeForBusiness allTasks plus teams/callQuality read; the workload write outranks support/health actions, so Management rather than Data like the Support Specialist.",
+      "confidence": "medium",
+      "signal": "microsoft.office365.skypeForBusiness"
+    },
+    {
+      "templateId": "9d70768a-0cbc-4b4c-aea3-2e124b2477f4",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "microsoft365.organizationalData allTasks configures ingestion of organizational data into M365; workload configuration like People Administrator, not identity control.",
+      "confidence": "high",
+      "signal": "microsoft.microsoft365.organizationalData"
+    },
+    {
+      "templateId": "9360feb5-f418-4baa-8175-e2a00bac4301",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; writes users, groups members/owners, oAuth2PermissionGrants, servicePrincipals appRoleAssignedTo and invalidateAllRefreshTokens.",
+      "confidence": "high",
+      "signal": "microsoft.directory/users"
+    },
+    {
+      "templateId": "32696413-001a-46ae-978c-ce0f6b3620d2",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "windows.updatesDeployments allTasks manages Windows Update for Business deployments; device/update management bounded to one service.",
+      "confidence": "high",
+      "signal": "microsoft.windows.updatesDeployments"
+    },
+    {
+      "templateId": "158c047a-c907-4556-b7ef-446551a6b5f7",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; writes applications and servicePrincipals credentials, oAuth2PermissionGrants allTasks, managePermissionGrantsForAll.",
+      "confidence": "high",
+      "signal": "microsoft.directory/applications"
+    },
+    {
+      "templateId": "17315797-102d-40b4-93e0-432062caca18",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "office365.complianceManager allTasks is Purview compliance workload configuration; entitlementManagement is read only and no cloudAppSecurity, so not Control.",
+      "confidence": "medium",
+      "signal": "microsoft.office365.complianceManager"
+    },
+    {
+      "templateId": "38a96431-2bdf-4b4c-8b6e-5d3d8abac1a4",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "office365.desktopAnalytics allTasks administers Desktop Analytics; bounded IT management service, authorizationPolicy read only.",
+      "confidence": "high",
+      "signal": "microsoft.office365.desktopAnalytics"
+    },
+    {
+      "templateId": "af78dc32-cf4d-46f9-ba4e-4428526346b5",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "permissionsManagement/allEntities/allProperties/allTasks: access-shaping configuration (Entra Permissions Management); write of access configuration, not isPrivileged, so Specialized",
+      "confidence": "high",
+      "signal": "microsoft.permissionsManagement"
+    },
+    {
+      "templateId": "fe930be7-5e62-47db-91af-98c3a49a38b1",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; writes users (create/delete/password/update), groups (members/owners), oAuth2PermissionGrants and appRoleAssignedTo: tenant identity control",
+      "confidence": "high",
+      "signal": "microsoft.directory/users"
+    },
+    {
+      "templateId": "ffd52fa5-98dc-465c-991d-fc073eb59f8f",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "note": "Only reads customSecurityAttributeDefinitions, attributeSets and customSecurityAttributes on users/devices/servicePrincipals; reader of access-shaping config stays Control, read-only lowers level",
+      "confidence": "high",
+      "signal": "microsoft.directory/customSecurityAttributeDefinitions"
+    },
+    {
+      "templateId": "2af84b1e-32c8-42b7-82bc-daa82404023b",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "note": "Default guest pathway role: limitedRead of directory objects plus self-service authenticationMethods and password/update; Control by function, Enterprise like Guest User",
+      "confidence": "high",
+      "signal": "microsoft.directory/users"
+    },
+    {
+      "templateId": "5b784334-f94b-471a-a387-e7219fc49ca2",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "Reads customSecurityAttributeAuditLogs and writes customSecurityAttributeDiagnosticSettings (allTasks); can redirect/stop audit of access-shaping attributes, so a writer above Attribute Log Reader",
+      "confidence": "medium",
+      "signal": "microsoft.azure.customSecurityAttributeDiagnosticSettings"
+    },
+    {
+      "templateId": "124577f8-48ed-456a-839f-13b419002e33",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "note": "Only webPortal/standard/read exposed; by function a reader of tenant governance relationships, like Tenant Governance Reader (Control, Enterprise); actions do not show the scope",
+      "confidence": "medium",
+      "signal": "microsoft.office365.webPortal"
+    },
+    {
+      "templateId": "1d336d2c-4ae8-42ef-9711-b3604ce3fc2c",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "note": "Only reads attributeSets and customSecurityAttributeDefinitions; reader of access-shaping configuration stays Control, read-only lowers level",
+      "confidence": "high",
+      "signal": "microsoft.directory/customSecurityAttributeDefinitions"
+    },
+    {
+      "templateId": "112ca1a2-15ad-4102-995e-45b0bc479a6a",
+      "plane": "Control",
+      "securityLevel": "Enterprise",
+      "note": "Only tenantManagement/tenants/create: creates new separate tenants, no write to this tenant's identity or access; directory pathway function, low impact here",
+      "confidence": "medium",
+      "signal": "microsoft.directory/tenantManagement"
+    },
+    {
+      "templateId": "58f930cc-fcf4-4152-852c-1d7dbf502139",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; users/disable, enable, invalidateAllRefreshTokens and password/update: identity credential control",
+      "confidence": "high",
+      "signal": "microsoft.directory/users"
+    },
+    {
+      "templateId": "c34f683f-4d5a-4403-affd-6615e00e3a7f",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "No allowedResourceActions (deprecated); classified by function as a device-join role: Data, Enterprise (tie-breaker 8)",
+      "confidence": "low",
+      "signal": "none"
+    },
+    {
+      "templateId": "25a516ed-2fa0-40ea-a2d0-12923a21473a",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; customAuthenticationExtensions/allProperties/allTasks shapes sign-in and token issuance flows: authentication control",
+      "confidence": "high",
+      "signal": "microsoft.directory/customAuthenticationExtensions"
+    },
+    {
+      "templateId": "9c6df0f2-1e7c-4dc3-b195-66dfbd24aa8f",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "protectionCenter/attackSimulator/payload allTasks plus reports read: Defender workload content authoring, bounded to the service; authoring content users receive is Specialized",
+      "confidence": "medium",
+      "signal": "microsoft.office365.protectionCenter"
+    },
+    {
+      "templateId": "422218e4-db15-4ef9-bbe0-8afb41546d79",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; servicePrincipals/synchronization.customSecurityAttributes/schema/read: read of access-shaping provisioning config, floor beats read-only",
+      "confidence": "high",
+      "signal": "microsoft.directory/servicePrincipals"
+    },
+    {
+      "templateId": "49eb8f75-97e9-4e37-9b2b-6c3ebfcffa31",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "microsoft.backup exchangeProtectionPolicies, restoreSessions, userMailbox restore points/artifacts allTasks; backup roles are Management, Specialized",
+      "confidence": "high",
+      "signal": "microsoft.backup"
+    },
+    {
+      "templateId": "729827e3-9c14-49f7-bb1b-9608f156bbb8",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; users/password/update, invalidateAllRefreshTokens, bitlockerKeys/key/read, deviceLocalCredentials read: credential control",
+      "confidence": "high",
+      "signal": "microsoft.directory/users"
+    },
+    {
+      "templateId": "c430b396-e693-46cc-96f3-db01bf8bb62a",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "protectionCenter/attackSimulator payload and simulation allTasks plus reports read: Defender workload administration bounded to attack simulation",
+      "confidence": "high",
+      "signal": "microsoft.office365.protectionCenter"
+    },
+    {
+      "templateId": "4d6ac14f-3453-41d0-bef9-a3e0c569773a",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "users/groups assignLicense, reprocessLicenseAssignment, usageLocation/update: licence management is a bounded IT management function, not identity control",
+      "confidence": "medium",
+      "signal": "microsoft.directory/users/assignLicense"
+    },
+    {
+      "templateId": "644ef478-e28f-4e28-b9dc-3fdde9aa0b1f",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "azure.print/allEntities/allProperties/allTasks: full administration of Universal Print, bounded IT management (printers), no content escalation",
+      "confidence": "high",
+      "signal": "microsoft.azure.print"
+    },
+    {
+      "templateId": "d405c6df-0af8-4e3b-95e4-4d06e542189e",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "No allowedResourceActions (deprecated). Classified by function as a device-user role: Data, Enterprise (tie-breaker 8).",
+      "confidence": "low",
+      "signal": "none"
+    },
+    {
+      "templateId": "58a13ea3-c632-46ae-9ee0-9c0d43cd7f3d",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "Updates customSecurityAttributes on users, servicePrincipals, devices and managed identities; access-shaping write, not isPrivileged, so Specialized.",
+      "confidence": "high",
+      "signal": "microsoft.directory/users/customSecurityAttributes"
+    },
+    {
+      "templateId": "e8611ab8-c189-46e8-94e1-60213ab1f814",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "roleAssignments, roleDefinitions, privilegedIdentityManagement and oAuth2PermissionGrants allTasks; isPrivileged. Tenant-wide authorization control.",
+      "confidence": "high",
+      "signal": "microsoft.directory/roleAssignments"
+    },
+    {
+      "templateId": "8329153b-31d0-4727-b945-745eb3bc5f31",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "domains/allProperties/allTasks (domains and federation gate access); isPrivileged floor.",
+      "confidence": "high",
+      "signal": "microsoft.directory/domains"
+    },
+    {
+      "templateId": "7be44c8a-adaf-4e2a-84d6-ab2649e08a13",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "users/authenticationMethods create/update/delete and users/password/update for any user; isPrivileged.",
+      "confidence": "high",
+      "signal": "microsoft.directory/users/authenticationMethods"
+    },
+    {
+      "templateId": "5f2222b1-57c3-48ba-8ad5-d4759f1fde6f",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "cloudAppSecurity and identityProtection allTasks, users/password/update, disable and invalidateAllRefreshTokens; security actions outrank Defender workload actions; isPrivileged.",
+      "confidence": "high",
+      "signal": "microsoft.directory/identityProtection"
+    },
+    {
+      "templateId": "0b00bede-4072-4d22-b441-e7df02a1ef63",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "onPasswordSubmit/onPasswordUpdate CustomAuthenticationExtension allTasks: authentication extensibility; isPrivileged floor.",
+      "confidence": "high",
+      "signal": "microsoft.directory/onPasswordSubmitCustomAuthenticationExtension"
+    },
+    {
+      "templateId": "1981f584-96e9-4a6f-95b0-f522373f8fae",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "crossTenantAccessPolicy update and partners create/delete, tenantGovernance relationships and policy templates; isPrivileged floor.",
+      "confidence": "high",
+      "signal": "microsoft.directory/crossTenantAccessPolicy"
+    },
+    {
+      "templateId": "dd13091a-6207-4fc0-82ba-3641e056ab95",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "externalUserProfiles and pendingExternalUserProfiles update/create/delete: identity objects that gate access; namespace over Teams-flavoured name; not isPrivileged.",
+      "confidence": "medium",
+      "signal": "microsoft.directory/externalUserProfiles"
+    },
+    {
+      "templateId": "aa38014f-0993-46e9-9b45-30501a20909d",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "teams/voice allTasks and skypeForBusiness allTasks: scoped Teams telephony sub-admin, not full Teams admin; support and usage reads do not decide.",
+      "confidence": "high",
+      "signal": "microsoft.teams/voice"
+    },
+    {
+      "templateId": "281fe777-fb20-4fbb-b7a3-ccebce5b0d96",
+      "plane": "Management",
+      "securityLevel": "Enterprise",
+      "note": "hardware.support warrantyClaims/createAsOwner plus shipping and claim reads; same namespace as Hardware Warranty Administrator (Management), own-claims only so low impact. Could be Data as support.",
+      "confidence": "low",
+      "signal": "microsoft.hardware.support"
+    },
+    {
+      "templateId": "b1be1c3e-b65d-4f19-8427-f6fa0d97feb9",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "conditionalAccessPolicies create/update/delete, namedLocations and authenticationContext update; isPrivileged floor.",
+      "confidence": "high",
+      "signal": "microsoft.directory/conditionalAccessPolicies"
+    },
+    {
+      "templateId": "92b086b3-e367-4ef2-b869-1de128fb986e",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "viva.goals/allEntities/allProperties/allTasks: bounded administration of one Viva workload, not a mail/files/chat content workload; like Viva Pulse Administrator.",
+      "confidence": "high",
+      "signal": "microsoft.viva.goals"
+    },
+    {
+      "templateId": "ecb2c6bf-0ab6-418e-bd87-7986f8d63bbe",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "servicePrincipals/synchronization.customSecurityAttributes/schema read and update; access-shaping provisioning config; isPrivileged floor.",
+      "confidence": "high",
+      "signal": "microsoft.directory/servicePrincipals/synchronization.customSecurityAttributes"
+    },
+    {
+      "templateId": "8c8b803f-96e1-4129-9349-20738d9f9652",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "office365.migrations allTasks: Migration Manager moves content into M365; bounded service function, not full administrator of a content workload.",
+      "confidence": "medium",
+      "signal": "microsoft.office365.migrations"
+    },
+    {
+      "templateId": "45d8d3c5-c802-45c6-b32a-1d70b5e1e86e",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "entitlementManagement and accessReviews allTasks, groups/members/update, servicePrincipals/appRoleAssignedTo/update; isPrivileged floor.",
+      "confidence": "high",
+      "signal": "microsoft.directory/entitlementManagement"
+    },
+    {
+      "templateId": "ee67aa9c-e510-4759-b906-227085a7fd4d",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "graph.dataConnect allTasks: administers one service (Graph Data Connect); support, serviceHealth and messageCenter reads do not decide.",
+      "confidence": "medium",
+      "signal": "microsoft.graph.dataConnect"
+    },
+    {
+      "templateId": "3a2c62db-5318-420d-8d74-23affee5d9d5",
+      "plane": "Management",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor. intune/allEntities/allTasks, cloudPC allTasks and directory/devices writes make it device/workload management; groups.security and users/basic writes support targeting but do not lead.",
+      "confidence": "medium",
+      "signal": "microsoft.intune"
+    },
+    {
+      "templateId": "790c1fb9-7f7d-4f88-86a1-ef1f95c05c1b",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "Only messageCenter/messages/read and webPortal standard/read; a message center reader is Data, read-only.",
+      "confidence": "high",
+      "signal": "microsoft.office365.messageCenter"
+    },
+    {
+      "templateId": "fc8ad4e2-40e4-4724-8317-bcda7503ecbf",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "commerce.tenantRelationships/customerDelegatedAdminPrivileges allTasks manages GDAP relationships, an access-shaping signal; not isPrivileged, so Specialized.",
+      "confidence": "high",
+      "signal": "microsoft.commerce.tenantRelationships/customerDelegatedAdminPrivileges"
+    },
+    {
+      "templateId": "adb2368d-a9be-41b5-8667-d96778e081b0",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "agentIdentityBlueprints/createAsOwner creates agent identity objects that gate access, plus servicePrincipals read; identity write, not flagged, so Specialized.",
+      "confidence": "medium",
+      "signal": "microsoft.directory/agentIdentityBlueprints"
+    },
+    {
+      "templateId": "6b942400-691f-4bf0-9d12-d8a254a2baf5",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "microsoft.agentRegistry allTasks is listed access-shaping configuration; writing it is Specialized, not isPrivileged.",
+      "confidence": "high",
+      "signal": "microsoft.agentRegistry"
+    },
+    {
+      "templateId": "3edaf663-341e-4475-9f94-5c398ef6c070",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "b2cTrustFrameworkPolicy allTasks writes IEF authentication policies; tenant identity control but not isPrivileged, so Specialized.",
+      "confidence": "high",
+      "signal": "microsoft.directory/b2cTrustFrameworkPolicy"
+    },
+    {
+      "templateId": "6e591065-9bad-43ed-90f3-e9424366d2f0",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "b2cUserFlow allTasks writes sign-up/sign-in user flows, a Control signal; access-shaping write, not flagged.",
+      "confidence": "high",
+      "signal": "microsoft.directory/b2cUserFlow"
+    },
+    {
+      "templateId": "0f971eea-41eb-4569-a71e-57bb8a3eff1e",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "note": "b2cUserAttribute allTasks writes the attribute schema of user flows, a Control signal; access-shaping write, not flagged.",
+      "confidence": "high",
+      "signal": "microsoft.directory/b2cUserAttribute"
+    },
+    {
+      "templateId": "9c094953-4995-41c8-84c8-3ebb9b32c93f",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "note": "No allowedResourceActions (deprecated); classified by function as a device-join role per tie-breaker 8.",
+      "confidence": "low",
+      "signal": "none"
+    },
+    {
+      "templateId": "cf1c38e5-3621-4004-a7cb-879624dced7c",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; applications createAsOwner and credentials/permissions update, oAuth2PermissionGrants and servicePrincipals createAsOwner are identity objects that gate access.",
+      "confidence": "high",
+      "signal": "microsoft.directory/applications"
+    },
+    {
+      "templateId": "3f1acade-1e04-4fbc-9b69-f0302cd84aef",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "microsoft.edge allTasks administers one workload (browser configuration) plus support tickets; bounded service, no full content access.",
+      "confidence": "high",
+      "signal": "microsoft.edge"
+    },
+    {
+      "templateId": "78b0ccd1-afc2-4f92-9116-b41aedd09592",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "microsoft.places allTasks administers the Places service only; bounded workload administration, not escalated.",
+      "confidence": "high",
+      "signal": "microsoft.places"
+    },
+    {
+      "templateId": "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; applications and servicePrincipals create/credentials/permissions, oAuth2PermissionGrants allTasks, managePermissionGrantsForAll: tenant app access control.",
+      "confidence": "high",
+      "signal": "microsoft.directory/servicePrincipals"
+    },
+    {
+      "templateId": "e300d9e7-4a2b-4295-9eff-f1c78b36cc98",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "microsoft.virtualVisits allTasks administers one service (Virtual Visits config and metrics); bounded workload, no identity control.",
+      "confidence": "medium",
+      "signal": "microsoft.virtualVisits"
+    },
+    {
+      "templateId": "aaf43236-0c0d-4d5f-883a-6955382ac081",
+      "plane": "Control",
+      "securityLevel": "Privileged",
+      "note": "isPrivileged floor; b2cTrustFrameworkKeySet allTasks manages federation and encryption secrets (credentials).",
+      "confidence": "high",
+      "signal": "microsoft.directory/b2cTrustFrameworkKeySet"
+    },
+    {
+      "templateId": "1707125e-0aa2-4d4d-8655-a7c786c76a25",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "microsoft.backup allTasks plus support, serviceHealth and usageReports reads; backup roles are Management and Specialized per rubric.",
+      "confidence": "high",
+      "signal": "microsoft.backup"
+    },
+    {
+      "templateId": "7495fdc4-34c4-4d15-a289-98788ce399fd",
+      "plane": "Management",
+      "securityLevel": "Specialized",
+      "note": "azure.informationProtection allTasks is a Purview workload action; support/serviceHealth and authorizationPolicy read do not change it; bounded service admin.",
+      "confidence": "high",
+      "signal": "microsoft.azure.informationProtection"
+    }
+  ]
+}

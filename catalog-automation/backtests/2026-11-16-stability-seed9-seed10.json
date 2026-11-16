@@ -1,0 +1,19 @@
+{
+  "stability": {
+    "roles": 88,
+    "planeAgreement": 0.966,
+    "levelAgreement": 0.966,
+    "disagreements": [
+      "112ca1a2-15ad-4102-995e-45b0bc479a6a: Control/Specialized (low) vs Control/Enterprise (medium)",
+      "124577f8-48ed-456a-839f-13b419002e33: Data/Enterprise (low) vs Control/Enterprise (medium)",
+      "281fe777-fb20-4fbb-b7a3-ccebce5b0d96: Data/Enterprise (medium) vs Management/Enterprise (low)",
+      "e93e3737-fa85-474a-aee4-7d3fb86510f3: Management/Privileged (low) vs Management/Specialized (medium)",
+      "f70938a0-fc10-4177-9e90-2178f8765737: Data/Enterprise (medium) vs Management/Specialized (medium)"
+    ],
+    "confidentLevelContradictions": [
+      "f70938a0-fc10-4177-9e90-2178f8765737"
+    ],
+    "missing": [],
+    "passed": true
+  }
+}
