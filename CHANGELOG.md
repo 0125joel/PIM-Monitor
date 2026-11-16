@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.2](https://github.com/0125joel/PIM-Monitor/compare/v0.6.1...v0.6.2) (2026-11-16)
+
+
+### Bug Fixes
+
+* follow Microsoft's isPrivileged flag for Tenant Governance Administrator; count roles from the catalog in the backtest test ([6983dd5](https://github.com/0125joel/PIM-Monitor/commit/6983dd53d2f9028c722cc1d694f4584dbc300627))
+* follow the isPrivileged flag for Tenant Governance Administrator; count roles in the backtest test from the catalog ([14876a6](https://github.com/0125joel/PIM-Monitor/commit/14876a6c5da3c09d323e16f2b5996adca584f779))
+
 ## [0.6.1](https://github.com/0125joel/PIM-Monitor/compare/v0.6.0...v0.6.1) (2026-11-02)
 
 
