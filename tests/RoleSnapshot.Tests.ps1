@@ -12,11 +12,13 @@ BeforeAll {
     $script:realDefaults = Join-Path $script:repoRoot 'docs-site/src/data/eam-catalog-defaults.json'
 
     function New-RoleDef {
-        param([string] $Id, [string] $Name, [string[]] $Actions = @('microsoft.directory/users/basic/update'), [bool] $Privileged = $false, [bool] $BuiltIn = $true)
+        param([string] $Id, [string] $Name, [string[]] $Actions = @('microsoft.directory/users/basic/update'), [bool] $Privileged = $false, [bool] $BuiltIn = $true, [string] $Condition)
+        $perm = [pscustomobject]@{ allowedResourceActions = $Actions }
+        if ($Condition) { $perm | Add-Member -NotePropertyName condition -NotePropertyValue $Condition }
         [pscustomobject]@{
             id = $Id; templateId = $Id; displayName = $Name; description = "$Name description"
             isBuiltIn = $BuiltIn; isEnabled = $true; isPrivileged = $Privileged
-            rolePermissions = @([pscustomobject]@{ allowedResourceActions = $Actions })
+            rolePermissions = @($perm)
         }
     }
 
@@ -80,6 +82,147 @@ Describe 'Export-RoleDefinitions' {
         $json = Get-Content -Raw (Join-Path $out '00000001-0000-0000-0000-000000000000.json') | ConvertFrom-Json
         $json.rolePermissions[0].allowedResourceActions | Should -Be @('a/read', 'b/read')
         $json.PSObject.Properties.Name | Should -Not -Contain 'assignments'
+    }
+
+    It 'fetches a documented property that no role has, with $select, and merges it by id' {
+        $defs = @(1..120 | ForEach-Object { New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_" })
+        $selects = [System.Collections.Generic.List[string]]::new()
+        $fetch = {
+            param([string] $Select)
+            $selects.Add($Select)
+            @(1..120 | ForEach-Object { [pscustomobject]@{ id = ('{0:x8}-0000-0000-0000-000000000000' -f $_); allowedPrincipalTypes = @('user', 'servicePrincipal'); resourceScopes = @('/'); version = '1.0' } })
+        }.GetNewClosure()
+        $out = Join-Path $TestDrive 'fetch/role-definitions'
+        & $script:export -OutputPath $out -Definitions $defs -FetchSelect $fetch | Out-Null
+        $selects.Count | Should -Be 1
+        $selects[0] | Should -Be 'id,allowedPrincipalTypes,resourceScopes,version'
+        $json = Get-Content -Raw (Join-Path $out '00000001-0000-0000-0000-000000000000.json') | ConvertFrom-Json
+        @($json.allowedPrincipalTypes) | Should -Be @('servicePrincipal', 'user')
+        $json.version | Should -Be '1.0'
+        $status = Get-Content -Raw (Join-Path $TestDrive 'fetch/export-status.json') | ConvertFrom-Json
+        @($status.missingDocumentedProperties).Count | Should -Be 0
+        @($status.properties) | Should -Contain 'allowedPrincipalTypes'
+    }
+
+    It 'lists a documented property the API still does not return, and does not throw' {
+        $defs = @(1..120 | ForEach-Object { New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_" })
+        $partial = {
+            param([string] $Select)
+            @(1..120 | ForEach-Object { [pscustomobject]@{ id = ('{0:x8}-0000-0000-0000-000000000000' -f $_); version = '1.0' } })
+        }
+        $out = Join-Path $TestDrive 'partial/role-definitions'
+        { & $script:export -OutputPath $out -Definitions $defs -FetchSelect $partial -WarningAction SilentlyContinue | Out-Null } | Should -Not -Throw
+        $status = Get-Content -Raw (Join-Path $TestDrive 'partial/export-status.json') | ConvertFrom-Json
+        @($status.missingDocumentedProperties) | Should -Be @('allowedPrincipalTypes', 'resourceScopes')
+        (Get-Content -Raw (Join-Path $out '00000001-0000-0000-0000-000000000000.json') | ConvertFrom-Json).version | Should -Be '1.0'
+    }
+
+    It 'makes no extra call when only -Definitions is given, and reports the missing properties' {
+        $defs = @(1..120 | ForEach-Object { New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_" })
+        $out = Join-Path $TestDrive 'nofetch/role-definitions'
+        & $script:export -OutputPath $out -Definitions $defs 3>$null | Out-Null
+        $status = Get-Content -Raw (Join-Path $TestDrive 'nofetch/export-status.json') | ConvertFrom-Json
+        @($status.missingDocumentedProperties) | Should -Be @('allowedPrincipalTypes', 'resourceScopes', 'version')
+        $status.roles | Should -Be 120
+    }
+
+    It 'refuses to write when a core property every previous file had is gone, and leaves the folder unchanged' {
+        $out = Join-Path $TestDrive 'regress/role-definitions'
+        $defs = @(1..120 | ForEach-Object { New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_" })
+        & $script:export -OutputPath $out -Definitions $defs 3>$null | Out-Null
+        $before = @{}
+        foreach ($f in Get-ChildItem $out -File) { $before[$f.Name] = Get-Content -Raw $f.FullName }
+        $statusBefore = Get-Content -Raw (Join-Path $TestDrive 'regress/export-status.json')
+        $without = @(1..120 | ForEach-Object { $r = New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_"; $r.PSObject.Properties.Remove('rolePermissions'); $r })
+        { & $script:export -OutputPath $out -Definitions $without 3>$null } | Should -Throw '*API shape regression*rolePermissions*'
+        $after = @{}
+        foreach ($f in Get-ChildItem $out -File) { $after[$f.Name] = Get-Content -Raw $f.FullName }
+        $after.Count | Should -Be $before.Count
+        foreach ($k in $before.Keys) { $after[$k] | Should -Be $before[$k] }
+        Get-Content -Raw (Join-Path $TestDrive 'regress/export-status.json') | Should -Be $statusBefore
+    }
+
+    It 'writes on when a non-core property disappears, and records it as lost' {
+        $out = Join-Path $TestDrive 'lost/role-definitions'
+        $withFlag = @(1..120 | ForEach-Object { New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_" | Add-Member -NotePropertyName resourceScopes -NotePropertyValue @('/') -PassThru })
+        & $script:export -OutputPath $out -Definitions $withFlag 3>$null | Out-Null
+        $without = @(1..120 | ForEach-Object { New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_" })
+        & $script:export -OutputPath $out -Definitions $without 3>$null | Out-Null
+        (Get-Content -Raw (Join-Path $out '00000001-0000-0000-0000-000000000000.json') | ConvertFrom-Json).PSObject.Properties.Name | Should -Not -Contain 'resourceScopes'
+        @((Get-Content -Raw (Join-Path $TestDrive 'lost/export-status.json') | ConvertFrom-Json).lostProperties) | Should -Be @('resourceScopes')
+    }
+
+    It 'writes export-status.json without a timestamp, identical on two runs with the same input' {
+        $fetch = {
+            param([string] $Select)
+            @(1..120 | ForEach-Object { [pscustomobject]@{ id = ('{0:x8}-0000-0000-0000-000000000000' -f $_); allowedPrincipalTypes = @('user'); resourceScopes = @('/'); version = '1.0' } })
+        }
+        foreach ($run in 'st1', 'st2') {
+            $defs = @(1..120 | ForEach-Object { New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_" })
+            & $script:export -OutputPath (Join-Path $TestDrive "$run/role-definitions") -Definitions $defs -FetchSelect $fetch | Out-Null
+        }
+        $a = Get-Content -Raw (Join-Path $TestDrive 'st1/export-status.json')
+        $a | Should -Be (Get-Content -Raw (Join-Path $TestDrive 'st2/export-status.json'))
+        $a | Should -Not -Match '\d{4}-\d{2}-\d{2}'
+        $a | Should -Not -Match 'generated|timestamp|updated'
+        ($a | ConvertFrom-Json).roles | Should -Be 120
+        Get-Content -Raw (Join-Path $TestDrive 'st1/role-definitions/00000001-0000-0000-0000-000000000000.json') | Should -Be (Get-Content -Raw (Join-Path $TestDrive 'st2/role-definitions/00000001-0000-0000-0000-000000000000.json'))
+    }
+}
+
+Describe 'Export-ResourceActions' {
+    BeforeAll {
+        $script:exportActions = Join-Path $script:repoRoot 'catalog-automation/Export-ResourceActions.ps1'
+        $script:raSnap = Join-Path $TestDrive 'ra-snap'
+        Write-Snapshot $script:raSnap @(
+            (New-RoleDef 'aaaaaaaa-0000-0000-0000-000000000001' 'One' -Actions @('microsoft.directory/users/password/update', 'microsoft.office365.supportTickets/allEntities/allTasks')),
+            (New-RoleDef 'aaaaaaaa-0000-0000-0000-000000000002' 'Two' -Actions @('microsoft.directory/users/standard/read'))
+        )
+        $script:raGood = {
+            param($ns)
+            switch ($ns) {
+                'microsoft.directory' { @(
+                        [pscustomobject]@{ name = 'microsoft.directory/users/standard/read'; description = 'Read users'; isPrivileged = $false },
+                        [pscustomobject]@{ name = 'microsoft.directory/users/password/update'; description = 'Reset passwords'; isPrivileged = $true }) }
+                'microsoft.office365.supportTickets' { @([pscustomobject]@{ name = 'microsoft.office365.supportTickets/allEntities/allTasks'; description = 'Manage tickets'; isPrivileged = $false }) }
+            }
+        }
+    }
+
+    It 'writes one sorted file per namespace the roles use, and an index with coverage' {
+        $out = Join-Path $TestDrive 'ra-out'
+        & $script:exportActions -RoleDefinitionsDir $script:raSnap -OutputPath $out -Fetch $script:raGood | Out-Null
+        @(Get-ChildItem $out -Filter '*.json').Name | Sort-Object | Should -Be @('index.json', 'microsoft.directory.json', 'microsoft.office365.supportTickets.json')
+        $dir = Get-Content -Raw (Join-Path $out 'microsoft.directory.json') | ConvertFrom-Json
+        @($dir.actions.name) | Should -Be @('microsoft.directory/users/password/update', 'microsoft.directory/users/standard/read')
+        ($dir.actions | Where-Object name -like '*password*').isPrivileged | Should -BeTrue
+        $tickets = Get-Content -Raw (Join-Path $out 'microsoft.office365.supportTickets.json') | ConvertFrom-Json
+        $tickets.actions[0].isPrivileged | Should -BeNullOrEmpty -Because 'Microsoft applies isPrivileged only to the microsoft.directory namespace'
+        $idx = Get-Content -Raw (Join-Path $out 'index.json') | ConvertFrom-Json
+        $idx.roleActions | Should -Be 3
+        $idx.described | Should -Be 3
+        $idx.namespaces.'microsoft.directory'.status | Should -Be 'ok'
+    }
+
+    It 'keeps the previous file of a namespace that fails, and says so in the index' {
+        $out = Join-Path $TestDrive 'ra-out'
+        $before = Get-Content -Raw (Join-Path $out 'microsoft.directory.json')
+        $bad = { param($ns) if ($ns -eq 'microsoft.directory') { throw 'HTTP 503' } else { & $script:raGood $ns } }
+        & $script:exportActions -RoleDefinitionsDir $script:raSnap -OutputPath $out -Fetch $bad | Out-Null
+        Get-Content -Raw (Join-Path $out 'microsoft.directory.json') | Should -Be $before
+        $idx = Get-Content -Raw (Join-Path $out 'index.json') | ConvertFrom-Json
+        $idx.namespaces.'microsoft.directory'.status | Should -Be 'failed-kept-previous'
+        $idx.namespaces.'microsoft.directory'.error | Should -BeLike '*503*'
+    }
+
+    It 'treats an empty response as a failure, not as a namespace without actions' {
+        $out = Join-Path $TestDrive 'ra-empty'
+        & $script:exportActions -RoleDefinitionsDir $script:raSnap -OutputPath $out -Fetch { param($ns) @() } | Out-Null
+        Test-Path (Join-Path $out 'microsoft.directory.json') | Should -BeFalse
+        $idx = Get-Content -Raw (Join-Path $out 'index.json') | ConvertFrom-Json
+        $idx.namespaces.'microsoft.directory'.status | Should -Be 'failed'
+        $idx.described | Should -Be 0
+        @($idx.undescribed).Count | Should -Be 3
     }
 }
 

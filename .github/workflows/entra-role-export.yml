@@ -59,12 +59,22 @@ jobs:
         shell: pwsh
         run: ./repo/catalog-automation/Export-RoleDefinitions.ps1 -OutputPath ./snapshot/role-definitions
 
+      - name: Export the resource actions the roles use
+        # Context for the review: Microsoft's description and isPrivileged flag per action. Optional: a
+        # failure here must not stop the role export or the report. resource-actions/index.json records
+        # which namespaces failed; a failed namespace keeps its previous file.
+        continue-on-error: true
+        shell: pwsh
+        run: ./repo/catalog-automation/Export-ResourceActions.ps1 -RoleDefinitionsDir ./snapshot/role-definitions -OutputPath ./snapshot/resource-actions
+
       - name: Commit the snapshot when it changed
         id: commit
         shell: bash
         working-directory: snapshot
         run: |
           git add role-definitions
+          if [ -d resource-actions ]; then git add resource-actions; fi
+          if [ -f export-status.json ]; then git add export-status.json; fi
           if ! git diff --cached --quiet; then
             git commit --quiet -m "snapshot: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             git push origin entra-role-export
