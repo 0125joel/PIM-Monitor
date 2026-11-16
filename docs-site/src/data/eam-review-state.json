@@ -1,4 +1,4 @@
 {
   "_comment": "Written by the weekly catalog review PR. lastReviewedSnapshot is the commit on the entra-role-export branch the catalog was last reviewed against. null until the first review.",
-  "lastReviewedSnapshot": null
+  "lastReviewedSnapshot": "936d394223b733c94e0aa88db04778e2434c8970"
 }
