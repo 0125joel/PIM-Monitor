@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Read basic properties on all resources in the Microsoft 365 admin center",
+      "isPrivileged": null,
+      "name": "microsoft.office365.webPortal/allEntities/standard/read"
+    }
+  ],
+  "namespace": "microsoft.office365.webPortal"
+}

@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Read and configure Azure DevOps",
+      "isPrivileged": null,
+      "name": "microsoft.azure.devOps/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.azure.devOps"
+}

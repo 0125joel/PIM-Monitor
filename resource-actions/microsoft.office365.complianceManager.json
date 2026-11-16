@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Office 365 Compliance Manager",
+      "isPrivileged": null,
+      "name": "microsoft.office365.complianceManager/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.office365.complianceManager"
+}

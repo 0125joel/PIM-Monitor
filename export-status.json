@@ -1,0 +1,39 @@
+{
+  "documentedProperties": [
+    "allowedPrincipalTypes",
+    "description",
+    "displayName",
+    "id",
+    "isBuiltIn",
+    "isEnabled",
+    "isPrivileged",
+    "resourceScopes",
+    "rolePermissions",
+    "templateId",
+    "version"
+  ],
+  "lostProperties": [],
+  "missingDocumentedProperties": [
+    "allowedPrincipalTypes"
+  ],
+  "properties": [
+    "assignmentMode",
+    "categories",
+    "deletedDateTime",
+    "description",
+    "displayName",
+    "id",
+    "inheritsPermissionsFrom",
+    "inheritsPermissionsFrom@odata.context",
+    "isBuiltIn",
+    "isEnabled",
+    "isPrivileged",
+    "resourceScopes",
+    "richDescription",
+    "rolePermissions",
+    "templateId",
+    "version"
+  ],
+  "roles": 148,
+  "supplementaryFetchError": null
+}

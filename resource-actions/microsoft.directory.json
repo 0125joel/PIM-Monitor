@@ -1,0 +1,4070 @@
+{
+  "actions": [
+    {
+      "description": "Create and delete access reviews, and read and update all properties of access reviews in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of access reviews",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/allProperties/read"
+    },
+    {
+      "description": "Manage access reviews of application role assignments in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions.applications/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of access reviews of application role assignments in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions.applications/allProperties/read"
+    },
+    {
+      "description": "Manage access reviews for Microsoft Entra role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions.directoryRoles/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of access reviews for Microsoft Entra role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions.directoryRoles/allProperties/read"
+    },
+    {
+      "description": "Manage access reviews for access package assignments in entitlement management",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions.entitlementManagement/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of access reviews for membership in Security and Microsoft 365 groups, including role-assignable groups.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions.groups/allProperties/read"
+    },
+    {
+      "description": "Update all properties of access reviews for membership in Security and Microsoft 365 groups, excluding role-assignable groups.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions.groups/allProperties/update"
+    },
+    {
+      "description": "Create access reviews for membership in Security and Microsoft 365 groups.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions.groups/create"
+    },
+    {
+      "description": "Delete access reviews for membership in Security and Microsoft 365 groups.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions.groups/delete"
+    },
+    {
+      "description": "Update all properties of access reviews for membership in groups that are assignable to Microsoft Entra roles",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions.groupsAssignableToRoles/allProperties/update"
+    },
+    {
+      "description": "Create access reviews for membership in groups that are assignable to Microsoft Entra roles",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions.groupsAssignableToRoles/create"
+    },
+    {
+      "description": "Delete access reviews for membership in groups that are assignable to Microsoft Entra roles",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions.groupsAssignableToRoles/delete"
+    },
+    {
+      "description": "Manage access reviews of all reviewable resources in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of access reviews of all reviewable resources in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/accessReviews/definitions/allProperties/read"
+    },
+    {
+      "description": "Manage admin consent request policies in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/adminConsentRequestPolicy/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of admin consent request policies in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/adminConsentRequestPolicy/allProperties/read"
+    },
+    {
+      "description": "Create and manage administrative units (including members)",
+      "isPrivileged": false,
+      "name": "microsoft.directory/administrativeUnits/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of administrative units, including members",
+      "isPrivileged": false,
+      "name": "microsoft.directory/administrativeUnits/allProperties/read"
+    },
+    {
+      "description": "Update basic properties on administrative units",
+      "isPrivileged": false,
+      "name": "microsoft.directory/administrativeUnits/basic/update"
+    },
+    {
+      "description": "Create administrative units",
+      "isPrivileged": false,
+      "name": "microsoft.directory/administrativeUnits/create"
+    },
+    {
+      "description": "Read members of administrative units",
+      "isPrivileged": false,
+      "name": "microsoft.directory/administrativeUnits/members/read"
+    },
+    {
+      "description": "Update members of administrative units",
+      "isPrivileged": false,
+      "name": "microsoft.directory/administrativeUnits/members/update"
+    },
+    {
+      "description": "Update members of administrative units",
+      "isPrivileged": false,
+      "name": "microsoft.directory/administrativeUnits/members/update"
+    },
+    {
+      "description": "Read basic properties on administrative units",
+      "isPrivileged": false,
+      "name": "microsoft.directory/administrativeUnits/standard/read"
+    },
+    {
+      "description": "Read all properties of agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/allProperties/read"
+    },
+    {
+      "description": "Update agent identity role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/appRoleAssignedTo/update"
+    },
+    {
+      "description": "Update agent identity role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/appRoleAssignedTo/update"
+    },
+    {
+      "description": "Update authentication on agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/authentication/update"
+    },
+    {
+      "description": "Update basic properties on agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/basic/update"
+    },
+    {
+      "description": "Create agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/create"
+    },
+    {
+      "description": "Create agent identities, and creator is added as the first owner",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/createAsOwner"
+    },
+    {
+      "description": "Delete agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/delete"
+    },
+    {
+      "description": "Disable agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/disable"
+    },
+    {
+      "description": "Enable agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/enable"
+    },
+    {
+      "description": "Update the ID-JAG outbound configuration of agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/idJagConfiguration/update"
+    },
+    {
+      "description": "Update owners on agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/owners/update"
+    },
+    {
+      "description": "Update owners on agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/owners/update"
+    },
+    {
+      "description": "Update policies of agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/policies/update"
+    },
+    {
+      "description": "Read basic properties on agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/standard/read"
+    },
+    {
+      "description": "Update tags of agent identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentities/tag/update"
+    },
+    {
+      "description": "Read all properties of agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/allProperties/read"
+    },
+    {
+      "description": "Update agent identity blueprint principal role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/appRoleAssignedTo/update"
+    },
+    {
+      "description": "Update agent identity blueprint principal role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/appRoleAssignedTo/update"
+    },
+    {
+      "description": "Update authentication on agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/authentication/update"
+    },
+    {
+      "description": "Update basic properties on agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/basic/update"
+    },
+    {
+      "description": "Create agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/create"
+    },
+    {
+      "description": "Create agent identity blueprint principals, and creator is added as the first owner",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/createAsOwner"
+    },
+    {
+      "description": "Delete agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/delete"
+    },
+    {
+      "description": "Disable agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/disable"
+    },
+    {
+      "description": "Enable agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/enable"
+    },
+    {
+      "description": "Update the ID-JAG outbound configuration of agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/idJagConfiguration/update"
+    },
+    {
+      "description": "Update owners on agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/owners/update"
+    },
+    {
+      "description": "Update owners on agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/owners/update"
+    },
+    {
+      "description": "Update exposed permissions and required permissions on agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/permissions/update"
+    },
+    {
+      "description": "Update policies of agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/policies/update"
+    },
+    {
+      "description": "Read standard properties on agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/standard/read"
+    },
+    {
+      "description": "Update tags of agent identity blueprint principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprintPrincipals/tag/update"
+    },
+    {
+      "description": "Read all properties of agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/allProperties/read"
+    },
+    {
+      "description": "Update all properties of agent identity blueprints",
+      "isPrivileged": true,
+      "name": "microsoft.directory/agentIdentityBlueprints/allProperties/update"
+    },
+    {
+      "description": "Update appRoles on agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/appRoles/update"
+    },
+    {
+      "description": "Update audience on agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/audience/update"
+    },
+    {
+      "description": "Update authentication on agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/authentication/update"
+    },
+    {
+      "description": "Update basic properties on agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/basic/update"
+    },
+    {
+      "description": "Create agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/create"
+    },
+    {
+      "description": "Create agent identity blueprints, and creator is added as the first owner",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/createAsOwner"
+    },
+    {
+      "description": "Update credentials on agent identity blueprints",
+      "isPrivileged": true,
+      "name": "microsoft.directory/agentIdentityBlueprints/credentials/update"
+    },
+    {
+      "description": "Delete agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/delete"
+    },
+    {
+      "description": "Update the ID-JAG outbound configuration of agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/idJagConfiguration/update"
+    },
+    {
+      "description": "Update owners on agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/owners/update"
+    },
+    {
+      "description": "Update owners on agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/owners/update"
+    },
+    {
+      "description": "Update exposed permissions and required permissions on agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/permissions/update"
+    },
+    {
+      "description": "Update policies of agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/policies/update"
+    },
+    {
+      "description": "Read standard properties on agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/standard/read"
+    },
+    {
+      "description": "Update tags of agent identity blueprints",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentIdentityBlueprints/tag/update"
+    },
+    {
+      "description": "Assign product licenses for agent users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentUsers/assignLicense"
+    },
+    {
+      "description": "Update basic properties on agent users, such display name, user type, and mail nickname",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentUsers/basic/update"
+    },
+    {
+      "description": "Create agent users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/agentUsers/create"
+    },
+    {
+      "description": "Delete agent users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/agentUsers/delete"
+    },
+    {
+      "description": "Disable agent users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/agentUsers/disable"
+    },
+    {
+      "description": "Enable agent users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/agentUsers/enable"
+    },
+    {
+      "description": "Force sign-out by invalidating agent user refresh tokens",
+      "isPrivileged": true,
+      "name": "microsoft.directory/agentUsers/invalidateAllRefreshTokens"
+    },
+    {
+      "description": "Read lifecycle information of agent users, such as employeeLeaveDateTime",
+      "isPrivileged": true,
+      "name": "microsoft.directory/agentUsers/lifeCycleInfo/read"
+    },
+    {
+      "description": "Update lifecycle information of agent users, such as employeeLeaveDateTime",
+      "isPrivileged": true,
+      "name": "microsoft.directory/agentUsers/lifeCycleInfo/update"
+    },
+    {
+      "description": "Update manager for agent users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentUsers/manager/update"
+    },
+    {
+      "description": "Update photo of agent users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentUsers/photo/update"
+    },
+    {
+      "description": "Reprocess license assignments for agent users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentUsers/reprocessLicenseAssignment"
+    },
+    {
+      "description": "Restore deleted agent users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentUsers/restore"
+    },
+    {
+      "description": "Revoke sign-in sessions for agent users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentUsers/revokeSignInSessions"
+    },
+    {
+      "description": "Update sponsors of agent users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentUsers/sponsors/update"
+    },
+    {
+      "description": "Update sponsors of agent users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentUsers/sponsors/update"
+    },
+    {
+      "description": "Update usage location of agent users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/agentUsers/usageLocation/update"
+    },
+    {
+      "description": "Update the user principal name of agent users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/agentUsers/userPrincipalName/update"
+    },
+    {
+      "description": "Read all properties of consent requests for applications registered with Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/appConsent/appConsentRequests/allProperties/read"
+    },
+    {
+      "description": "Read all properties (including privileged properties) on application policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applicationPolicies/allProperties/read"
+    },
+    {
+      "description": "Update all properties (including privileged properties) on application policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applicationPolicies/allProperties/update"
+    },
+    {
+      "description": "Update standard properties of application policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applicationPolicies/basic/update"
+    },
+    {
+      "description": "Create application policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applicationPolicies/create"
+    },
+    {
+      "description": "Create application policies, and creator is added as the first owner",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applicationPolicies/createAsOwner"
+    },
+    {
+      "description": "Delete application policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applicationPolicies/delete"
+    },
+    {
+      "description": "Read owners on application policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applicationPolicies/owners/read"
+    },
+    {
+      "description": "Update the owner property of application policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applicationPolicies/owners/update"
+    },
+    {
+      "description": "Update the owner property of application policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applicationPolicies/owners/update"
+    },
+    {
+      "description": "Read application policies applied to objects list",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applicationPolicies/policyAppliedTo/read"
+    },
+    {
+      "description": "Read standard properties of application policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applicationPolicies/standard/read"
+    },
+    {
+      "description": "Read all properties (including privileged properties) on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/allProperties/read"
+    },
+    {
+      "description": "Update all properties (including privileged properties) on single-directory applications",
+      "isPrivileged": true,
+      "name": "microsoft.directory/applications.myOrganization/allProperties/update"
+    },
+    {
+      "description": "Update appRoles on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/appRoles/update"
+    },
+    {
+      "description": "Update audience on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/audience/update"
+    },
+    {
+      "description": "Update authentication on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/authentication/update"
+    },
+    {
+      "description": "Update basic properties on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/basic/update"
+    },
+    {
+      "description": "Update credentials on single-directory applications",
+      "isPrivileged": true,
+      "name": "microsoft.directory/applications.myOrganization/credentials/update"
+    },
+    {
+      "description": "Delete single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/delete"
+    },
+    {
+      "description": "Update extension properties on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/extensionProperties/update"
+    },
+    {
+      "description": "Update extension properties on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/extensionProperties/update"
+    },
+    {
+      "description": "Update notes on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/notes/update"
+    },
+    {
+      "description": "Read owners on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/owners/read"
+    },
+    {
+      "description": "Update owners on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/owners/update"
+    },
+    {
+      "description": "Update owners on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/owners/update"
+    },
+    {
+      "description": "Update exposed permissions and required permissions on single-tenant applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/permissions/update"
+    },
+    {
+      "description": "Read basic properties on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/standard/read"
+    },
+    {
+      "description": "Update tags on single-directory applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications.myOrganization/tag/update"
+    },
+    {
+      "description": "Create and delete applications, and read and update all properties",
+      "isPrivileged": true,
+      "name": "microsoft.directory/applications/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties (including privileged properties) on all types of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/allProperties/read"
+    },
+    {
+      "description": "Update all properties (including privileged properties) on all types of applications",
+      "isPrivileged": true,
+      "name": "microsoft.directory/applications/allProperties/update"
+    },
+    {
+      "description": "Read all application proxy properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/applicationProxy/read"
+    },
+    {
+      "description": "Update all application proxy properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/applicationProxy/update"
+    },
+    {
+      "description": "Update authentication on all types of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/applicationProxyAuthentication/update"
+    },
+    {
+      "description": "Update SSL certificate settings for application proxy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/applicationProxySslCertificate/update"
+    },
+    {
+      "description": "Update URL settings for application proxy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/applicationProxyUrlSettings/update"
+    },
+    {
+      "description": "Update the appRoles property on all types of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/appRoles/update"
+    },
+    {
+      "description": "Update the audience property for applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/audience/update"
+    },
+    {
+      "description": "Update authentication on all types of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/authentication/update"
+    },
+    {
+      "description": "Update basic properties for applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/basic/update"
+    },
+    {
+      "description": "Create all types of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/create"
+    },
+    {
+      "description": "Create all types of applications, and creator is added as the first owner",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/createAsOwner"
+    },
+    {
+      "description": "Update application credentials",
+      "isPrivileged": true,
+      "name": "microsoft.directory/applications/credentials/update"
+    },
+    {
+      "description": "Delete all types of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/delete"
+    },
+    {
+      "description": "Update whether an application is enabled for users to sign in",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/disablement/update"
+    },
+    {
+      "description": "Update extension properties on applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/extensionProperties/update"
+    },
+    {
+      "description": "Update extension properties on applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/extensionProperties/update"
+    },
+    {
+      "description": "Update notes of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/notes/update"
+    },
+    {
+      "description": "Read the owners of a specific application, but cannot enumerate applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/owners/limitedRead"
+    },
+    {
+      "description": "Read owners of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/owners/read"
+    },
+    {
+      "description": "Update owners of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/owners/update"
+    },
+    {
+      "description": "Update owners of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/owners/update"
+    },
+    {
+      "description": "Update exposed permissions and required permissions on all types of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/permissions/update"
+    },
+    {
+      "description": "Read policies of a specific application, but cannot enumerate applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/policies/limitedRead"
+    },
+    {
+      "description": "Read policies of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/policies/read"
+    },
+    {
+      "description": "Update policies of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/policies/update"
+    },
+    {
+      "description": "Restore applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/restore"
+    },
+    {
+      "description": "Read sponsors of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/sponsors/read"
+    },
+    {
+      "description": "Read standard properties of a specific application, but cannot enumerate applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/standard/limitedRead"
+    },
+    {
+      "description": "Read standard properties of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/standard/read"
+    },
+    {
+      "description": "Read provisioning settings associated with the application object",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/synchronization/standard/read"
+    },
+    {
+      "description": "Update tags of applications",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/tag/update"
+    },
+    {
+      "description": "Update applicationsverification property",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applications/verification/update"
+    },
+    {
+      "description": "Instantiate gallery applications from application templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/applicationTemplates/instantiate"
+    },
+    {
+      "description": "Create and delete appRoleAssignments, and read and update all properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/appRoleAssignments/allProperties/allTasks"
+    },
+    {
+      "description": "Update basic properties of application role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/appRoleAssignments/basic/update"
+    },
+    {
+      "description": "Create application role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/appRoleAssignments/create"
+    },
+    {
+      "description": "Create application role assignments, with creator as the first owner",
+      "isPrivileged": false,
+      "name": "microsoft.directory/appRoleAssignments/createAsOwner"
+    },
+    {
+      "description": "Delete application role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/appRoleAssignments/delete"
+    },
+    {
+      "description": "Read standard properties of application role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/appRoleAssignments/standard/read"
+    },
+    {
+      "description": "Manage all aspects of attribute sets",
+      "isPrivileged": false,
+      "name": "microsoft.directory/attributeSets/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of attribute sets",
+      "isPrivileged": false,
+      "name": "microsoft.directory/attributeSets/allProperties/read"
+    },
+    {
+      "description": "Read all properties on audit logs, excluding custom security attributes audit logs",
+      "isPrivileged": false,
+      "name": "microsoft.directory/auditLogs/allProperties/read"
+    },
+    {
+      "description": "Manage all aspects of authorization policy",
+      "isPrivileged": true,
+      "name": "microsoft.directory/authorizationPolicy/allProperties/allTasks"
+    },
+    {
+      "description": "Update basic properties of authorization policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/authorizationPolicy/basic/update"
+    },
+    {
+      "description": "Update permissions for default user role overrides of authorization policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/authorizationPolicy/defaultUserRoleOverrides/update"
+    },
+    {
+      "description": "Update default user role permissions of authorization policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/authorizationPolicy/defaultUserRolePermissions/update"
+    },
+    {
+      "description": "Update guest user settings of authorization policy",
+      "isPrivileged": true,
+      "name": "microsoft.directory/authorizationPolicy/guestUserSettings/update"
+    },
+    {
+      "description": "Update organization settings of authorization policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/authorizationPolicy/organizationSettings/update"
+    },
+    {
+      "description": "Read standard properties of authorization policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/authorizationPolicy/standard/read"
+    },
+    {
+      "description": "Read custom security attribute values for Microsoft Entra managed identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/azureManagedIdentities/customSecurityAttributes/read"
+    },
+    {
+      "description": "Update custom security attribute values for Microsoft Entra managed identities",
+      "isPrivileged": false,
+      "name": "microsoft.directory/azureManagedIdentities/customSecurityAttributes/update"
+    },
+    {
+      "description": "Read and configure key sets in Azure Active Directory B2C",
+      "isPrivileged": true,
+      "name": "microsoft.directory/b2cTrustFrameworkKeySet/allProperties/allTasks"
+    },
+    {
+      "description": "Read and configure custom policies in Azure Active Directory B2C",
+      "isPrivileged": false,
+      "name": "microsoft.directory/b2cTrustFrameworkPolicy/allProperties/allTasks"
+    },
+    {
+      "description": "Read and configure user attribute in Azure Active Directory B2C",
+      "isPrivileged": false,
+      "name": "microsoft.directory/b2cUserAttribute/allProperties/allTasks"
+    },
+    {
+      "description": "Read and configure user flow in Azure Active Directory B2C",
+      "isPrivileged": false,
+      "name": "microsoft.directory/b2cUserFlow/allProperties/allTasks"
+    },
+    {
+      "description": "Cancel a Microsoft Entra backup operation to compare a backup snapshot with the current state.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/backup/preview/cancel"
+    },
+    {
+      "description": "Create a Microsoft Entra backup operation that allows a user to compare a backup snapshot with the current state.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/backup/preview/create"
+    },
+    {
+      "description": "Cancel a Microsoft Entra recovery operation to recover the contents of a backup snapshot",
+      "isPrivileged": false,
+      "name": "microsoft.directory/backup/recovery/cancel"
+    },
+    {
+      "description": "Create a Microsoft Entra recovery operation that allows a user to recover the contents of a backup snapshot.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/backup/recovery/create"
+    },
+    {
+      "description": "List Microsoft Entra backups (for example, backup IDs and timestamps), view difference reports, and list recovery jobs and their associated properties.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/backup/standard/read"
+    },
+    {
+      "description": "Read bitlocker metadata and key on devices",
+      "isPrivileged": true,
+      "name": "microsoft.directory/bitlockerKeys/key/read"
+    },
+    {
+      "description": "Read bitlocker key metadata on devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/bitlockerKeys/metadata/read"
+    },
+    {
+      "description": "Update bulk jobs related to groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/bulkJobs.groups/basic/update"
+    },
+    {
+      "description": "Create bulk jobs related to groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/bulkJobs.groups/create"
+    },
+    {
+      "description": "Read bulk jobs related to groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/bulkJobs.groups/standard/read"
+    },
+    {
+      "description": "Update all the bulk jobs in a directory",
+      "isPrivileged": false,
+      "name": "microsoft.directory/bulkJobs/basic/update"
+    },
+    {
+      "description": "Create all bulk jobs in a directory",
+      "isPrivileged": false,
+      "name": "microsoft.directory/bulkJobs/create"
+    },
+    {
+      "description": "Read all bulk jobs in a directory",
+      "isPrivileged": false,
+      "name": "microsoft.directory/bulkJobs/standard/read"
+    },
+    {
+      "description": "Create Certificate Authorities configurations for IoT Device trust and authentication",
+      "isPrivileged": false,
+      "name": "microsoft.directory/certificateBasedDeviceAuthConfigurations/create"
+    },
+    {
+      "description": "Update crendential related properties on certificate authority configurations for Internet of Things (IoT) device trust and authentication",
+      "isPrivileged": false,
+      "name": "microsoft.directory/certificateBasedDeviceAuthConfigurations/credentials/update"
+    },
+    {
+      "description": "Delete certificate authority configurations for Internet of Things (IoT) device",
+      "isPrivileged": false,
+      "name": "microsoft.directory/certificateBasedDeviceAuthConfigurations/delete"
+    },
+    {
+      "description": "Read standard properties on certificate authority configurations for Internet of Things (IoT) device trust and authentication",
+      "isPrivileged": false,
+      "name": "microsoft.directory/certificateBasedDeviceAuthConfigurations/standard/read"
+    },
+    {
+      "description": "Create and delete all resources, and read and update standard properties in Microsoft Cloud App Security",
+      "isPrivileged": false,
+      "name": "microsoft.directory/cloudAppSecurity/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties for Cloud app security",
+      "isPrivileged": false,
+      "name": "microsoft.directory/cloudAppSecurity/allProperties/read"
+    },
+    {
+      "description": "Read and configure all properties of Microsoft Entra cloud provisioning service.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/cloudProvisioning/allProperties/allTasks"
+    },
+    {
+      "description": "Manage all properties of Conditional Access policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicies/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of Conditional Access policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicies/allProperties/read"
+    },
+    {
+      "description": "Update basic properties for Conditional Access policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicies/basic/update"
+    },
+    {
+      "description": "Create Conditional Access policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicies/create"
+    },
+    {
+      "description": "Delete Conditional Access policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicies/delete"
+    },
+    {
+      "description": "Read the owners of Conditional Access policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicies/owners/read"
+    },
+    {
+      "description": "Update owners for Conditional Access policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicies/owners/update"
+    },
+    {
+      "description": "Update owners for Conditional Access policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicies/owners/update"
+    },
+    {
+      "description": "Read the \"applied to\" property for Conditional Access policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicies/policyAppliedTo/read"
+    },
+    {
+      "description": "Read Conditional Access for policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicies/standard/read"
+    },
+    {
+      "description": "Update the default tenant for Conditional Access policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicies/tenantDefault/update"
+    },
+    {
+      "description": "Update basic properties for Conditional Access policy plans",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicyPlans/basic/update"
+    },
+    {
+      "description": "Create Conditional Access policy plans",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicyPlans/create"
+    },
+    {
+      "description": "Delete Conditional Access policy plans",
+      "isPrivileged": false,
+      "name": "microsoft.directory/conditionalAccessPolicyPlans/delete"
+    },
+    {
+      "description": "Read all properties of application proxy connector groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/connectorGroups/allProperties/read"
+    },
+    {
+      "description": "Update all properties of application proxy connector groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/connectorGroups/allProperties/update"
+    },
+    {
+      "description": "Create application proxy connector groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/connectorGroups/create"
+    },
+    {
+      "description": "Delete application proxy connector groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/connectorGroups/delete"
+    },
+    {
+      "description": "Read all properties of application proxy connectors",
+      "isPrivileged": false,
+      "name": "microsoft.directory/connectors/allProperties/read"
+    },
+    {
+      "description": "Update properties for application proxy connectors",
+      "isPrivileged": false,
+      "name": "microsoft.directory/connectors/allProperties/update"
+    },
+    {
+      "description": "Create application proxy connectors",
+      "isPrivileged": false,
+      "name": "microsoft.directory/connectors/create"
+    },
+    {
+      "description": "Create and delete contacts, and read and update all properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/contacts/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties for contacts",
+      "isPrivileged": false,
+      "name": "microsoft.directory/contacts/allProperties/read"
+    },
+    {
+      "description": "Update basic properties on contacts",
+      "isPrivileged": false,
+      "name": "microsoft.directory/contacts/basic/update"
+    },
+    {
+      "description": "Create contacts",
+      "isPrivileged": false,
+      "name": "microsoft.directory/contacts/create"
+    },
+    {
+      "description": "Delete contacts",
+      "isPrivileged": false,
+      "name": "microsoft.directory/contacts/delete"
+    },
+    {
+      "description": "Read the group membership for all contacts in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/contacts/memberOf/read"
+    },
+    {
+      "description": "Read basic properties on contacts in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/contacts/standard/read"
+    },
+    {
+      "description": "Create and delete partner contracts, and read and update all properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/contracts/allProperties/allTasks"
+    },
+    {
+      "description": "Read basic properties on partner contracts",
+      "isPrivileged": false,
+      "name": "microsoft.directory/contracts/standard/read"
+    },
+    {
+      "description": "Update allowed cloud endpoints of cross-tenant access policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/allowedCloudEndpoints/update"
+    },
+    {
+      "description": "Update basic settings of cross-tenant access policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/basic/update"
+    },
+    {
+      "description": "Update Microsoft Entra B2B collaboration settings of the default cross-tenant access policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/default/b2bCollaboration/update"
+    },
+    {
+      "description": "Update Microsoft Entra B2B direct connect settings of the default cross-tenant access policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/default/b2bDirectConnect/update"
+    },
+    {
+      "description": "Update cross-cloud Teams meeting settings of the default cross-tenant access policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/default/crossCloudMeetings/update"
+    },
+    {
+      "description": "Read basic properties of the default cross-tenant access policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/default/standard/read"
+    },
+    {
+      "description": "Update tenant restrictions of the default cross-tenant access policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/default/tenantRestrictions/update"
+    },
+    {
+      "description": "Update Microsoft Entra B2B collaboration settings of cross-tenant access policy for partners",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/b2bCollaboration/update"
+    },
+    {
+      "description": "Update Microsoft Entra B2B direct connect settings of cross-tenant access policy for partners",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/b2bDirectConnect/update"
+    },
+    {
+      "description": "Create cross-tenant access policy for partners",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/create"
+    },
+    {
+      "description": "Update cross-cloud Teams meeting settings of cross-tenant access policy for partners",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/crossCloudMeetings/update"
+    },
+    {
+      "description": "Delete cross-tenant access policy for partners",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/delete"
+    },
+    {
+      "description": "Update basic settings of cross-tenant sync policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/identitySynchronization/basic/update"
+    },
+    {
+      "description": "Create cross-tenant sync policy for partners",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/identitySynchronization/create"
+    },
+    {
+      "description": "Read basic properties of cross-tenant sync policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/identitySynchronization/standard/read"
+    },
+    {
+      "description": "Read basic properties of cross-tenant access policy for partners",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/standard/read"
+    },
+    {
+      "description": "Update cross tenant sync policy templates for multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/templates/multiTenantOrganizationIdentitySynchronization/basic/update"
+    },
+    {
+      "description": "Reset cross tenant sync policy template for multi-tenant organization to default settings",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/templates/multiTenantOrganizationIdentitySynchronization/resetToDefaultSettings"
+    },
+    {
+      "description": "Read basic properties of cross tenant sync policy templates for multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/templates/multiTenantOrganizationIdentitySynchronization/standard/read"
+    },
+    {
+      "description": "Update cross tenant access policy templates for multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/templates/multiTenantOrganizationPartnerConfiguration/basic/update"
+    },
+    {
+      "description": "Reset cross tenant access policy template for multi-tenant organization to default settings",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/templates/multiTenantOrganizationPartnerConfiguration/resetToDefaultSettings"
+    },
+    {
+      "description": "Read basic properties of cross tenant access policy templates for multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/templates/multiTenantOrganizationPartnerConfiguration/standard/read"
+    },
+    {
+      "description": "Update tenant restrictions of cross-tenant access policy for partners",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/partners/tenantRestrictions/update"
+    },
+    {
+      "description": "Read basic properties of cross-tenant access policy",
+      "isPrivileged": false,
+      "name": "microsoft.directory/crossTenantAccessPolicy/standard/read"
+    },
+    {
+      "description": "Create and manage custom authentication extensions",
+      "isPrivileged": true,
+      "name": "microsoft.directory/customAuthenticationExtensions/allProperties/allTasks"
+    },
+    {
+      "description": "Read custom authentication extensions",
+      "isPrivileged": false,
+      "name": "microsoft.directory/customAuthenticationExtensions/allProperties/read"
+    },
+    {
+      "description": "Read audit logs related to custom secruity attributes",
+      "isPrivileged": false,
+      "name": "microsoft.directory/customSecurityAttributeAuditLogs/allProperties/read"
+    },
+    {
+      "description": "Manage all aspects of custom security attribute definitions",
+      "isPrivileged": false,
+      "name": "microsoft.directory/customSecurityAttributeDefinitions/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of custom security attribute definitions",
+      "isPrivileged": false,
+      "name": "microsoft.directory/customSecurityAttributeDefinitions/allProperties/read"
+    },
+    {
+      "description": "Permanently delete agent identities, which can no longer be restored",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.agentIdentities/delete"
+    },
+    {
+      "description": "Restore soft-deleted agent identities to original state",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.agentIdentities/restore"
+    },
+    {
+      "description": "Permanently delete agent identity blueprint principals, which can no longer be restored",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.agentIdentityBlueprintPrincipals/delete"
+    },
+    {
+      "description": "Restore soft-deleted agent identity blueprint principals to original state",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.agentIdentityBlueprintPrincipals/restore"
+    },
+    {
+      "description": "Permanently delete agent identity blueprints, which can no longer be restored",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.agentIdentityBlueprints/delete"
+    },
+    {
+      "description": "Restore soft-deleted agent identity blueprints to original state",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.agentIdentityBlueprints/restore"
+    },
+    {
+      "description": "Permanently delete applications, which can no longer be restored",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.applications/delete"
+    },
+    {
+      "description": "Restore soft deleted applications to original state",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.applications/restore"
+    },
+    {
+      "description": "Permanently delete devices, which can no longer be restored",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.devices/delete"
+    },
+    {
+      "description": "Restore soft deleted devices to original state",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.devices/restore"
+    },
+    {
+      "description": "Permanently delete groups, which can no longer be restored",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.groups/delete"
+    },
+    {
+      "description": "Restore soft deleted groups to original state",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.groups/restore"
+    },
+    {
+      "description": "Restore soft deleted users to original state",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems.users/restore"
+    },
+    {
+      "description": "Permanently delete objects, which can no longer be restored",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems/delete"
+    },
+    {
+      "description": "Restore soft deleted objects to original state",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deletedItems/restore"
+    },
+    {
+      "description": "Read all properties of the backed up local administrator account credentials for Microsoft Entra joined devices, including the password",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deviceLocalCredentials/password/read"
+    },
+    {
+      "description": "Read all properties of the backed up local administrator account credentials for Microsoft Entra joined devices, except the password",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deviceLocalCredentials/standard/read"
+    },
+    {
+      "description": "Update basic properties on mobile device management and mobile app management policies",
+      "isPrivileged": true,
+      "name": "microsoft.directory/deviceManagementPolicies/basic/update"
+    },
+    {
+      "description": "Read standard properties on mobile device management and mobile app management policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deviceManagementPolicies/standard/read"
+    },
+    {
+      "description": "Update basic properties on device registration policies",
+      "isPrivileged": true,
+      "name": "microsoft.directory/deviceRegistrationPolicy/basic/update"
+    },
+    {
+      "description": "Read standard properties on device registration policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deviceRegistrationPolicy/standard/read"
+    },
+    {
+      "description": "Create and delete devices, and read and update all properties",
+      "isPrivileged": true,
+      "name": "microsoft.directory/devices/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/allProperties/read"
+    },
+    {
+      "description": "Update basic properties on devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/basic/update"
+    },
+    {
+      "description": "Create devices (enroll in Microsoft Entra ID)",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/create"
+    },
+    {
+      "description": "Read created from Internet of Things (IoT) device template links",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/createdFrom/read"
+    },
+    {
+      "description": "Read custom security attribute values for devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/customSecurityAttributes/read"
+    },
+    {
+      "description": "Update custom security attribute values for devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/customSecurityAttributes/update"
+    },
+    {
+      "description": "Delete devices from Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/delete"
+    },
+    {
+      "description": "Disable devices in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/disable"
+    },
+    {
+      "description": "Enable devices in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/enable"
+    },
+    {
+      "description": "Update the extensionAttribute1 to extensionAttribute5 properties on devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/extensionAttributeSet1/update"
+    },
+    {
+      "description": "Update the extensionAttribute6 to extensionAttribute10 properties on devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/extensionAttributeSet2/update"
+    },
+    {
+      "description": "Update the extensionAttribute11 to extensionAttribute15 properties on devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/extensionAttributeSet3/update"
+    },
+    {
+      "description": "Read device memberships",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/memberOf/read"
+    },
+    {
+      "description": "Update the alternative name property on an IoT device",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/permissions/update"
+    },
+    {
+      "description": "Read registered owners of devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/registeredOwners/read"
+    },
+    {
+      "description": "Update registered owners of devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/registeredOwners/update"
+    },
+    {
+      "description": "Update registered owners of devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/registeredOwners/update"
+    },
+    {
+      "description": "Read registered users of devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/registeredUsers/read"
+    },
+    {
+      "description": "Update registered users of devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/registeredUsers/update"
+    },
+    {
+      "description": "Update registered users of devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/registeredUsers/update"
+    },
+    {
+      "description": "Read basic properties on devices",
+      "isPrivileged": false,
+      "name": "microsoft.directory/devices/standard/read"
+    },
+    {
+      "description": "Create Internet of Things (IoT) device templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deviceTemplates/create"
+    },
+    {
+      "description": "Create IoT Device from Internet of Things (IoT) device templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deviceTemplates/createDeviceFromTemplate"
+    },
+    {
+      "description": "Delete Internet of Things (IoT) device templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deviceTemplates/delete"
+    },
+    {
+      "description": "Read device instances from Internet of Things (IoT) device links",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deviceTemplates/deviceInstances/read"
+    },
+    {
+      "description": "Read owners on Internet of Things (IoT) device templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deviceTemplates/owners/read"
+    },
+    {
+      "description": "Update owners on Internet of Things (IoT) device templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deviceTemplates/owners/update"
+    },
+    {
+      "description": "Update owners on Internet of Things (IoT) device templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deviceTemplates/owners/update"
+    },
+    {
+      "description": "Read standard properties on Internet of Things (IoT) device templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/deviceTemplates/standard/read"
+    },
+    {
+      "description": "Create and delete directory roles, and read and update all properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/directoryRoles/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of directory roles",
+      "isPrivileged": false,
+      "name": "microsoft.directory/directoryRoles/allProperties/read"
+    },
+    {
+      "description": "Update basic properties in Microsoft Entra roles",
+      "isPrivileged": false,
+      "name": "microsoft.directory/directoryRoles/basic/update"
+    },
+    {
+      "description": "Read the eligible members of Microsoft Entra roles",
+      "isPrivileged": false,
+      "name": "microsoft.directory/directoryRoles/eligibleMembers/read"
+    },
+    {
+      "description": "Read all members of Microsoft Entra roles",
+      "isPrivileged": false,
+      "name": "microsoft.directory/directoryRoles/members/read"
+    },
+    {
+      "description": "Read basic properties of Microsoft Entra roles",
+      "isPrivileged": false,
+      "name": "microsoft.directory/directoryRoles/standard/read"
+    },
+    {
+      "description": "Create and delete Microsoft Entra role templates, and read and update all properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/directoryRoleTemplates/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of directory role templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/directoryRoleTemplates/allProperties/read"
+    },
+    {
+      "description": "Perform all actions in Microsoft Entra Connect.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/directorySync/allProperties/allTasks"
+    },
+    {
+      "description": "Create and delete domains, and read and update all properties",
+      "isPrivileged": true,
+      "name": "microsoft.directory/domains/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of domains",
+      "isPrivileged": false,
+      "name": "microsoft.directory/domains/allProperties/read"
+    },
+    {
+      "description": "Update federation property of domains",
+      "isPrivileged": true,
+      "name": "microsoft.directory/domains/federation/update"
+    },
+    {
+      "description": "Update basic federation configuration for domains",
+      "isPrivileged": false,
+      "name": "microsoft.directory/domains/federationConfiguration/basic/update"
+    },
+    {
+      "description": "Create federation configuration for domains",
+      "isPrivileged": false,
+      "name": "microsoft.directory/domains/federationConfiguration/create"
+    },
+    {
+      "description": "Delete federation configuration for domains",
+      "isPrivileged": false,
+      "name": "microsoft.directory/domains/federationConfiguration/delete"
+    },
+    {
+      "description": "Read standard properties of federation configuration for domains",
+      "isPrivileged": false,
+      "name": "microsoft.directory/domains/federationConfiguration/standard/read"
+    },
+    {
+      "description": "Read basic properties on domains",
+      "isPrivileged": false,
+      "name": "microsoft.directory/domains/standard/read"
+    },
+    {
+      "description": "Create and delete resources, and read and update all properties in Microsoft Entra entitlement management",
+      "isPrivileged": true,
+      "name": "microsoft.directory/entitlementManagement/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties in Microsoft Entra entitlement management",
+      "isPrivileged": false,
+      "name": "microsoft.directory/entitlementManagement/allProperties/read"
+    },
+    {
+      "description": "Update basic properties of external user profiles in the extended directory for Teams",
+      "isPrivileged": false,
+      "name": "microsoft.directory/externalUserProfiles/basic/update"
+    },
+    {
+      "description": "Delete external user profiles in the extended directory for Teams",
+      "isPrivileged": false,
+      "name": "microsoft.directory/externalUserProfiles/delete"
+    },
+    {
+      "description": "Read standard properties of external user profiles in the extended directory for Teams",
+      "isPrivileged": false,
+      "name": "microsoft.directory/externalUserProfiles/standard/read"
+    },
+    {
+      "description": "Manage all aspects of federated authentication",
+      "isPrivileged": false,
+      "name": "microsoft.directory/federatedAuthentication/allProperties/allTasks"
+    },
+    {
+      "description": "Update all properties (including privileged properties) on Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/allProperties/update"
+    },
+    {
+      "description": "Update basic properties on Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/basic/update"
+    },
+    {
+      "description": "Update the classification property on Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/classification/update"
+    },
+    {
+      "description": "Create Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/create"
+    },
+    {
+      "description": "Create Security groups of assigned membership type, excluding role-assignable groups. Creator is added as the first owner.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/createAsOwner"
+    },
+    {
+      "description": "Delete Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/delete"
+    },
+    {
+      "description": "Update members of Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/members/update"
+    },
+    {
+      "description": "Update members of Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/members/update"
+    },
+    {
+      "description": "Add members to Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/members/update.add"
+    },
+    {
+      "description": "Remove members from Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/members/update.remove"
+    },
+    {
+      "description": "Update owners of Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/owners/update"
+    },
+    {
+      "description": "Update owners of Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/owners/update"
+    },
+    {
+      "description": "Add owners to Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/owners/update.add"
+    },
+    {
+      "description": "Remove owners from Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/owners/update.remove"
+    },
+    {
+      "description": "Update the visibility property on Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security.assignedMembership/visibility/update"
+    },
+    {
+      "description": "Update all properties (including privileged properties) on Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/allProperties/update"
+    },
+    {
+      "description": "Update the assigned labels property on Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/assignedLabels/update"
+    },
+    {
+      "description": "Update the assigned labels property on Security groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/assignedLabels/update"
+    },
+    {
+      "description": "Update basic properties on Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/basic/update"
+    },
+    {
+      "description": "Update the classification property on Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/classification/update"
+    },
+    {
+      "description": "Create Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/create"
+    },
+    {
+      "description": "Create Security groups, excluding role-assignable groups. Creator is added as the first owner.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/createAsOwner"
+    },
+    {
+      "description": "Delete Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/delete"
+    },
+    {
+      "description": "Update the dynamic membership rule on Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/dynamicMembershipRule/update"
+    },
+    {
+      "description": "Update members of Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/members/update"
+    },
+    {
+      "description": "Update members of Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/members/update"
+    },
+    {
+      "description": "Add members to Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/members/update.add"
+    },
+    {
+      "description": "Remove members from Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/members/update.remove"
+    },
+    {
+      "description": "Update owners of Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/owners/update"
+    },
+    {
+      "description": "Update owners of Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/owners/update"
+    },
+    {
+      "description": "Add owners to Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/owners/update.add"
+    },
+    {
+      "description": "Remove owners from Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/owners/update.remove"
+    },
+    {
+      "description": "Update the visibility property on Security groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.security/visibility/update"
+    },
+    {
+      "description": "Update all properties (including privileged properties) on Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/allProperties/update"
+    },
+    {
+      "description": "Update basic properties on Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/basic/update"
+    },
+    {
+      "description": "Update the classification property on Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/classification/update"
+    },
+    {
+      "description": "Create Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/create"
+    },
+    {
+      "description": "Create Microsoft 365 groups of assigned membership type, excluding role-assignable groups. Creator is added as the first owner.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/createAsOwner"
+    },
+    {
+      "description": "Delete Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/delete"
+    },
+    {
+      "description": "Update members of Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/members/update"
+    },
+    {
+      "description": "Update members of Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/members/update"
+    },
+    {
+      "description": "Add members to Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/members/update.add"
+    },
+    {
+      "description": "Remove members from Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/members/update.remove"
+    },
+    {
+      "description": "Update owners of Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/owners/update"
+    },
+    {
+      "description": "Update owners of Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/owners/update"
+    },
+    {
+      "description": "Add owners to Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/owners/update.add"
+    },
+    {
+      "description": "Remove owners from Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/owners/update.remove"
+    },
+    {
+      "description": "Update the visibility property on Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified.assignedMembership/visibility/update"
+    },
+    {
+      "description": "Update all properties (including privileged properties) on Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/allProperties/update"
+    },
+    {
+      "description": "Update app role assignments on Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/appRoleAssignments/update"
+    },
+    {
+      "description": "Update the assigned labels property on Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/assignedLabels/update"
+    },
+    {
+      "description": "Update the assigned labels property on Microsoft 365 groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/assignedLabels/update"
+    },
+    {
+      "description": "Update basic properties on Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/basic/update"
+    },
+    {
+      "description": "Update the classification property on Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/classification/update"
+    },
+    {
+      "description": "Create Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/create"
+    },
+    {
+      "description": "Create Microsoft 365 groups, excluding role-assignable groups. Creator is added as the first owner.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/createAsOwner"
+    },
+    {
+      "description": "Delete Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/delete"
+    },
+    {
+      "description": "Update the dynamic membership rule on Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/dynamicMembershipRule/update"
+    },
+    {
+      "description": "Update members of Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/members/update"
+    },
+    {
+      "description": "Update members of Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/members/update"
+    },
+    {
+      "description": "Add members to Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/members/update.add"
+    },
+    {
+      "description": "Remove members from Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/members/update.remove"
+    },
+    {
+      "description": "Update owners of Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/owners/update"
+    },
+    {
+      "description": "Update owners of Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/owners/update"
+    },
+    {
+      "description": "Add owners to Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/owners/update.add"
+    },
+    {
+      "description": "Remove owners from Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/owners/update.remove"
+    },
+    {
+      "description": "Restore Microsoft 365 groups from soft-deleted container, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/restore"
+    },
+    {
+      "description": "Update the visibility property on Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups.unified/visibility/update"
+    },
+    {
+      "description": "Read the allowAccessTo property of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/allowAccessTo/read"
+    },
+    {
+      "description": "Update the allowAccessTo property of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/allowAccessTo/update"
+    },
+    {
+      "description": "Create and delete groups, and read and update all properties",
+      "isPrivileged": true,
+      "name": "microsoft.directory/groups/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties (including privileged properties) on Security groups and Microsoft 365 groups, including role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/allProperties/read"
+    },
+    {
+      "description": "Update all properties (including privileged properties) on Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": true,
+      "name": "microsoft.directory/groups/allProperties/update"
+    },
+    {
+      "description": "Read the application role assignments of a specific group, but cannot enumerate groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/appRoleAssignments/limitedRead"
+    },
+    {
+      "description": "Read application role assignments of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/appRoleAssignments/read"
+    },
+    {
+      "description": "Update application role assignments of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/appRoleAssignments/update"
+    },
+    {
+      "description": "Update the assigned labels property on groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/assignedLabels/update"
+    },
+    {
+      "description": "Update the assigned labels property on groups of assigned membership type, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/assignedLabels/update"
+    },
+    {
+      "description": "Assign product licenses to groups for group-based licensing",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/assignLicense"
+    },
+    {
+      "description": "Update basic properties on Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/basic/update"
+    },
+    {
+      "description": "Update the classification property on Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/classification/update"
+    },
+    {
+      "description": "Create Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/create"
+    },
+    {
+      "description": "Create Security groups and Microsoft 365 groups, excluding role-assignable groups. Creator is added as the first owner.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/createAsOwner"
+    },
+    {
+      "description": "Delete Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/delete"
+    },
+    {
+      "description": "Update the dynamic membership rule on Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/dynamicMembershipRule/update"
+    },
+    {
+      "description": "Update properties that would affect the group type of Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/groupType/update"
+    },
+    {
+      "description": "Read the hasAccessTo property of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/hasAccessTo/read"
+    },
+    {
+      "description": "Read hidden members of Security groups and Microsoft 365 groups, including role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/hiddenMembers/read"
+    },
+    {
+      "description": "Read memberships of a specific group, but cannot enumerate groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/memberOf/limitedRead"
+    },
+    {
+      "description": "Read the memberOf property on Security groups and Microsoft 365 groups, including role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/memberOf/read"
+    },
+    {
+      "description": "Read members of a specific group, but cannot enumerate groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/members/limitedRead"
+    },
+    {
+      "description": "Read members of Security groups and Microsoft 365 groups, including role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/members/read"
+    },
+    {
+      "description": "Update members of Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/members/update"
+    },
+    {
+      "description": "Update members of Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/members/update"
+    },
+    {
+      "description": "Add members to Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/members/update.add"
+    },
+    {
+      "description": "Remove members from Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/members/update.remove"
+    },
+    {
+      "description": "Update Microsoft Entra groups to be written back to on-premises with Microsoft Entra Connect",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/onPremWriteBack/update"
+    },
+    {
+      "description": "Read owners of a specific group, but cannot enumerate groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/owners/limitedRead"
+    },
+    {
+      "description": "Read owners of Security groups and Microsoft 365 groups, including role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/owners/read"
+    },
+    {
+      "description": "Update owners of Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/owners/update"
+    },
+    {
+      "description": "Update owners of Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/owners/update"
+    },
+    {
+      "description": "Add owners to Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/owners/update.add"
+    },
+    {
+      "description": "Remove owners from Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/owners/update.remove"
+    },
+    {
+      "description": "Read pending members of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/pendingMembers/read"
+    },
+    {
+      "description": "Update pending members of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/pendingMembers/update"
+    },
+    {
+      "description": "Update pending members of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/pendingMembers/update"
+    },
+    {
+      "description": "Reprocess license assignments for group-based licensing",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/reprocessLicenseAssignment"
+    },
+    {
+      "description": "Restore groups from soft-deleted container",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/restore"
+    },
+    {
+      "description": "Read service endpoints of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/serviceEndpoints/read"
+    },
+    {
+      "description": "Update service endpoints of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/serviceEndpoints/update"
+    },
+    {
+      "description": "Read settings of a specific group, but cannot enumerate groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/settings/limitedRead"
+    },
+    {
+      "description": "Read settings of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/settings/read"
+    },
+    {
+      "description": "Update settings of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/settings/update"
+    },
+    {
+      "description": "Update settings of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/settings/update"
+    },
+    {
+      "description": "Update settings of groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/settings/update"
+    },
+    {
+      "description": "Read standard properties of a specific group, but cannot enumerate groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/standard/limitedRead"
+    },
+    {
+      "description": "Read standard properties of Security groups and Microsoft 365 groups, including role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/standard/read"
+    },
+    {
+      "description": "Update the visibility property of Security groups and Microsoft 365 groups, excluding role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groups/visibility/update"
+    },
+    {
+      "description": "Update role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupsAssignableToRoles/allProperties/update"
+    },
+    {
+      "description": "Assign a license to role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupsAssignableToRoles/assignLicense"
+    },
+    {
+      "description": "Create role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupsAssignableToRoles/create"
+    },
+    {
+      "description": "Delete role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupsAssignableToRoles/delete"
+    },
+    {
+      "description": "Reprocess license assignments to role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupsAssignableToRoles/reprocessLicenseAssignment"
+    },
+    {
+      "description": "Restore role-assignable groups",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupsAssignableToRoles/restore"
+    },
+    {
+      "description": "Create and delete group settings, and read and update all properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupSettings/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of group settings",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupSettings/allProperties/read"
+    },
+    {
+      "description": "Update basic properties on group settings",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupSettings/basic/update"
+    },
+    {
+      "description": "Create group settings",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupSettings/create"
+    },
+    {
+      "description": "Delete group settings",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupSettings/delete"
+    },
+    {
+      "description": "Read basic properties on group settings",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupSettings/standard/read"
+    },
+    {
+      "description": "Create and delete group setting templates, and read and update all properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupSettingTemplates/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of group setting templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupSettingTemplates/allProperties/read"
+    },
+    {
+      "description": "Read basic properties on group setting templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/groupSettingTemplates/standard/read"
+    },
+    {
+      "description": "Manage hybrid authentication policy in Microsoft Entra ID",
+      "isPrivileged": true,
+      "name": "microsoft.directory/hybridAuthenticationPolicy/allProperties/allTasks"
+    },
+    {
+      "description": "Read standard properties of onPremAuthentication policies.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/hybridAuthenticationPolicy/standard/read"
+    },
+    {
+      "description": "Create and delete all resources, and read and update standard properties in Microsoft Entra ID Protection",
+      "isPrivileged": true,
+      "name": "microsoft.directory/identityProtection/allProperties/allTasks"
+    },
+    {
+      "description": "Read all resources in Microsoft Entra ID Protection",
+      "isPrivileged": false,
+      "name": "microsoft.directory/identityProtection/allProperties/read"
+    },
+    {
+      "description": "Update all resources in Microsoft Entra ID Protection",
+      "isPrivileged": true,
+      "name": "microsoft.directory/identityProtection/allProperties/update"
+    },
+    {
+      "description": "Read and configure identity providers in Azure Active Directory B2C",
+      "isPrivileged": true,
+      "name": "microsoft.directory/identityProviders/allProperties/allTasks"
+    },
+    {
+      "description": "Manage all aspects of lifecycle workflows and tasks in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/lifecycleWorkflows/workflows/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of lifecycle workflows and tasks in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/lifecycleWorkflows/workflows/allProperties/read"
+    },
+    {
+      "description": "Update Customer Lockbox requests for Microsoft Entra resources",
+      "isPrivileged": false,
+      "name": "microsoft.directory/lockbox/requests/update"
+    },
+    {
+      "description": "Update Customer Lockbox requests for Microsoft Entra resources",
+      "isPrivileged": false,
+      "name": "microsoft.directory/lockbox/requests/update"
+    },
+    {
+      "description": "Update Customer Lockbox requests for Microsoft Entra resources",
+      "isPrivileged": false,
+      "name": "microsoft.directory/lockbox/requests/update"
+    },
+    {
+      "description": "Create and delete loginTenantBranding, and read and update all properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/loginOrganizationBranding/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties for your organization's branded sign-in page",
+      "isPrivileged": false,
+      "name": "microsoft.directory/loginOrganizationBranding/allProperties/read"
+    },
+    {
+      "description": "Update basic properties of a multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/multiTenantOrganization/basic/update"
+    },
+    {
+      "description": "Create a multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/multiTenantOrganization/create"
+    },
+    {
+      "description": "Join a multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/multiTenantOrganization/joinRequest/organizationDetails/update"
+    },
+    {
+      "description": "Read properties of a multi-tenant organization join request",
+      "isPrivileged": false,
+      "name": "microsoft.directory/multiTenantOrganization/joinRequest/standard/read"
+    },
+    {
+      "description": "Read basic properties of a multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/multiTenantOrganization/standard/read"
+    },
+    {
+      "description": "Create a tenant in a multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/multiTenantOrganization/tenants/create"
+    },
+    {
+      "description": "Delete a tenant participating in a multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/multiTenantOrganization/tenants/delete"
+    },
+    {
+      "description": "Read organization details of a tenant participating in a multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/multiTenantOrganization/tenants/organizationDetails/read"
+    },
+    {
+      "description": "Update basic properties of a tenant participating in a multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/multiTenantOrganization/tenants/organizationDetails/update"
+    },
+    {
+      "description": "Read basic properties of a tenant participating in a multi-tenant organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/multiTenantOrganization/tenants/standard/read"
+    },
+    {
+      "description": "Update basic properties of custom rules that define network locations",
+      "isPrivileged": false,
+      "name": "microsoft.directory/namedLocations/basic/update"
+    },
+    {
+      "description": "Create custom rules that define network locations",
+      "isPrivileged": false,
+      "name": "microsoft.directory/namedLocations/create"
+    },
+    {
+      "description": "Delete custom rules that define network locations",
+      "isPrivileged": false,
+      "name": "microsoft.directory/namedLocations/delete"
+    },
+    {
+      "description": "Read basic properties of custom rules that define network locations",
+      "isPrivileged": false,
+      "name": "microsoft.directory/namedLocations/standard/read"
+    },
+    {
+      "description": "Create and delete OAuth 2.0 permission grants, and read and update all properties",
+      "isPrivileged": true,
+      "name": "microsoft.directory/oAuth2PermissionGrants/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of OAuth 2.0 permission grants",
+      "isPrivileged": false,
+      "name": "microsoft.directory/oAuth2PermissionGrants/allProperties/read"
+    },
+    {
+      "description": "Update OAuth 2.0 permission grants",
+      "isPrivileged": true,
+      "name": "microsoft.directory/oAuth2PermissionGrants/basic/update"
+    },
+    {
+      "description": "Create OAuth 2.0 permission grants",
+      "isPrivileged": true,
+      "name": "microsoft.directory/oAuth2PermissionGrants/create"
+    },
+    {
+      "description": "Create OAuth 2.0 permission grants, with creator as the first owner",
+      "isPrivileged": true,
+      "name": "microsoft.directory/oAuth2PermissionGrants/createAsOwner"
+    },
+    {
+      "description": "Delete OAuth 2.0 permission grants",
+      "isPrivileged": true,
+      "name": "microsoft.directory/oAuth2PermissionGrants/delete"
+    },
+    {
+      "description": "Read basic properties on OAuth 2.0 permission grants",
+      "isPrivileged": false,
+      "name": "microsoft.directory/oAuth2PermissionGrants/standard/read"
+    },
+    {
+      "description": "Create and manage custom authentication extensions for onPasswordSubmit events",
+      "isPrivileged": true,
+      "name": "microsoft.directory/onPasswordSubmitCustomAuthenticationExtension/allProperties/allTasks"
+    },
+    {
+      "description": "Create and manage custom authentication extensions for onPasswordUpdate events",
+      "isPrivileged": true,
+      "name": "microsoft.directory/onPasswordUpdateCustomAuthenticationExtension/allProperties/allTasks"
+    },
+    {
+      "description": "Update basic on-premises directory synchronization information",
+      "isPrivileged": false,
+      "name": "microsoft.directory/onPremisesSynchronization/basic/update"
+    },
+    {
+      "description": "Read standard on-premises directory synchronization information",
+      "isPrivileged": false,
+      "name": "microsoft.directory/onPremisesSynchronization/standard/read"
+    },
+    {
+      "description": "Read and update all properties for an organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/organization/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties for an organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/organization/allProperties/read"
+    },
+    {
+      "description": "Update basic properties on organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/organization/basic/update"
+    },
+    {
+      "description": "Read basic organization profile information",
+      "isPrivileged": false,
+      "name": "microsoft.directory/organization/basicProfile/read"
+    },
+    {
+      "description": "Update the organization directory sync property",
+      "isPrivileged": false,
+      "name": "microsoft.directory/organization/dirSync/update"
+    },
+    {
+      "description": "Read basic properties on an organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/organization/standard/read"
+    },
+    {
+      "description": "Manage all aspects of strong authentication properties of an organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/organization/strongAuthentication/allTasks"
+    },
+    {
+      "description": "Read strong authentication properties of an organization",
+      "isPrivileged": false,
+      "name": "microsoft.directory/organization/strongAuthentication/read"
+    },
+    {
+      "description": "Read trusted certificate authorities for passwordless authentication",
+      "isPrivileged": false,
+      "name": "microsoft.directory/organization/trustedCAsForPasswordlessAuth/read"
+    },
+    {
+      "description": "Update trusted certificate authorities for passwordless authentication",
+      "isPrivileged": false,
+      "name": "microsoft.directory/organization/trustedCAsForPasswordlessAuth/update"
+    },
+    {
+      "description": "Manage all aspects of pass-through authentication for Microsoft Entra Connect",
+      "isPrivileged": false,
+      "name": "microsoft.directory/passThroughAuthentication/allProperties/allTasks"
+    },
+    {
+      "description": "Manage all aspects of Password Hash Synchronization (PHS) in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/passwordHashSync/allProperties/allTasks"
+    },
+    {
+      "description": "Update basic properties of external user profiles in the extended directory for Teams",
+      "isPrivileged": false,
+      "name": "microsoft.directory/pendingExternalUserProfiles/basic/update"
+    },
+    {
+      "description": "Create external user profiles in the extended directory for Teams",
+      "isPrivileged": false,
+      "name": "microsoft.directory/pendingExternalUserProfiles/create"
+    },
+    {
+      "description": "Delete external user profiles in the extended directory for Teams",
+      "isPrivileged": false,
+      "name": "microsoft.directory/pendingExternalUserProfiles/delete"
+    },
+    {
+      "description": "Read standard properties of external user profiles in the extended directory for Teams",
+      "isPrivileged": false,
+      "name": "microsoft.directory/pendingExternalUserProfiles/standard/read"
+    },
+    {
+      "description": "Read all properties of permission grant policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/permissionGrantPolicies/allProperties/read"
+    },
+    {
+      "description": "Update all properties of permission grant policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/permissionGrantPolicies/allProperties/update"
+    },
+    {
+      "description": "Update basic properties of permission grant policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/permissionGrantPolicies/basic/update"
+    },
+    {
+      "description": "Create permission grant policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/permissionGrantPolicies/create"
+    },
+    {
+      "description": "Delete permission grant policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/permissionGrantPolicies/delete"
+    },
+    {
+      "description": "Read standard properties of permission grant policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/permissionGrantPolicies/standard/read"
+    },
+    {
+      "description": "Create and delete policies, and read and update all properties",
+      "isPrivileged": true,
+      "name": "microsoft.directory/policies/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/policies/allProperties/read"
+    },
+    {
+      "description": "Update basic properties on policies",
+      "isPrivileged": true,
+      "name": "microsoft.directory/policies/basic/update"
+    },
+    {
+      "description": "Create policies in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/policies/create"
+    },
+    {
+      "description": "Delete policies in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/policies/delete"
+    },
+    {
+      "description": "Read owners of policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/policies/owners/read"
+    },
+    {
+      "description": "Update owners of policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/policies/owners/update"
+    },
+    {
+      "description": "Update owners of policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/policies/owners/update"
+    },
+    {
+      "description": "Read policies.policyAppliedTo property",
+      "isPrivileged": false,
+      "name": "microsoft.directory/policies/policyAppliedTo/read"
+    },
+    {
+      "description": "Read basic properties on policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/policies/standard/read"
+    },
+    {
+      "description": "Update default organization policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/policies/tenantDefault/update"
+    },
+    {
+      "description": "Create and delete all resources, and read and update standard properties in Privileged Identity Management",
+      "isPrivileged": false,
+      "name": "microsoft.directory/privilegedIdentityManagement/allProperties/allTasks"
+    },
+    {
+      "description": "Read all resources in Privileged Identity Management",
+      "isPrivileged": false,
+      "name": "microsoft.directory/privilegedIdentityManagement/allProperties/read"
+    },
+    {
+      "description": "Read all properties of provisioning logs",
+      "isPrivileged": false,
+      "name": "microsoft.directory/provisioningLogs/allProperties/read"
+    },
+    {
+      "description": "Update Conditional Access authentication context of Microsoft 365 role-based access control (RBAC) resource actions",
+      "isPrivileged": true,
+      "name": "microsoft.directory/resourceNamespaces/resourceActions/authenticationContext/update"
+    },
+    {
+      "description": "Update Conditional Access authentication context of Microsoft 365 role-based access control (RBAC) resource actions",
+      "isPrivileged": true,
+      "name": "microsoft.directory/resourceNamespaces/resourceActions/authenticationContext/update"
+    },
+    {
+      "description": "Update Conditional Access authentication context of Microsoft 365 role-based access control (RBAC) resource actions",
+      "isPrivileged": true,
+      "name": "microsoft.directory/resourceNamespaces/resourceActions/authenticationContext/update"
+    },
+    {
+      "description": "Update resource policy assignments basic properties.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/resourcePolicy/assignments/basic/update"
+    },
+    {
+      "description": "Create resource policy assignments.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/resourcePolicy/assignments/create"
+    },
+    {
+      "description": "Delete resource policy assignments.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/resourcePolicy/assignments/delete"
+    },
+    {
+      "description": "Read resource policy assignments standard properties.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/resourcePolicy/assignments/standard/read"
+    },
+    {
+      "description": "Update basic properties of the tenant-wide resource policy configuration, such as the privileged-read app ID.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/resourcePolicy/configuration/basic/update"
+    },
+    {
+      "description": "Read standard properties of the tenant-wide resource policy configuration, such as the privileged-read app ID.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/resourcePolicy/configuration/standard/read"
+    },
+    {
+      "description": "Update resource policy definitions basic properties.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/resourcePolicy/definitions/basic/update"
+    },
+    {
+      "description": "Create resource policy definitions.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/resourcePolicy/definitions/create"
+    },
+    {
+      "description": "Delete resource policy definitions.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/resourcePolicy/definitions/delete"
+    },
+    {
+      "description": "Read resource policy definitions standard properties.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/resourcePolicy/definitions/standard/read"
+    },
+    {
+      "description": "Evaluate all policies assigned to a resource.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/resourcePolicy/evaluateAssignedPolicies"
+    },
+    {
+      "description": "Evaluate a specific resource policy against a supplied resource.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/resourcePolicy/evaluatePolicy"
+    },
+    {
+      "description": "Create and delete role assignments, and read and update all role assignment properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/roleAssignments/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/roleAssignments/allProperties/read"
+    },
+    {
+      "description": "Read basic properties on role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/roleAssignments/standard/read"
+    },
+    {
+      "description": "Create and delete role definitions, and read and update all properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/roleDefinitions/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of role definitions",
+      "isPrivileged": false,
+      "name": "microsoft.directory/roleDefinitions/allProperties/read"
+    },
+    {
+      "description": "Read basic properties on role definitions",
+      "isPrivileged": false,
+      "name": "microsoft.directory/roleDefinitions/standard/read"
+    },
+    {
+      "description": "Create and delete scopedRoleMemberships, and read and update all properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/scopedRoleMemberships/allProperties/allTasks"
+    },
+    {
+      "description": "View members in administrative units",
+      "isPrivileged": false,
+      "name": "microsoft.directory/scopedRoleMemberships/allProperties/read"
+    },
+    {
+      "description": "Manage all aspects of single sign-on (SSO) in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/seamlessSso/allProperties/allTasks"
+    },
+    {
+      "description": "Can perform the \"activate service\" action for a service",
+      "isPrivileged": false,
+      "name": "microsoft.directory/serviceAction/activateService"
+    },
+    {
+      "description": "Can perform the \"disable directory feature\" service action",
+      "isPrivileged": false,
+      "name": "microsoft.directory/serviceAction/disableDirectoryFeature"
+    },
+    {
+      "description": "Can perform the \"enable directory feature\" service action",
+      "isPrivileged": false,
+      "name": "microsoft.directory/serviceAction/enableDirectoryFeature"
+    },
+    {
+      "description": "Can perform the getAvailableExtentionProperties service action",
+      "isPrivileged": false,
+      "name": "microsoft.directory/serviceAction/getAvailableExtentionProperties"
+    },
+    {
+      "description": "Grant consent for a specific resource",
+      "isPrivileged": false,
+      "name": "microsoft.directory/serviceAction/grantResourceSpecificConsent"
+    },
+    {
+      "description": "Revoke consent for a specific resource",
+      "isPrivileged": false,
+      "name": "microsoft.directory/serviceAction/revokeResourceSpecificConsent"
+    },
+    {
+      "description": "Read all properties of service principal creation policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipalCreationPolicies/allProperties/read"
+    },
+    {
+      "description": "Update all properties of service principal creation policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipalCreationPolicies/allProperties/update"
+    },
+    {
+      "description": "Update basic properties of service principal creation policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipalCreationPolicies/basic/update"
+    },
+    {
+      "description": "Create service principal creation policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipalCreationPolicies/create"
+    },
+    {
+      "description": "Delete service principal creation policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipalCreationPolicies/delete"
+    },
+    {
+      "description": "Read standard properties of service principal creation policies",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipalCreationPolicies/standard/read"
+    },
+    {
+      "description": "Create and delete service principals, and read and update all properties",
+      "isPrivileged": true,
+      "name": "microsoft.directory/servicePrincipals/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties (including privileged properties) on servicePrincipals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/allProperties/read"
+    },
+    {
+      "description": "Update all properties (including privileged properties) on servicePrincipals",
+      "isPrivileged": true,
+      "name": "microsoft.directory/servicePrincipals/allProperties/update"
+    },
+    {
+      "description": "Read app roles a specific instance of a service principal is assigned to, but cannot enumerate service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/appRoleAssignedTo/limitedRead"
+    },
+    {
+      "description": "Read service principal role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/appRoleAssignedTo/read"
+    },
+    {
+      "description": "Update service principal role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/appRoleAssignedTo/update"
+    },
+    {
+      "description": "Update service principal role assignments",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/appRoleAssignedTo/update"
+    },
+    {
+      "description": "Read application roles assigned to a specific service principal, but cannot enumerate service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/appRoleAssignments/limitedRead"
+    },
+    {
+      "description": "Read role assignments assigned to service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/appRoleAssignments/read"
+    },
+    {
+      "description": "Update audience properties on service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/audience/update"
+    },
+    {
+      "description": "Read authentication properties on service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/authentication/read"
+    },
+    {
+      "description": "Update authentication properties on service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/authentication/update"
+    },
+    {
+      "description": "Update basic properties on service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/basic/update"
+    },
+    {
+      "description": "Create service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/create"
+    },
+    {
+      "description": "Create service principals, with creator as the first owner",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/createAsOwner"
+    },
+    {
+      "description": "Update credentials of service principals",
+      "isPrivileged": true,
+      "name": "microsoft.directory/servicePrincipals/credentials/update"
+    },
+    {
+      "description": "Read custom security attribute values for service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/customSecurityAttributes/read"
+    },
+    {
+      "description": "Update custom security attribute values for service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/customSecurityAttributes/update"
+    },
+    {
+      "description": "Delete service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/delete"
+    },
+    {
+      "description": "Disable service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/disable"
+    },
+    {
+      "description": "Enable service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/enable"
+    },
+    {
+      "description": "Manage password single sign-on credentials on service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/getPasswordSingleSignOnCredentials"
+    },
+    {
+      "description": "Read password single sign-on credentials on service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePasswordSingleSignOnCredentials"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of any user or all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-all-application-permissions"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of any user or all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-all-application-permissions-verified"
+    },
+    {
+      "description": "Grant consent for application permissions and delegated permissions on behalf of any user or all users, except for application permissions for Microsoft Graph and Azure AD Graph",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-application-admin"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of any user or all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-application-admin"
+    },
+    {
+      "description": "Grant consent for any permission to any application",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-company-admin"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of any user or all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-company-admin"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of any user or all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-user-default-allow-consent-apps"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of any user or all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-user-default-legacy"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of any user or all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-user-default-low"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of any user or all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-user-default-recommended"
+    },
+    {
+      "description": "Grant resource specific consent to application permissions as the owner of the resource",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForOwnedResource.microsoft-all-application-permissions-for-chat"
+    },
+    {
+      "description": "Grant resource specific consent to application permissions as the owner of the resource",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForOwnedResource.microsoft-all-application-permissions-for-team"
+    },
+    {
+      "description": "Grant resource specific consent to application permissions as the owner of the resource",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForOwnedResource.microsoft-dynamically-managed-permissions-for-chat"
+    },
+    {
+      "description": "Grant resource specific consent to application permissions as the owner of the resource",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForOwnedResource.microsoft-dynamically-managed-permissions-for-team"
+    },
+    {
+      "description": "Grant resource specific consent to application permissions as the owner of the resource",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForOwnedResource.microsoft-pre-approval-apps-for-chat"
+    },
+    {
+      "description": "Grant resource specific consent to application permissions as the owner of the resource",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForOwnedResource.microsoft-pre-approval-apps-for-team"
+    },
+    {
+      "description": "Grant resource specific consent to application permissions on behalf of all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForResource.microsoft-all-application-permissions-for-chat"
+    },
+    {
+      "description": "Grant resource specific consent to application permissions on behalf of all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForResource.microsoft-all-application-permissions-for-team"
+    },
+    {
+      "description": "Grant resource specific consent to application permissions on behalf of all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForResource.microsoft-dynamically-managed-permissions-for-chat"
+    },
+    {
+      "description": "Grant resource specific consent to application permissions on behalf of all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForResource.microsoft-dynamically-managed-permissions-for-team"
+    },
+    {
+      "description": "Grant resource specific consent to application permissions on behalf of all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForResource.microsoft-pre-approval-apps-for-chat"
+    },
+    {
+      "description": "Grant resource specific consent to application permissions on behalf of all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForResource.microsoft-pre-approval-apps-for-team"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of themselves",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForSelf.microsoft-all-application-permissions"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of themselves",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForSelf.microsoft-all-application-permissions-verified"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of themselves",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForSelf.microsoft-application-admin"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of themselves",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForSelf.microsoft-company-admin"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of themselves",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForSelf.microsoft-user-default-allow-consent-apps"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of themselves",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForSelf.microsoft-user-default-legacy"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of themselves",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForSelf.microsoft-user-default-low"
+    },
+    {
+      "description": "Grant consent to delegated permissions on behalf of themselves",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/managePermissionGrantsForSelf.microsoft-user-default-recommended"
+    },
+    {
+      "description": "Read memberships for a specific service principal, but cannot enumerate service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/memberOf/limitedRead"
+    },
+    {
+      "description": "Read the group memberships on service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/memberOf/read"
+    },
+    {
+      "description": "Update notes of service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/notes/update"
+    },
+    {
+      "description": "Read OAuth 2.0 permission grants for specific service principal, but cannot enumerate service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/oAuth2PermissionGrants/limitedRead"
+    },
+    {
+      "description": "Read delegated permission grants on service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/oAuth2PermissionGrants/read"
+    },
+    {
+      "description": "Read objects owned by a specific service principal, but cannot enumerate service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/ownedObjects/limitedRead"
+    },
+    {
+      "description": "Read owned objects of service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/ownedObjects/read"
+    },
+    {
+      "description": "Read owners of a specific service principal, but cannot enumerate service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/owners/limitedRead"
+    },
+    {
+      "description": "Read owners of service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/owners/read"
+    },
+    {
+      "description": "Update owners of service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/owners/update"
+    },
+    {
+      "description": "Update owners of service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/owners/update"
+    },
+    {
+      "description": "Update permissions of service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/permissions/update"
+    },
+    {
+      "description": "Read policies of a specific service principal, but cannot enumerate service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/policies/limitedRead"
+    },
+    {
+      "description": "Read policies of service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/policies/read"
+    },
+    {
+      "description": "Update policies of service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/policies/update"
+    },
+    {
+      "description": "Read standard properties of a specific service principal, but cannot enumerate service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/standard/limitedRead"
+    },
+    {
+      "description": "Read basic properties of service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/standard/read"
+    },
+    {
+      "description": "Manage cloud tenant to cloud tenant application provisioning secrets and credentials.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/synchronization.cloudTenantToCloudTenant/credentials/manage"
+    },
+    {
+      "description": "Start, restart, and pause cloud tenant to cloud tenant application provisioning synchronization jobs.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/synchronization.cloudTenantToCloudTenant/jobs/manage"
+    },
+    {
+      "description": "Create and manage cloud tenant to cloud tenant application provisioning synchronization jobs and schema.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/synchronization.cloudTenantToCloudTenant/schema/manage"
+    },
+    {
+      "description": "Manage application provisioning secrets and credentials.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/synchronization.cloudTenantToExternalSystem/credentials/manage"
+    },
+    {
+      "description": "Start, restart, and pause application provisioning synchronization jobs.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/synchronization.cloudTenantToExternalSystem/jobs/manage"
+    },
+    {
+      "description": "Create and manage application provisioning synchronization jobs and schema.",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/synchronization.cloudTenantToExternalSystem/schema/manage"
+    },
+    {
+      "description": "Read all custom security attributes in the synchronization schema",
+      "isPrivileged": true,
+      "name": "microsoft.directory/servicePrincipals/synchronization.customSecurityAttributes/schema/read"
+    },
+    {
+      "description": "Update custom security attribute mappings in the synchronization schema",
+      "isPrivileged": true,
+      "name": "microsoft.directory/servicePrincipals/synchronization.customSecurityAttributes/schema/update"
+    },
+    {
+      "description": "Read provisioning settings associated with your service principal",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/synchronization/standard/read"
+    },
+    {
+      "description": "Manage application provisioning secrets and credentials",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/synchronizationCredentials/manage"
+    },
+    {
+      "description": "Start, restart, and pause application provisioning synchronization jobs",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/synchronizationJobs/manage"
+    },
+    {
+      "description": "Create and manage application provisioning synchronization jobs and schema",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/synchronizationSchema/manage"
+    },
+    {
+      "description": "Update the tag property for service principals",
+      "isPrivileged": false,
+      "name": "microsoft.directory/servicePrincipals/tag/update"
+    },
+    {
+      "description": "Read all properties on sign-in reports, including privileged properties",
+      "isPrivileged": false,
+      "name": "microsoft.directory/signInReports/allProperties/read"
+    },
+    {
+      "description": "Buy and manage subscriptions and delete subscriptions",
+      "isPrivileged": false,
+      "name": "microsoft.directory/subscribedSkus/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of product subscriptions",
+      "isPrivileged": false,
+      "name": "microsoft.directory/subscribedSkus/allProperties/read"
+    },
+    {
+      "description": "Read basic properties on subscriptions",
+      "isPrivileged": false,
+      "name": "microsoft.directory/subscribedSkus/standard/read"
+    },
+    {
+      "description": "Update tenant governance policy templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/tenantGovernance/policyTemplates/allProperties/update"
+    },
+    {
+      "description": "Create tenant governance policy templates",
+      "isPrivileged": false,
+      "name": "microsoft.directory/tenantGovernance/policyTemplates/create"
+    },
+    {
+      "description": "Create tenant governance relationships",
+      "isPrivileged": false,
+      "name": "microsoft.directory/tenantGovernance/relationships/create"
+    },
+    {
+      "description": "Update the status of tenant governance requests",
+      "isPrivileged": true,
+      "name": "microsoft.directory/tenantGovernance/requests/allProperties/update"
+    },
+    {
+      "description": "Create tenant governance requests",
+      "isPrivileged": false,
+      "name": "microsoft.directory/tenantGovernance/requests/create"
+    },
+    {
+      "description": "Create new tenants in Microsoft Entra ID",
+      "isPrivileged": false,
+      "name": "microsoft.directory/tenantManagement/tenants/create"
+    },
+    {
+      "description": "Update basic policies for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userCredentialPolicies/basic/update"
+    },
+    {
+      "description": "Create credential policies for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userCredentialPolicies/create"
+    },
+    {
+      "description": "Delete credential policies for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userCredentialPolicies/delete"
+    },
+    {
+      "description": "Read owners of credential policies for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userCredentialPolicies/owners/read"
+    },
+    {
+      "description": "Update owners of credential policies for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userCredentialPolicies/owners/update"
+    },
+    {
+      "description": "Update owners of credential policies for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userCredentialPolicies/owners/update"
+    },
+    {
+      "description": "Read policy.appliesTo navigation link",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userCredentialPolicies/policyAppliedTo/read"
+    },
+    {
+      "description": "Read standard properties of credential policies for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userCredentialPolicies/standard/read"
+    },
+    {
+      "description": "Update policy.isOrganizationDefault property",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userCredentialPolicies/tenantDefault/update"
+    },
+    {
+      "description": "Read address of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userInfos/address/read"
+    },
+    {
+      "description": "Read email address of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userInfos/email/read"
+    },
+    {
+      "description": "Read OpenID of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userInfos/openId/read"
+    },
+    {
+      "description": "Read phone number of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userInfos/phone/read"
+    },
+    {
+      "description": "Read profile properties of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/userInfos/profile/read"
+    },
+    {
+      "description": "Activate service plans for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/activateServicePlan"
+    },
+    {
+      "description": "Create and delete users, and read and update all properties",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/allProperties/read"
+    },
+    {
+      "description": "Read application role assignments for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/appRoleAssignments/read"
+    },
+    {
+      "description": "Update application role assignments of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/appRoleAssignments/update"
+    },
+    {
+      "description": "Manage user licenses",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/assignLicense"
+    },
+    {
+      "description": "Update email address authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.email/basic/update"
+    },
+    {
+      "description": "Add email address authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.email/create"
+    },
+    {
+      "description": "Delete email address authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.email/delete"
+    },
+    {
+      "description": "Read email address authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.email/standard/read"
+    },
+    {
+      "description": "Read masked email address authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.email/standard/restrictedRead"
+    },
+    {
+      "description": "Update FIDO2 security key authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.fido2/basic/update"
+    },
+    {
+      "description": "Add FIDO2 security key authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.fido2/create"
+    },
+    {
+      "description": "Delete FIDO2 security key authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.fido2/delete"
+    },
+    {
+      "description": "Read FIDO2 security key authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.fido2/standard/read"
+    },
+    {
+      "description": "Read masked FIDO2 security key authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.fido2/standard/restrictedRead"
+    },
+    {
+      "description": "Update Microsoft Authenticator app authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.microsoftAuthenticator/basic/update"
+    },
+    {
+      "description": "Add Microsoft Authenticator app authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.microsoftAuthenticator/create"
+    },
+    {
+      "description": "Delete Microsoft Authenticator app authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.microsoftAuthenticator/delete"
+    },
+    {
+      "description": "Read Microsoft Authenticator app authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.microsoftAuthenticator/standard/read"
+    },
+    {
+      "description": "Read masked Microsoft Authenticator app authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.microsoftAuthenticator/standard/restrictedRead"
+    },
+    {
+      "description": "Update password authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.password/basic/update"
+    },
+    {
+      "description": "Add password authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.password/create"
+    },
+    {
+      "description": "Delete password authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.password/delete"
+    },
+    {
+      "description": "Read password authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.password/standard/read"
+    },
+    {
+      "description": "Read masked password authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.password/standard/restrictedRead"
+    },
+    {
+      "description": "Update Passwordless Microsoft Authenticator authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.passwordlessMicrosoftAuthenticator/basic/update"
+    },
+    {
+      "description": "Add Passwordless Microsoft Authenticator authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.passwordlessMicrosoftAuthenticator/create"
+    },
+    {
+      "description": "Delete Passwordless Microsoft Authenticator authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.passwordlessMicrosoftAuthenticator/delete"
+    },
+    {
+      "description": "Read Passwordless Microsoft Authenticator authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.passwordlessMicrosoftAuthenticator/standard/read"
+    },
+    {
+      "description": "Read masked Passwordless Microsoft Authenticator authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.passwordlessMicrosoftAuthenticator/standard/restrictedRead"
+    },
+    {
+      "description": "Update security question authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.securityQuestion/basic/update"
+    },
+    {
+      "description": "Add security question authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.securityQuestion/create"
+    },
+    {
+      "description": "Delete security question authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.securityQuestion/delete"
+    },
+    {
+      "description": "Read security question authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.securityQuestion/standard/read"
+    },
+    {
+      "description": "Read masked security question authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.securityQuestion/standard/restrictedRead"
+    },
+    {
+      "description": "Update SMS number authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.sms/basic/update"
+    },
+    {
+      "description": "Add SMS number authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.sms/create"
+    },
+    {
+      "description": "Delete SMS number authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.sms/delete"
+    },
+    {
+      "description": "Read SMS number authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.sms/standard/read"
+    },
+    {
+      "description": "Read masked SMS number authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.sms/standard/restrictedRead"
+    },
+    {
+      "description": "Update software OATH token authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.softwareOath/basic/update"
+    },
+    {
+      "description": "Add software OATH token authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.softwareOath/create"
+    },
+    {
+      "description": "Delete software OATH token authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.softwareOath/delete"
+    },
+    {
+      "description": "Read software OATH token authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.softwareOath/standard/read"
+    },
+    {
+      "description": "Read masked software OATH token authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.softwareOath/standard/restrictedRead"
+    },
+    {
+      "description": "Update temporary access pass authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.temporaryAccessPass/basic/update"
+    },
+    {
+      "description": "Add temporary access pass authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.temporaryAccessPass/create"
+    },
+    {
+      "description": "Delete temporary access pass authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.temporaryAccessPass/delete"
+    },
+    {
+      "description": "Read temporary access pass authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.temporaryAccessPass/standard/read"
+    },
+    {
+      "description": "Read masked temporary access pass authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.temporaryAccessPass/standard/restrictedRead"
+    },
+    {
+      "description": "Update phone number authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.voice/basic/update"
+    },
+    {
+      "description": "Add phone number authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.voice/create"
+    },
+    {
+      "description": "Delete phone number authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods.voice/delete"
+    },
+    {
+      "description": "Read phone number authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.voice/standard/read"
+    },
+    {
+      "description": "Read masked phone number authentication methods for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods.voice/standard/restrictedRead"
+    },
+    {
+      "description": "Update basic properties of authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods/basic/update"
+    },
+    {
+      "description": "Update authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods/create"
+    },
+    {
+      "description": "Delete authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods/delete"
+    },
+    {
+      "description": "Read standard properties of authentication methods for users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/authenticationMethods/standard/read"
+    },
+    {
+      "description": "Read standard properties of authentication methods that do not include personally identifiable information for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authenticationMethods/standard/restrictedRead"
+    },
+    {
+      "description": "Update the multivalued Certificate user IDs property of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/authorizationInfo/update"
+    },
+    {
+      "description": "Update basic properties on users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/basic/update"
+    },
+    {
+      "description": "Read basic profile of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/basicProfile/read"
+    },
+    {
+      "description": "Update basic profile of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/basicProfile/update"
+    },
+    {
+      "description": "Change passwords for all users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/changePassword"
+    },
+    {
+      "description": "Update contact properties on users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/contactInfo/update"
+    },
+    {
+      "description": "Update contact profile of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/contactProfile/update"
+    },
+    {
+      "description": "Convert external user to internal user",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/convertExternalToInternalMemberUser"
+    },
+    {
+      "description": "Add users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/create"
+    },
+    {
+      "description": "Read custom security attribute values for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/customSecurityAttributes/read"
+    },
+    {
+      "description": "Update custom security attribute values for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/customSecurityAttributes/update"
+    },
+    {
+      "description": "Delete users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/delete"
+    },
+    {
+      "description": "Read deviceForResourceAccount of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/deviceForResourceAccount/read"
+    },
+    {
+      "description": "Read the direct reports for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/directReports/read"
+    },
+    {
+      "description": "Disable users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/disable"
+    },
+    {
+      "description": "Read the \"eligible member\" of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/eligibleMemberOf/read"
+    },
+    {
+      "description": "Enable users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/enable"
+    },
+    {
+      "description": "Update extension properties of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/extensionProperties/update"
+    },
+    {
+      "description": "Update extension properties of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/extensionProperties/update"
+    },
+    {
+      "description": "Read basic guest profile properties of a specific user, but cannot enumerate users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/guestBasicProfile/limitedRead"
+    },
+    {
+      "description": "Read identities of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/identities/read"
+    },
+    {
+      "description": "Update identity properties of users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/identities/update"
+    },
+    {
+      "description": "Force sign-out by invalidating user refresh tokens",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/invalidateAllRefreshTokens"
+    },
+    {
+      "description": "Read the user that invited an external user to a tenant",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/invitedBy/read"
+    },
+    {
+      "description": "Invite guest users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/inviteGuest"
+    },
+    {
+      "description": "Update job information of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/jobInfo/update"
+    },
+    {
+      "description": "Read license details of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/licenseDetails/read"
+    },
+    {
+      "description": "Read lifecycle information of users, such as employeeLeaveDateTime",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/lifeCycleInfo/read"
+    },
+    {
+      "description": "Read mail of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/mail/read"
+    },
+    {
+      "description": "Read manager of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/manager/read"
+    },
+    {
+      "description": "Update manager for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/manager/update"
+    },
+    {
+      "description": "Read the group memberships of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/memberOf/read"
+    },
+    {
+      "description": "Update mobile numbers of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/mobile/update"
+    },
+    {
+      "description": "Read delegated permission grants on users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/oAuth2PermissionGrants/read"
+    },
+    {
+      "description": "Read owned devices of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/ownedDevices/read"
+    },
+    {
+      "description": "Read owned objects of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/ownedObjects/read"
+    },
+    {
+      "description": "Update parental controls of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/parentalControls/update"
+    },
+    {
+      "description": "Reset passwords for all users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/password/update"
+    },
+    {
+      "description": "Update password policies of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/passwordPolicies/update"
+    },
+    {
+      "description": "Read \"users.pendingMemberOf\" property",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/pendingMemberOf/read"
+    },
+    {
+      "description": "Read photo of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/photo/read"
+    },
+    {
+      "description": "Update photo of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/photo/update"
+    },
+    {
+      "description": "Update preferred data location of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/preferredDataLocation/update"
+    },
+    {
+      "description": "Read registered devices of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/registeredDevices/read"
+    },
+    {
+      "description": "Reprocess license assignments for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/reprocessLicenseAssignment"
+    },
+    {
+      "description": "Restore deleted users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/restore"
+    },
+    {
+      "description": "Read user's membership of a Microsoft Entra role, that is scoped to an administrative unit",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/scopedRoleMemberOf/read"
+    },
+    {
+      "description": "Update searchable device keys of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/searchableDeviceKey/update"
+    },
+    {
+      "description": "Read all the agents or applications the user is sponsor of",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/sponsorOf/read"
+    },
+    {
+      "description": "Read sponsors of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/sponsors/read"
+    },
+    {
+      "description": "Update sponsors of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/sponsors/update"
+    },
+    {
+      "description": "Update sponsors of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/sponsors/update"
+    },
+    {
+      "description": "Read basic properties on users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/standard/read"
+    },
+    {
+      "description": "Read the strong authentication property for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/strongAuthentication/read"
+    },
+    {
+      "description": "Update the strong authentication property for users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/strongAuthentication/update"
+    },
+    {
+      "description": "Update usage location of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/usageLocation/update"
+    },
+    {
+      "description": "Read user principal name of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/userPrincipalName/read"
+    },
+    {
+      "description": "Update User Principal Name of users",
+      "isPrivileged": true,
+      "name": "microsoft.directory/users/userPrincipalName/update"
+    },
+    {
+      "description": "Update user type of users",
+      "isPrivileged": false,
+      "name": "microsoft.directory/users/userType/update"
+    },
+    {
+      "description": "Read configuration required to create and manage verifiable credentials",
+      "isPrivileged": false,
+      "name": "microsoft.directory/verifiableCredentials/configuration/allProperties/read"
+    },
+    {
+      "description": "Update configuration required to create and manage verifiable credentials",
+      "isPrivileged": false,
+      "name": "microsoft.directory/verifiableCredentials/configuration/allProperties/update"
+    },
+    {
+      "description": "Read a verifiable credential contract",
+      "isPrivileged": false,
+      "name": "microsoft.directory/verifiableCredentials/configuration/contracts/allProperties/read"
+    },
+    {
+      "description": "Update a verifiable credential contract",
+      "isPrivileged": false,
+      "name": "microsoft.directory/verifiableCredentials/configuration/contracts/allProperties/update"
+    },
+    {
+      "description": "Read a verifiable credential card",
+      "isPrivileged": false,
+      "name": "microsoft.directory/verifiableCredentials/configuration/contracts/cards/allProperties/read"
+    },
+    {
+      "description": "Revoke a verifiable credential card",
+      "isPrivileged": false,
+      "name": "microsoft.directory/verifiableCredentials/configuration/contracts/cards/revoke"
+    },
+    {
+      "description": "Create a verifiable credential contract",
+      "isPrivileged": false,
+      "name": "microsoft.directory/verifiableCredentials/configuration/contracts/create"
+    },
+    {
+      "description": "Create configuration required to create and manage verifiable credentials",
+      "isPrivileged": false,
+      "name": "microsoft.directory/verifiableCredentials/configuration/create"
+    },
+    {
+      "description": "Delete configuration required to create and manage verifiable credentials and delete all of its verifiable credentials",
+      "isPrivileged": false,
+      "name": "microsoft.directory/verifiableCredentials/configuration/delete"
+    }
+  ],
+  "namespace": "microsoft.directory"
+}

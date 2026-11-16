@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Microsoft Intune",
+      "isPrivileged": null,
+      "name": "microsoft.intune/allEntities/allTasks"
+    },
+    {
+      "description": "Read all resources in Microsoft Intune",
+      "isPrivileged": null,
+      "name": "microsoft.intune/allEntities/read"
+    }
+  ],
+  "namespace": "microsoft.intune"
+}

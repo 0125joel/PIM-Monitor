@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of granular delegated admin privileges (GDAP) relationships in a customer tenant.",
+      "isPrivileged": null,
+      "name": "microsoft.commerce.tenantRelationships/customerDelegatedAdminPrivileges/allProperties/allTasks"
+    }
+  ],
+  "namespace": "microsoft.commerce.tenantRelationships"
+}

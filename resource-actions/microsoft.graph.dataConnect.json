@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage aspects of Microsoft Graph Data Connect",
+      "isPrivileged": null,
+      "name": "microsoft.graph.dataConnect/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read aspects of Microsoft Graph Data Connect",
+      "isPrivileged": null,
+      "name": "microsoft.graph.dataConnect/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.graph.dataConnect"
+}

@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Customer Lockbox",
+      "isPrivileged": null,
+      "name": "microsoft.office365.lockbox/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.office365.lockbox"
+}

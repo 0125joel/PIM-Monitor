@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Desktop Analytics",
+      "isPrivileged": null,
+      "name": "microsoft.office365.desktopAnalytics/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.office365.desktopAnalytics"
+}

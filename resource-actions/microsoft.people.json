@@ -1,0 +1,25 @@
+{
+  "actions": [
+    {
+      "description": "Read profile photo of user",
+      "isPrivileged": null,
+      "name": "microsoft.people/users/photo/read"
+    },
+    {
+      "description": "Update profile photo of user",
+      "isPrivileged": null,
+      "name": "microsoft.people/users/photo/update"
+    },
+    {
+      "description": "Update profile photo of user",
+      "isPrivileged": null,
+      "name": "microsoft.people/users/photo/update"
+    },
+    {
+      "description": "Update profile photo of user",
+      "isPrivileged": null,
+      "name": "microsoft.people/users/photo/update"
+    }
+  ],
+  "namespace": "microsoft.people"
+}

@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Create and delete all resources, and read and update standard properties in the Microsoft 365 Security and Compliance Center",
+      "isPrivileged": null,
+      "name": "microsoft.office365.securityComplianceCenter/allEntities/allTasks"
+    },
+    {
+      "description": "Read standard properties in Microsoft 365 Security and Compliance Center",
+      "isPrivileged": null,
+      "name": "microsoft.office365.securityComplianceCenter/allEntities/read"
+    }
+  ],
+  "namespace": "microsoft.office365.securityComplianceCenter"
+}

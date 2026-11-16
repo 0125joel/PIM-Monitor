@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Read people settings for users, such as pronouns, name pronunciation, and profile card settings",
+      "isPrivileged": null,
+      "name": "microsoft.peopleAdmin/organization/allProperties/read"
+    },
+    {
+      "description": "Update people settings for users, such as pronouns, name pronunciation, and profile card settings",
+      "isPrivileged": null,
+      "name": "microsoft.peopleAdmin/organization/allProperties/update"
+    }
+  ],
+  "namespace": "microsoft.peopleAdmin"
+}

@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Skype for Business Online",
+      "isPrivileged": null,
+      "name": "microsoft.office365.skypeForBusiness/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.office365.skypeForBusiness"
+}

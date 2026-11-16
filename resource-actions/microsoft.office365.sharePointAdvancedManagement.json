@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of SharePoint Advanced Management",
+      "isPrivileged": null,
+      "name": "microsoft.office365.sharePointAdvancedManagement/allEntities/allProperties/allTasks"
+    }
+  ],
+  "namespace": "microsoft.office365.sharePointAdvancedManagement"
+}

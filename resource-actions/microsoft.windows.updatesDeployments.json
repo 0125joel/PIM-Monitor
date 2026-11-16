@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Read and configure all aspects of Windows Update Service",
+      "isPrivileged": null,
+      "name": "microsoft.windows.updatesDeployments/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of Windows Update Service",
+      "isPrivileged": null,
+      "name": "microsoft.windows.updatesDeployments/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.windows.updatesDeployments"
+}

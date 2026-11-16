@@ -1,0 +1,20 @@
+{
+  "actions": [
+    {
+      "description": "Manage all authoring aspects of Microsoft 365 Organizational Messages",
+      "isPrivileged": null,
+      "name": "microsoft.office365.organizationalMessages/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of Microsoft 365 Organizational Messages",
+      "isPrivileged": null,
+      "name": "microsoft.office365.organizationalMessages/allEntities/allProperties/read"
+    },
+    {
+      "description": "Approve or reject new organizational messages for delivery in the Microsoft 365 admin center",
+      "isPrivileged": null,
+      "name": "microsoft.office365.organizationalMessages/allEntities/allProperties/update"
+    }
+  ],
+  "namespace": "microsoft.office365.organizationalMessages"
+}

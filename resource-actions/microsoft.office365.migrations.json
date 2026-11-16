@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Microsoft 365 migrations",
+      "isPrivileged": null,
+      "name": "microsoft.office365.migrations/allEntities/allProperties/allTasks"
+    }
+  ],
+  "namespace": "microsoft.office365.migrations"
+}

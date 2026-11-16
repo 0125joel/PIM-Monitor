@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Create and manage Azure support tickets",
+      "isPrivileged": null,
+      "name": "microsoft.azure.supportTickets/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.azure.supportTickets"
+}

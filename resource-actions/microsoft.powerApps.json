@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Power Apps",
+      "isPrivileged": null,
+      "name": "microsoft.powerApps/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.powerApps"
+}

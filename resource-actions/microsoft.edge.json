@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Microsoft Edge",
+      "isPrivileged": null,
+      "name": "microsoft.edge/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of Microsoft Edge",
+      "isPrivileged": null,
+      "name": "microsoft.edge/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.edge"
+}

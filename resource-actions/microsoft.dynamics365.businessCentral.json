@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Dynamics 365 Business Central",
+      "isPrivileged": null,
+      "name": "microsoft.dynamics365.businessCentral/allEntities/allProperties/allTasks"
+    }
+  ],
+  "namespace": "microsoft.dynamics365.businessCentral"
+}

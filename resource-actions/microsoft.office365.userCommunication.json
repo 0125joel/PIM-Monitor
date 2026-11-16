@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Read and update what's new messages visibility",
+      "isPrivileged": null,
+      "name": "microsoft.office365.userCommunication/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.office365.userCommunication"
+}

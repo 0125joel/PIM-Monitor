@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Microsoft Defender for Endpoint",
+      "isPrivileged": null,
+      "name": "microsoft.windows.defenderAdvancedThreatProtection/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.windows.defenderAdvancedThreatProtection"
+}

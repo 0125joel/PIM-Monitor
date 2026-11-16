@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Create and delete all resources, and read and update all properties in Microsoft Search",
+      "isPrivileged": null,
+      "name": "microsoft.office365.search/allEntities/allTasks"
+    },
+    {
+      "description": "Create and delete content, and read and update all properties in Microsoft Search",
+      "isPrivileged": null,
+      "name": "microsoft.office365.search/content/manage"
+    }
+  ],
+  "namespace": "microsoft.office365.search"
+}

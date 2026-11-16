@@ -1,0 +1,20 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Entra Network Access",
+      "isPrivileged": null,
+      "name": "microsoft.networkAccess/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of Entra Network Access",
+      "isPrivileged": null,
+      "name": "microsoft.networkAccess/allEntities/allProperties/read"
+    },
+    {
+      "description": "Read standard properties of traffic logs such as DeviceId, DestinationIp and PolicyRuleId",
+      "isPrivileged": null,
+      "name": "microsoft.networkAccess/trafficLogs/standard/read"
+    }
+  ],
+  "namespace": "microsoft.networkAccess"
+}

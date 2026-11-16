@@ -1,0 +1,30 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Insights app",
+      "isPrivileged": null,
+      "name": "microsoft.insights/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of Viva Insights",
+      "isPrivileged": null,
+      "name": "microsoft.insights/allEntities/allProperties/read"
+    },
+    {
+      "description": "Deploy and manage programs in Insights app",
+      "isPrivileged": null,
+      "name": "microsoft.insights/programs/allProperties/update"
+    },
+    {
+      "description": "Run and manage queries in Viva Insights",
+      "isPrivileged": null,
+      "name": "microsoft.insights/queries/allProperties/allTasks"
+    },
+    {
+      "description": "View reports and dashboard in Insights app",
+      "isPrivileged": null,
+      "name": "microsoft.insights/reports/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.insights"
+}

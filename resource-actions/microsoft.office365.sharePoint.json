@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Create and delete all resources, and read and update standard properties in SharePoint",
+      "isPrivileged": null,
+      "name": "microsoft.office365.sharePoint/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.office365.sharePoint"
+}

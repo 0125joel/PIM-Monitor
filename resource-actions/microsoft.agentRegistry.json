@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Agent Registry in Microsoft Entra ID",
+      "isPrivileged": null,
+      "name": "microsoft.agentRegistry/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of Agent Registry in Microsoft Entra ID",
+      "isPrivileged": null,
+      "name": "microsoft.agentRegistry/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.agentRegistry"
+}

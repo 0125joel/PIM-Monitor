@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of the Microsoft Places service",
+      "isPrivileged": null,
+      "name": "microsoft.places/allEntities/allProperties/allTasks"
+    }
+  ],
+  "namespace": "microsoft.places"
+}

@@ -1,0 +1,20 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Office 365 billing",
+      "isPrivileged": null,
+      "name": "microsoft.commerce.billing/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all resources of Office 365 billing",
+      "isPrivileged": null,
+      "name": "microsoft.commerce.billing/allEntities/allProperties/read"
+    },
+    {
+      "description": "Read purchase services in Microsoft 365 admin center.",
+      "isPrivileged": null,
+      "name": "microsoft.commerce.billing/purchases/standard/read"
+    }
+  ],
+  "namespace": "microsoft.commerce.billing"
+}

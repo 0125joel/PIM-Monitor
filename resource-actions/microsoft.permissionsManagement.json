@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Entra Permissions Management",
+      "isPrivileged": null,
+      "name": "microsoft.permissionsManagement/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of Entra Permissions Management",
+      "isPrivileged": null,
+      "name": "microsoft.permissionsManagement/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.permissionsManagement"
+}

@@ -1,0 +1,40 @@
+{
+  "actions": [
+    {
+      "description": "Create, read, update, and delete shipping addresses for Microsoft hardware warranty claims, including shipping addresses created by others",
+      "isPrivileged": null,
+      "name": "microsoft.hardware.support/shippingAddress/allProperties/allTasks"
+    },
+    {
+      "description": "Read shipping addresses for Microsoft hardware warranty claims, including existing shipping addresses created by others",
+      "isPrivileged": null,
+      "name": "microsoft.hardware.support/shippingAddress/allProperties/read"
+    },
+    {
+      "description": "Update shipping addresses for Microsoft hardware warranty claims, including existing shipping addresses created by others",
+      "isPrivileged": null,
+      "name": "microsoft.hardware.support/shippingAddress/allProperties/update"
+    },
+    {
+      "description": "Read shipping status for open Microsoft hardware warranty claims",
+      "isPrivileged": null,
+      "name": "microsoft.hardware.support/shippingStatus/allProperties/read"
+    },
+    {
+      "description": "Create and manage all aspects of Microsoft hardware warranty claims",
+      "isPrivileged": null,
+      "name": "microsoft.hardware.support/warrantyClaims/allProperties/allTasks"
+    },
+    {
+      "description": "Read Microsoft hardware warranty claims",
+      "isPrivileged": null,
+      "name": "microsoft.hardware.support/warrantyClaims/allProperties/read"
+    },
+    {
+      "description": "Create Microsoft hardware warranty claims where creator is the owner",
+      "isPrivileged": null,
+      "name": "microsoft.hardware.support/warrantyClaims/createAsOwner"
+    }
+  ],
+  "namespace": "microsoft.hardware.support"
+}

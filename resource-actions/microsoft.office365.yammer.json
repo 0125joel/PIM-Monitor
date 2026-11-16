@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Yammer",
+      "isPrivileged": null,
+      "name": "microsoft.office365.yammer/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of Yammer",
+      "isPrivileged": null,
+      "name": "microsoft.office365.yammer/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.office365.yammer"
+}

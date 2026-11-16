@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Azure Information Protection",
+      "isPrivileged": null,
+      "name": "microsoft.azure.informationProtection/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.azure.informationProtection"
+}

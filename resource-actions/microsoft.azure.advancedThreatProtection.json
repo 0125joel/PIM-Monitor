@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Azure Advanced Threat Protection",
+      "isPrivileged": null,
+      "name": "microsoft.azure.advancedThreatProtection/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.azure.advancedThreatProtection"
+}

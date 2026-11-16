@@ -1,0 +1,247 @@
+{
+  "described": 708,
+  "namespaces": {
+    "microsoft.agentRegistry": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.azure.advancedThreatProtection": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.azure.customSecurityAttributeDiagnosticSettings": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.azure.devOps": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.azure.informationProtection": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.azure.print": {
+      "actions": 6,
+      "status": "ok"
+    },
+    "microsoft.azure.serviceHealth": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.azure.supportTickets": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.backup": {
+      "actions": 17,
+      "status": "ok"
+    },
+    "microsoft.cloudPC": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.commerce.billing": {
+      "actions": 3,
+      "status": "ok"
+    },
+    "microsoft.commerce.tenantRelationships": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.directory": {
+      "actions": 813,
+      "status": "ok"
+    },
+    "microsoft.dynamics365": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.dynamics365.businessCentral": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.edge": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.flow": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.graph.dataConnect": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.hardware.support": {
+      "actions": 7,
+      "status": "ok"
+    },
+    "microsoft.healthPlatform": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.insights": {
+      "actions": 5,
+      "status": "ok"
+    },
+    "microsoft.intune": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.microsoft365.organizationalData": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.networkAccess": {
+      "actions": 3,
+      "status": "ok"
+    },
+    "microsoft.office365.complianceManager": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.office365.copilot": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.office365.desktopAnalytics": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.office365.exchange": {
+      "actions": 4,
+      "status": "ok"
+    },
+    "microsoft.office365.fileStorageContainers": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.office365.knowledge": {
+      "actions": 5,
+      "status": "ok"
+    },
+    "microsoft.office365.lockbox": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.office365.messageCenter": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.office365.migrations": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.office365.network": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.office365.organizationalMessages": {
+      "actions": 3,
+      "status": "ok"
+    },
+    "microsoft.office365.protectionCenter": {
+      "actions": 11,
+      "status": "ok"
+    },
+    "microsoft.office365.search": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.office365.securityComplianceCenter": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.office365.serviceHealth": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.office365.sharePoint": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.office365.sharePointAdvancedManagement": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.office365.skypeForBusiness": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.office365.supportTickets": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.office365.usageReports": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.office365.userCommunication": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.office365.webPortal": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.office365.yammer": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.people": {
+      "actions": 4,
+      "status": "ok"
+    },
+    "microsoft.peopleAdmin": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.permissionsManagement": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.places": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.powerApps": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.powerApps.powerBI": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.teams": {
+      "actions": 8,
+      "status": "ok"
+    },
+    "microsoft.virtualVisits": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.viva.glint": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.viva.goals": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.viva.pulse": {
+      "actions": 2,
+      "status": "ok"
+    },
+    "microsoft.windows.defenderAdvancedThreatProtection": {
+      "actions": 1,
+      "status": "ok"
+    },
+    "microsoft.windows.updatesDeployments": {
+      "actions": 2,
+      "status": "ok"
+    }
+  },
+  "roleActions": 708,
+  "undescribed": []
+}

@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Create and manage Microsoft 365 service requests",
+      "isPrivileged": null,
+      "name": "microsoft.office365.supportTickets/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.office365.supportTickets"
+}

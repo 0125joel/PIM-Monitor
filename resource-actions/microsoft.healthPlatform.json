@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Microsoft Dragon admin center",
+      "isPrivileged": null,
+      "name": "microsoft.healthPlatform/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of Microsoft Dragon admin center",
+      "isPrivileged": null,
+      "name": "microsoft.healthPlatform/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.healthPlatform"
+}

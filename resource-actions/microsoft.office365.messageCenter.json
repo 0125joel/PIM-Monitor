@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Read messages in Message Center in the Microsoft 365 admin center, excluding security messages",
+      "isPrivileged": null,
+      "name": "microsoft.office365.messageCenter/messages/read"
+    },
+    {
+      "description": "Read security messages in Message Center in the Microsoft 365 admin center",
+      "isPrivileged": null,
+      "name": "microsoft.office365.messageCenter/securityMessages/read"
+    }
+  ],
+  "namespace": "microsoft.office365.messageCenter"
+}

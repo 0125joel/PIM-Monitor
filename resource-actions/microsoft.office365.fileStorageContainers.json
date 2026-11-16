@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of SharePoint Embedded containers",
+      "isPrivileged": null,
+      "name": "microsoft.office365.fileStorageContainers/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read entities and permissions of SharePoint Embedded containers",
+      "isPrivileged": null,
+      "name": "microsoft.office365.fileStorageContainers/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.office365.fileStorageContainers"
+}

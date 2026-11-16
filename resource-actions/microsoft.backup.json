@@ -1,0 +1,90 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/allEntities/allProperties/read"
+    },
+    {
+      "description": "Create and manage Exchange Online protection policy in Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/exchangeProtectionPolicies/allProperties/allTasks"
+    },
+    {
+      "description": "Read and configure restore session for Exchange Online in Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/exchangeRestoreSessions/allProperties/allTasks"
+    },
+    {
+      "description": "Create and manage OneDrive protection policy in Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/oneDriveForBusinessProtectionPolicies/allProperties/allTasks"
+    },
+    {
+      "description": "Read and configure restore session for OneDrive in Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/oneDriveForBusinessRestoreSessions/allProperties/allTasks"
+    },
+    {
+      "description": "Manage all restore points associated with selected SharePoint sites in M365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/restorePoints/sites/allProperties/allTasks"
+    },
+    {
+      "description": "Manage all restore points associated with selected OneDrive accounts in M365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/restorePoints/userDrives/allProperties/allTasks"
+    },
+    {
+      "description": "Manage all restore points associated with selected Exchange Online mailboxes in M365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/restorePoints/userMailboxes/allProperties/allTasks"
+    },
+    {
+      "description": "Create and manage SharePoint protection policy in Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/sharePointProtectionPolicies/allProperties/allTasks"
+    },
+    {
+      "description": "Read and configure restore session for SharePoint in Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/sharePointRestoreSessions/allProperties/allTasks"
+    },
+    {
+      "description": "Manage sites added to SharePoint protection policy in Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/siteProtectionUnits/allProperties/allTasks"
+    },
+    {
+      "description": "Manage sites added to restore session for SharePoint in Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/siteRestoreArtifacts/allProperties/allTasks"
+    },
+    {
+      "description": "Manage accounts added to OneDrive protection policy in Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/userDriveProtectionUnits/allProperties/allTasks"
+    },
+    {
+      "description": "Manage accounts added to restore session for OneDrive in Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/userDriveRestoreArtifacts/allProperties/allTasks"
+    },
+    {
+      "description": "Manage mailboxes added to Exchange Online protection policy in Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/userMailboxProtectionUnits/allProperties/allTasks"
+    },
+    {
+      "description": "Manage mailboxes added to restore session for Exchange Online in Microsoft 365 Backup",
+      "isPrivileged": null,
+      "name": "microsoft.backup/userMailboxRestoreArtifacts/allProperties/allTasks"
+    }
+  ],
+  "namespace": "microsoft.backup"
+}

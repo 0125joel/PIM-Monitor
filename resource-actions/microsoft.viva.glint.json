@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage and configure all Microsoft Viva Glint settings in the Microsoft 365 admin center",
+      "isPrivileged": null,
+      "name": "microsoft.viva.glint/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all Microsoft Viva Glint settings in the Microsoft 365 admin center",
+      "isPrivileged": null,
+      "name": "microsoft.viva.glint/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.viva.glint"
+}

@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Microsoft Power Automate",
+      "isPrivileged": null,
+      "name": "microsoft.flow/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.flow"
+}

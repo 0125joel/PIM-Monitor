@@ -1,0 +1,60 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of the Security and Compliance centers",
+      "isPrivileged": null,
+      "name": "microsoft.office365.protectionCenter/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties in the Security and Compliance centers",
+      "isPrivileged": null,
+      "name": "microsoft.office365.protectionCenter/allEntities/allProperties/read"
+    },
+    {
+      "description": "Update all resources in Microsoft 365 Security and Compliance Center",
+      "isPrivileged": null,
+      "name": "microsoft.office365.protectionCenter/allEntities/allProperties/update"
+    },
+    {
+      "description": "Update basic properties of all resources in the Security and Compliance centers",
+      "isPrivileged": null,
+      "name": "microsoft.office365.protectionCenter/allEntities/basic/update"
+    },
+    {
+      "description": "Read standard properties of all resources in the Security and Compliance centers",
+      "isPrivileged": null,
+      "name": "microsoft.office365.protectionCenter/allEntities/standard/read"
+    },
+    {
+      "description": "Create and manage attack payloads in Attack Simulator",
+      "isPrivileged": null,
+      "name": "microsoft.office365.protectionCenter/attackSimulator/payload/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of attack payloads in Attack Simulator",
+      "isPrivileged": null,
+      "name": "microsoft.office365.protectionCenter/attackSimulator/payload/allProperties/read"
+    },
+    {
+      "description": "Read reports of attack simulation, responses, and associated training",
+      "isPrivileged": null,
+      "name": "microsoft.office365.protectionCenter/attackSimulator/reports/allProperties/read"
+    },
+    {
+      "description": "Create and manage attack simulation templates in Attack Simulator",
+      "isPrivileged": null,
+      "name": "microsoft.office365.protectionCenter/attackSimulator/simulation/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of attack simulation templates in Attack Simulator",
+      "isPrivileged": null,
+      "name": "microsoft.office365.protectionCenter/attackSimulator/simulation/allProperties/read"
+    },
+    {
+      "description": "Read all properties of sensitivity labels in the Security and Compliance centers",
+      "isPrivileged": null,
+      "name": "microsoft.office365.protectionCenter/sensitivityLabels/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.office365.protectionCenter"
+}

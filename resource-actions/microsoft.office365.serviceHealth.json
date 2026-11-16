@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Read and configure Service Health in the Microsoft 365 admin center",
+      "isPrivileged": null,
+      "name": "microsoft.office365.serviceHealth/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.office365.serviceHealth"
+}

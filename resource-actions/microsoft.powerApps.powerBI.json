@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Power BI",
+      "isPrivileged": null,
+      "name": "microsoft.powerApps.powerBI/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.powerApps.powerBI"
+}

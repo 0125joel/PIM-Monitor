@@ -1,0 +1,45 @@
+{
+  "actions": [
+    {
+      "description": "Manage all resources in Teams",
+      "isPrivileged": null,
+      "name": "microsoft.teams/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all properties of Microsoft Teams",
+      "isPrivileged": null,
+      "name": "microsoft.teams/allEntities/allProperties/read"
+    },
+    {
+      "description": "Read all data in the Call Quality Dashboard (CQD)",
+      "isPrivileged": null,
+      "name": "microsoft.teams/callQuality/allProperties/read"
+    },
+    {
+      "description": "Read basic data in the Call Quality Dashboard (CQD)",
+      "isPrivileged": null,
+      "name": "microsoft.teams/callQuality/standard/read"
+    },
+    {
+      "description": "Manage all aspects of Teams-certified devices including configuration policies",
+      "isPrivileged": null,
+      "name": "microsoft.teams/devices/standard/read"
+    },
+    {
+      "description": "Manage meetings including meeting policies, configurations, and conference bridges",
+      "isPrivileged": null,
+      "name": "microsoft.teams/meetings/allProperties/allTasks"
+    },
+    {
+      "description": "Create and manage policies that govern external access.",
+      "isPrivileged": null,
+      "name": "microsoft.teams/policies/externalAccessPolicy/allTasks"
+    },
+    {
+      "description": "Manage voice including calling policies and phone number inventory and assignment",
+      "isPrivileged": null,
+      "name": "microsoft.teams/voice/allProperties/allTasks"
+    }
+  ],
+  "namespace": "microsoft.teams"
+}

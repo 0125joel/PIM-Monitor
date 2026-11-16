@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Windows 365",
+      "isPrivileged": null,
+      "name": "microsoft.cloudPC/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of Windows 365",
+      "isPrivileged": null,
+      "name": "microsoft.cloudPC/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.cloudPC"
+}

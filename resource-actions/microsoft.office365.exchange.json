@@ -1,0 +1,25 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Exchange Online",
+      "isPrivileged": null,
+      "name": "microsoft.office365.exchange/allEntities/basic/allTasks"
+    },
+    {
+      "description": "Manage all tasks in message tracking in Exchange Online",
+      "isPrivileged": null,
+      "name": "microsoft.office365.exchange/messageTracking/allProperties/allTasks"
+    },
+    {
+      "description": "Manage all tasks related to migration of recipients in Exchange Online",
+      "isPrivileged": null,
+      "name": "microsoft.office365.exchange/migration/allProperties/allTasks"
+    },
+    {
+      "description": "Create and delete all recipients, and read and update all properties of recipients in Exchange Online",
+      "isPrivileged": null,
+      "name": "microsoft.office365.exchange/recipients/allProperties/allTasks"
+    }
+  ],
+  "namespace": "microsoft.office365.exchange"
+}

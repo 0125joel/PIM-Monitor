@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Microsoft Viva Goals",
+      "isPrivileged": null,
+      "name": "microsoft.viva.goals/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of Microsoft Viva Goals",
+      "isPrivileged": null,
+      "name": "microsoft.viva.goals/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.viva.goals"
+}

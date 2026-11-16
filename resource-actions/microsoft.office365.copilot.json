@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Create and manage all settings for Microsoft 365 Copilot",
+      "isPrivileged": null,
+      "name": "microsoft.office365.copilot/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all settings for Microsoft 365 Copilot",
+      "isPrivileged": null,
+      "name": "microsoft.office365.copilot/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.office365.copilot"
+}

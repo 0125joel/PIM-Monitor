@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of Microsoft Viva Pulse",
+      "isPrivileged": null,
+      "name": "microsoft.viva.pulse/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of Microsoft Viva Pulse",
+      "isPrivileged": null,
+      "name": "microsoft.viva.pulse/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.viva.pulse"
+}

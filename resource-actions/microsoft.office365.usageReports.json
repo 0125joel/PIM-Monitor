@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Read Office 365 usage reports",
+      "isPrivileged": null,
+      "name": "microsoft.office365.usageReports/allEntities/allProperties/read"
+    },
+    {
+      "description": "Read tenant-level aggregated Office 365 usage reports",
+      "isPrivileged": null,
+      "name": "microsoft.office365.usageReports/allEntities/standard/read"
+    }
+  ],
+  "namespace": "microsoft.office365.usageReports"
+}

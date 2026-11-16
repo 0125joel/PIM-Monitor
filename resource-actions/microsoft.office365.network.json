@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of network locations",
+      "isPrivileged": null,
+      "name": "microsoft.office365.network/locations/allProperties/allTasks"
+    },
+    {
+      "description": "Read all network performance properties in the Microsoft 365 admin center",
+      "isPrivileged": null,
+      "name": "microsoft.office365.network/performance/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.office365.network"
+}

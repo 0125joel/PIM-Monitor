@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Configure all aspects of custom security attributes diagnostic settings",
+      "isPrivileged": null,
+      "name": "microsoft.azure.customSecurityAttributeDiagnosticSettings/allEntities/allProperties/allTasks"
+    }
+  ],
+  "namespace": "microsoft.azure.customSecurityAttributeDiagnosticSettings"
+}

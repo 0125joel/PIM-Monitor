@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "description": "Manage all aspects of organizational data in Microsoft 365",
+      "isPrivileged": null,
+      "name": "microsoft.microsoft365.organizationalData/allEntities/allProperties/allTasks"
+    },
+    {
+      "description": "Read all aspects of organizational data in Microsoft 365",
+      "isPrivileged": null,
+      "name": "microsoft.microsoft365.organizationalData/allEntities/allProperties/read"
+    }
+  ],
+  "namespace": "microsoft.microsoft365.organizationalData"
+}

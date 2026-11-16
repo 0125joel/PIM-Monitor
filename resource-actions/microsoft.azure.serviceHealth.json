@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "description": "Read and configure Azure Service Health",
+      "isPrivileged": null,
+      "name": "microsoft.azure.serviceHealth/allEntities/allTasks"
+    }
+  ],
+  "namespace": "microsoft.azure.serviceHealth"
+}
