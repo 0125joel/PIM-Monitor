@@ -161,6 +161,8 @@ Privileged. Do not assign Privileged to an unflagged role on the strength of its
 | Search Editor | Management | Specialized | `office365.search/content/manage` authors bookmarks and Q&As every user sees; authoring workload content is Specialized |
 | Organizational Branding Administrator | Control | Enterprise | Only `loginOrganizationBranding`; the look of the sign-in page is cosmetic, not access-shaping |
 | Cloud App Security Administrator | Control | Specialized | `cloudAppSecurity` sets session and access policies on cloud apps; access control, not a bounded workload |
+| Kaizala Administrator | Data | Enterprise | Only `supportTickets` and `serviceHealth` tasks plus reads; no Kaizala action is exposed, so the actions decide, not the name |
+| Compliance Data Administrator | Control | Specialized | `cloudAppSecurity` next to `informationProtection` and `complianceManager`; security actions outrank workload actions (tie-breaker 1) |
 
 ## Output per role
 

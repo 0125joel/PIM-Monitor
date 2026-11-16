@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "catalogVersion": "2026-11-16.4",
-  "publishedAt": "2026-11-16T06:05:33Z",
+  "catalogVersion": "2026-11-16.5",
+  "publishedAt": "2026-11-16T06:13:31Z",
   "source": {
     "repository": "https://github.com/0125joel/PIM-Monitor",
     "path": "docs-site/src/data/eam-role-catalog.json"
@@ -502,7 +502,7 @@
     {
       "templateId": "e6d1a23a-da11-4be4-9570-befc86d067a7",
       "displayName": "Compliance Data Administrator",
-      "plane": "Management",
+      "plane": "Control",
       "securityLevel": "Specialized",
       "isPrivileged": false,
       "expectedConfig": {
@@ -512,7 +512,7 @@
         "requireJustification": true,
         "requireApproval": true
       },
-      "note": null,
+      "note": "cloudAppSecurity allTasks next to informationProtection and complianceManager; security actions outrank workload actions, so Control (maintainer decision 2026-11-16).",
       "reviewNeeded": false
     },
     {
@@ -1179,17 +1179,16 @@
     {
       "templateId": "74ef975b-6605-40af-a5d2-b9539d836353",
       "displayName": "Kaizala Administrator",
-      "plane": "Management",
-      "securityLevel": "Specialized",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
       "isPrivileged": false,
       "expectedConfig": {
-        "maxActivationDuration": "PT4H",
+        "maxActivationDuration": "PT8H",
         "requireMFA": true,
-        "authContext": "phish-resistant-no-sif",
         "requireJustification": true,
-        "requireApproval": true
+        "requireApproval": false
       },
-      "note": null,
+      "note": "Only supportTickets and serviceHealth tasks plus reads; no Kaizala action is exposed, so the actions decide: Data and Enterprise (maintainer decision 2026-11-16).",
       "reviewNeeded": false
     },
     {
