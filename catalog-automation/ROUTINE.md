@@ -106,32 +106,53 @@ checking the verdict: set `reviewNeeded` to false and `sourceAuthority.plane` to
 plane or level first if the verdict was wrong, rebuild and open a pull request. Do it in the review
 pull request itself before merging, or in a follow-up. Answer every low-confidence question from the
 pull request description before you clear a role. When a review shows that the rubric missed a
-namespace or a pattern, add it to the rubric with the role as a worked example, then follow Go-live
-step 2 before the pin moves.
+namespace or a pattern, add it to the rubric with the role as a worked example, then run the full
+measurement (Go-live) before the pin moves.
 
 ## Go-live
 
-Backtest results, same model as the routine, blind samples of 20. Round 4 used the rubric that spells
-every anchor role out in full, so `-RubricPath` leaves out every role the rubric names; rounds 1 to 3
-matched only the examples table and a hand-written exclusion list.
+The pin moves to a rubric change only after a full measurement passes. A sample of 20 is too small to
+decide on, so the measurement covers the whole pool: every catalog role the rubric does not name.
 
-| Round | Date | Seed | Level | Level (high + medium) | Plane | Lenient | Floor violations | passedAutoEligible |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 2026-10-03 | not recorded | 65% | not measured | 80% | 3 | 0 | not measured |
-| 2 | 2026-10-03 | 2 | 75% | not measured | 85% | 0 | 0 | not measured |
-| 3 | 2026-10-03 | not recorded | 90% | 94.7% (19) | 95% | 0 | 0 | yes |
-| 4 | 2026-11-16 | 4 | 85% | 94.4% (18) | 95% | 0 | 0 | yes |
+### Full measurement
 
-Round 4 is recorded in `backtests/2026-11-16-seed4.json`. Its three level misses are all stricter than
-the catalog, two of them low confidence. The rubric was not changed after round 4, so it was not tuned
-on that sample. 20 roles is a small sample: treat each round as a measurement, not as proof.
+1. **Pass A.** For fold 1 to 5: `Invoke-CatalogBacktest.ps1 -Mode Prepare -CatalogPath <catalog>
+   -SnapshotDir <role-definitions> -RubricPath CLASSIFICATION-RUBRIC.md -Folds 5 -Fold <n> -Seed <A>
+   -OutDir <dir>`. Every role in the pool lands in exactly one fold.
+2. **Blind verdicts.** Each fold gets its own fresh session, same model as the routine, that may read
+   only that fold's `input.json`, `catalog-without-sample.json` and the rubric, and writes
+   `results.json`. Whoever wrote the rubric change has seen the catalog and is not blind, so never
+   classifies.
+3. **Pass B.** Steps 1 and 2 again with a second seed `<B>`: other folds, other sessions. Every role
+   gets two independent verdicts.
+4. **Score.** `-Mode Score` per pass, with the five results, answer keys and meta files, and
+   `-RecordPath backtests/<date>-seed<A>.json` (and `<B>`). `-Mode Stability -ResultsPath <A results>
+   -SecondResultsPath <B results> -RecordPath backtests/<date>-stability.json`. Add a row below.
+5. **Decide, with these criteria fixed in advance.** Both passes `passedAutoEligible` (no isPrivileged
+   role below Privileged, nothing more lenient than the catalog among the high and medium verdicts, at
+   least 90% level agreement on those), and Stability `passed` (both passes give the same level for at
+   least 90% of the roles). Only then move the pin.
+6. **No tuning on the same measurement.** If it fails, do not change the rubric to fix the misses and
+   measure again with the same roles in mind: report the misses to the maintainer, decide per role
+   whether the catalog or the rubric is wrong, and measure the next rubric change with new seeds.
 
-1. Stay in dry-run for at least two weeks. Done: dry-run from 2026-10-03 to 2026-11-16.
-2. Before the pin moves to a rubric change, run `Invoke-CatalogBacktest.ps1 -Mode Prepare` with a seed
-   not in the table above and `-RubricPath`. Let a fresh session that sees only `input.json`,
-   `catalog-without-sample.json` and the rubric write the verdicts; whoever wrote the rubric change has
-   seen the catalog and is not blind. Score it, add a row above and the record under `backtests/`. Go
-   live, and stay live, only while `passedAutoEligible` is true: no isPrivileged role below
-   Privileged, nothing more lenient than the catalog, and at least 90% level agreement on the high and
-   medium verdicts. Do not change the rubric to fix the misses of the same round.
-3. The pull requests are merged by a person until auto-merge exists.
+Seeds: rounds 1 and 3 did not record theirs and may have used 1 and 3, so new measurements use seeds
+above 4, each seed once.
+
+### Results
+
+| Round | Date | Roles | Seed | Level | Level (high + medium) | Plane | Lenient | Floor violations | passedAutoEligible |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 2026-10-03 | 20 | not recorded | 65% | not measured | 80% | 3 | 0 | not measured |
+| 2 | 2026-10-03 | 20 | 2 | 75% | not measured | 85% | 0 | 0 | not measured |
+| 3 | 2026-10-03 | 20 | not recorded | 90% | 94.7% (19) | 95% | 0 | 0 | yes |
+| 4 | 2026-11-16 | 20 | 4 | 85% | 94.4% (18) | 95% | 0 | 0 | yes |
+
+Rounds 1 to 4 are samples of 20, kept for history. Rounds 1 to 3 matched only the examples table and a
+hand-written exclusion list. Round 4 (`backtests/2026-11-16-seed4.json`) left out every role the rubric
+names, but its classifier saw the catalog without those roles, not the full catalog.
+
+### Before go-live (done)
+
+- Dry-run from 2026-10-03 to 2026-11-16, then `MODE: pr`.
+- The pull requests are merged by a person until auto-merge exists.
