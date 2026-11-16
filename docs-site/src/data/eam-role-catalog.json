@@ -1,6 +1,6 @@
 {
   "_comment": "Hand-maintained EAM Role Catalog. Reconciled permission-by-permission against docs/Research/eam-classification-agent-grounding.md (see docs/Research/eam-catalog-reconciliation.md). This file is the maintained source until the classification agent lands; the PowerShell generator is retired. Policy fields use the expectedConfig vocabulary of the AccessModel/ files; maxActivationLabel, pimRequired and severity are presentation and sit beside expectedConfig.",
-  "roleCount": 145,
+  "roleCount": 148,
   "roles": [
     {
       "description": "Manage profile photos of users and people settings for all users in the organization.",
@@ -3881,6 +3881,85 @@
         "plane": "curated"
       },
       "templateId": "ffd52fa5-98dc-465c-991d-fc073eb59f8f"
+    },
+    {
+      "description": "Users in this role have full permissions to create, read, update, delete, and evaluate resource policies, their assignments, and the tenant-wide resource policy configuration in Microsoft Graph. This role is intended for senior and compliance administrators who are responsible for the entire lifecycle of resource access policies. Assigning this role grants comprehensive control over how resource policies are defined and enforced across the organization.",
+      "displayName": "Resource Policy Administrator",
+      "expectedConfig": {
+        "maxActivationDuration": "PT4H",
+        "requireMFA": true,
+        "requireJustification": true,
+        "requireApproval": true,
+        "authContext": "phish-resistant-no-sif"
+      },
+      "isPrivileged": false,
+      "levelBasis": "plane-mapping",
+      "maxActivationLabel": "4 hours",
+      "note": "Creates, updates and deletes resourcePolicy definitions, assignments and tenant configuration. Access-shaping write without isPrivileged is Specialized.",
+      "pimRequired": true,
+      "plane": "Control",
+      "reviewNeeded": true,
+      "securityLevel": "Specialized",
+      "severity": "Medium",
+      "sourceAuthority": {
+        "isPrivileged": "authoritative",
+        "securityLevel": "derived",
+        "expectedConfig": "derived",
+        "plane": "heuristic"
+      },
+      "templateId": "c0c46a03-c257-4f91-ab71-3c7e59c89d97"
+    },
+    {
+      "description": "Users in this role have read-only access to resource policy definitions, assignments, and the tenant-wide resource policy configuration in Microsoft Graph. They can also evaluate policies to understand their impact, making this role ideal for audit, compliance, and support personnel who need to validate and troubleshoot policies without the ability to modify them.",
+      "displayName": "Resource Policy Reader",
+      "expectedConfig": {
+        "maxActivationDuration": "PT8H",
+        "requireMFA": true,
+        "requireJustification": true,
+        "requireApproval": false
+      },
+      "isPrivileged": false,
+      "levelBasis": "plane-mapping",
+      "maxActivationLabel": "8 hours",
+      "note": "Reads resourcePolicy definitions, assignments and configuration and evaluates them. Reader of access-policy configuration stays Control; read-only lowers the level.",
+      "pimRequired": true,
+      "plane": "Control",
+      "reviewNeeded": true,
+      "securityLevel": "Enterprise",
+      "severity": "Low",
+      "sourceAuthority": {
+        "isPrivileged": "authoritative",
+        "securityLevel": "derived",
+        "expectedConfig": "derived",
+        "plane": "heuristic"
+      },
+      "templateId": "311877b7-9a2e-4337-81c2-068a250eaa22"
+    },
+    {
+      "description": "Users in this role can evaluate resource policies to understand their impact and outcome. This role does not grant any read or write access to the policy definitions or assignments themselves, making it ideal for developers, testers, and automated tools that need to perform policy validation as part of a development or CI/CD pipeline.",
+      "displayName": "Resource Policy Evaluator",
+      "expectedConfig": {
+        "maxActivationDuration": "PT8H",
+        "requireMFA": true,
+        "requireJustification": true,
+        "requireApproval": false
+      },
+      "isPrivileged": false,
+      "levelBasis": "plane-mapping",
+      "maxActivationLabel": "8 hours",
+      "note": "Only resourcePolicy/evaluatePolicy, no read or write of definitions. Low impact. Plane confirmed Control by the maintainer on 2026-11-16.",
+      "pimRequired": true,
+      "plane": "Control",
+      "reviewNeeded": true,
+      "securityLevel": "Enterprise",
+      "severity": "Low",
+      "sourceAuthority": {
+        "isPrivileged": "authoritative",
+        "securityLevel": "derived",
+        "expectedConfig": "derived",
+        "plane": "heuristic"
+      },
+      "templateId": "1dae4b79-8aea-40ab-9ad0-30d3ab1fa9c1"
     }
   ]
 }

@@ -14,6 +14,8 @@
     { "id": "95e79109-95c0-4d8e-aee3-d01accf2d47b", "displayName": "Guest Inviter" },
     { "id": "10dae51f-b6af-4016-8d66-8c2a99b929b3", "displayName": "Guest User" },
     { "id": "92ed04bf-c94a-4b82-9729-b799a7a4c178", "displayName": "Organizational Branding Administrator" },
+    { "id": "1dae4b79-8aea-40ab-9ad0-30d3ab1fa9c1", "displayName": "Resource Policy Evaluator" },
+    { "id": "311877b7-9a2e-4337-81c2-068a250eaa22", "displayName": "Resource Policy Reader" },
     { "id": "2af84b1e-32c8-42b7-82bc-daa82404023b", "displayName": "Restricted Guest User" },
     { "id": "112ca1a2-15ad-4102-995e-45b0bc479a6a", "displayName": "Tenant Creator" },
     { "id": "e0a4caa6-fe82-443f-b92f-d87341d17b2e", "displayName": "Tenant Governance Reader" },
