@@ -147,10 +147,20 @@ above 4, each seed once.
 | 2 | 2026-10-03 | 20 | 2 | 75% | not measured | 85% | 0 | 0 | not measured |
 | 3 | 2026-10-03 | 20 | not recorded | 90% | 94.7% (19) | 95% | 0 | 0 | yes |
 | 4 | 2026-11-16 | 20 | 4 | 85% | 94.4% (18) | 95% | 0 | 0 | yes |
+| 5A | 2026-11-16 | 94 (full pool) | 5 | 93.6% | 95.3% (86) | 96.8% | 1 | 0 | **no** |
+| 5B | 2026-11-16 | 94 (full pool) | 6 | 95.7% | 95.5% (88) | 94.7% | 1 | 0 | **no** |
 
 Rounds 1 to 4 are samples of 20, kept for history. Rounds 1 to 3 matched only the examples table and a
 hand-written exclusion list. Round 4 (`backtests/2026-11-16-seed4.json`) left out every role the rubric
 names, but its classifier saw the catalog without those roles, not the full catalog.
+
+Round 5 is the first full measurement (`backtests/2026-11-16-seed5.json`, `-seed6.json`,
+`-stability-seed5-seed6.json`). Stability passed: 97.9% same level and 97.9% same plane between the two
+passes, no contradiction between two confident verdicts. Both passes failed `passedAutoEligible` on one
+role: Service Support Administrator, Data/Enterprise at medium confidence in both passes against
+Management/Specialized in the catalog. Its actions are only support tickets, service health and reads,
+and the rubric lists "support actions" as a Data signal, so the routine followed the rubric: the rubric
+and the catalog contradict each other on this role. The pin did not move on round 5.
 
 ### Before go-live (done)
 
