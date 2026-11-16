@@ -226,6 +226,107 @@ Describe 'Export-ResourceActions' {
     }
 }
 
+Describe 'Live (default) Graph path of the export scripts' {
+    BeforeAll {
+        # A fake repo layout: the real scripts, the real endpoints, and a fake helpers.ps1 that
+        # replaces only the Graph access. No -Definitions / -FetchSelect / -Fetch is passed, so the
+        # scripts take the same path as in the workflow.
+        $script:fakeRepo = Join-Path $TestDrive 'repo'
+        New-Item -ItemType Directory -Force -Path (Join-Path $script:fakeRepo 'catalog-automation'), (Join-Path $script:fakeRepo 'src') | Out-Null
+        foreach ($s in 'Export-RoleDefinitions.ps1', 'Export-ResourceActions.ps1') {
+            Copy-Item (Join-Path $script:repoRoot "catalog-automation/$s") (Join-Path $script:fakeRepo 'catalog-automation')
+        }
+        Copy-Item (Join-Path $script:repoRoot 'src/graphEndpoints.ps1') (Join-Path $script:fakeRepo 'src')
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $script:repoRoot 'src/helpers.ps1'), [ref]$null, [ref]$null)
+        $json = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'ConvertTo-DeterministicJson' }, $false)[0].Extent.Text
+        $fake = @'
+
+function Get-GraphAccessTokenString { 'fake' }
+function Get-AllGraphItems {
+    param([string] $Uri, [string] $AccessToken)
+    if ($AccessToken -ne 'fake') { throw "unexpected token '$AccessToken'" }
+    if ($Uri -like '*resourceActions*') {
+        if ($env:PIMFAKE_FAIL_ACTIONS) { throw 'fake actions failure' }
+        return @(
+            [pscustomobject]@{ name = 'microsoft.directory/users/basic/update'; description = 'Update users'; isPrivileged = $false }
+            [pscustomobject]@{ name = 'microsoft.directory/users/password/update'; description = 'Reset passwords'; isPrivileged = $true }
+        )
+    }
+    if ($Uri -like '*$select=*') {
+        if ($env:PIMFAKE_FAIL_SELECT) { throw 'fake select failure' }
+        return @(1..120 | ForEach-Object { [pscustomobject]@{ id = ('{0:x8}-0000-0000-0000-000000000000' -f $_); allowedPrincipalTypes = 'user,servicePrincipal' } })
+    }
+    if ($env:PIMFAKE_FAIL_LIST) { throw 'fake list failure' }
+    return @(1..120 | ForEach-Object {
+            [pscustomobject]@{
+                id = ('{0:x8}-0000-0000-0000-000000000000' -f $_); templateId = ('{0:x8}-0000-0000-0000-000000000000' -f $_)
+                displayName = "Role $_"; description = "Role $_ description"; isBuiltIn = $true; isEnabled = $true; isPrivileged = $false
+                rolePermissions = @([pscustomobject]@{ allowedResourceActions = @('microsoft.directory/users/basic/update') })
+            }
+        })
+}
+'@
+        Set-Content -Path (Join-Path $script:fakeRepo 'src/helpers.ps1') -Value ($json + $fake)
+        $script:liveExport = Join-Path $script:fakeRepo 'catalog-automation/Export-RoleDefinitions.ps1'
+        $script:liveActions = Join-Path $script:fakeRepo 'catalog-automation/Export-ResourceActions.ps1'
+    }
+    AfterEach {
+        $env:PIMFAKE_FAIL_SELECT = $null; $env:PIMFAKE_FAIL_LIST = $null; $env:PIMFAKE_FAIL_ACTIONS = $null
+    }
+
+    It 'exports with only -OutputPath: the supplementary $select call resolves Get-AllGraphItems' {
+        $out = Join-Path $TestDrive 'live1/role-definitions'
+        & $script:liveExport -OutputPath $out 3>&1 | Out-Null
+        @(Get-ChildItem $out -Filter *.json).Count | Should -Be 120
+        $role = Get-Content -Raw (Join-Path $out '00000001-0000-0000-0000-000000000000.json') | ConvertFrom-Json
+        $role.PSObject.Properties.Name | Should -Contain 'allowedPrincipalTypes'
+        $st = Get-Content -Raw (Join-Path $TestDrive 'live1/export-status.json') | ConvertFrom-Json
+        $st.missingDocumentedProperties | Should -Not -Contain 'allowedPrincipalTypes'
+        $st.supplementaryFetchError | Should -BeNullOrEmpty
+        $st.PSObject.Properties.Name | Should -Contain 'supplementaryFetchError'
+    }
+
+    It 'still writes the snapshot when the supplementary call fails, and records the error' {
+        $env:PIMFAKE_FAIL_SELECT = '1'
+        $out = Join-Path $TestDrive 'live2/role-definitions'
+        { & $script:liveExport -OutputPath $out 3>$null } | Should -Not -Throw
+        @(Get-ChildItem $out -Filter *.json).Count | Should -Be 120
+        $st = Get-Content -Raw (Join-Path $TestDrive 'live2/export-status.json') | ConvertFrom-Json
+        $st.supplementaryFetchError | Should -BeLike '*fake select failure*'
+        $st.missingDocumentedProperties | Should -Contain 'allowedPrincipalTypes'
+    }
+
+    It 'a lost non-core property (present before, missing now) is written and recorded, not fatal' {
+        $out = Join-Path $TestDrive 'live2b/role-definitions'
+        & $script:liveExport -OutputPath $out 3>$null | Out-Null
+        $env:PIMFAKE_FAIL_SELECT = '1'
+        { & $script:liveExport -OutputPath $out 3>$null } | Should -Not -Throw
+        $st = Get-Content -Raw (Join-Path $TestDrive 'live2b/export-status.json') | ConvertFrom-Json
+        $st.lostProperties | Should -Contain 'allowedPrincipalTypes'
+        $st.supplementaryFetchError | Should -BeLike '*fake select failure*'
+        @(Get-ChildItem $out -Filter *.json).Count | Should -Be 120
+    }
+
+    It 'a failure of the main list call still throws and writes nothing' {
+        $env:PIMFAKE_FAIL_LIST = '1'
+        $out = Join-Path $TestDrive 'live3/role-definitions'
+        { & $script:liveExport -OutputPath $out } | Should -Throw '*fake list failure*'
+        Test-Path $out | Should -BeFalse
+        Test-Path (Join-Path $TestDrive 'live3/export-status.json') | Should -BeFalse
+    }
+
+    It 'Export-ResourceActions with only -RoleDefinitionsDir and -OutputPath uses Get-AllGraphItems' {
+        $roles = Join-Path $TestDrive 'live4/role-definitions'
+        & $script:liveExport -OutputPath $roles 3>$null | Out-Null
+        $out = Join-Path $TestDrive 'live4/resource-actions'
+        & $script:liveActions -RoleDefinitionsDir $roles -OutputPath $out | Out-Null
+        Test-Path (Join-Path $out 'microsoft.directory.json') | Should -BeTrue
+        $idx = Get-Content -Raw (Join-Path $out 'index.json') | ConvertFrom-Json
+        $idx.namespaces.'microsoft.directory'.status | Should -Be 'ok'
+        $idx.namespaces.'microsoft.directory'.actions | Should -Be 2
+    }
+}
+
 Describe 'Compare-RoleSnapshots' {
     BeforeAll {
         $script:catalogPath = Join-Path $TestDrive 'catalog.json'
