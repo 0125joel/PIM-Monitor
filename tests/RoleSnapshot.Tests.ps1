@@ -402,7 +402,7 @@ Describe 'Invoke-CatalogBacktest' {
         # Anchor in prose, one name broken over two lines, one only in the table; none of them may be sampled.
         @(
             'Anchor on SharePoint Administrator and Azure DevOps'
-            'Administrator. Exchange Recipient Administrator stays Specialized.'
+            'Administrator. Exchange Recipient Administrator stays Specialized. Cloud App Security Administrator too.'
             ''
             '| Role | Plane | Level | Why |'
             '| Reports Reader | Data | Enterprise | example |'
@@ -410,11 +410,12 @@ Describe 'Invoke-CatalogBacktest' {
         $o = Join-Path $TestDrive 'bt-prose'
         & $script:backtest -Mode Prepare -CatalogPath $script:realCatalog -SnapshotDir $script:btSnap -OutDir $o -Count 200 -RubricPath $rubric | Out-Null
         $names = @(Get-Content -Raw (Join-Path $o 'answer-key.json') | ConvertFrom-Json).displayName
-        foreach ($named in 'SharePoint Administrator', 'Azure DevOps Administrator', 'Exchange Recipient Administrator', 'Reports Reader') {
+        foreach ($named in 'SharePoint Administrator', 'Azure DevOps Administrator', 'Exchange Recipient Administrator', 'Cloud App Security Administrator', 'Reports Reader') {
             $names | Should -Not -Contain $named
         }
         $names | Should -Contain 'Exchange Administrator' -Because 'a name that is only part of a longer named role is not named itself'
-        $names.Count | Should -Be (@((Get-Content -Raw $script:realCatalog | ConvertFrom-Json).roles).Count - 4)
+        $names | Should -Contain 'Security Administrator' -Because 'the tail of a longer named role is not named itself'
+        $names.Count | Should -Be (@((Get-Content -Raw $script:realCatalog | ConvertFrom-Json).roles).Count - 5)
     }
 
     It 'scores the roles the routine would auto-label separately from low-confidence verdicts' {

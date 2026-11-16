@@ -101,10 +101,17 @@ if ($Mode -eq 'Prepare') {
         # Leave out every role the rubric names anywhere: the worked-examples table, and the prose
         # (anchors, tie-breakers). Whitespace is collapsed first, so a name broken over two lines
         # still counts. A role the routine has been told about cannot measure anything.
+        # Longest names first, and each match is blanked out of the text, so "Security Administrator"
+        # does not count as named just because "Cloud App Security Administrator" is.
         $text = (Get-Content -Raw -Path $RubricPath) -replace '\s+', ' '
-        $known = @($roles | Where-Object {
-                $text -cmatch ('(?<![A-Za-z0-9])' + ([regex]::Escape($_.displayName) -replace '\\ ', ' ') + '(?![A-Za-z0-9])')
-            } | ForEach-Object displayName)
+        $known = foreach ($name in @($catalog.roles.displayName | Sort-Object { $_.Length } -Descending)) {
+            $pattern = '(?<![A-Za-z0-9])' + ([regex]::Escape($name) -replace '\\ ', ' ') + '(?![A-Za-z0-9])'
+            if ($text -cmatch $pattern) {
+                $text = [regex]::Replace($text, $pattern, '#')
+                if ($name -in $roles.displayName) { $name }
+            }
+        }
+        $known = @($known)
         $known | ForEach-Object { $excluded.Add($_) }
         $before = $roles.Count
         $roles = @($roles | Where-Object { $_.displayName -notin $known })
