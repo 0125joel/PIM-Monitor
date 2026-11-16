@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "catalogVersion": "2026-11-16.3",
-  "publishedAt": "2026-11-16T05:49:48Z",
+  "catalogVersion": "2026-11-16.4",
+  "publishedAt": "2026-11-16T06:05:33Z",
   "source": {
     "repository": "https://github.com/0125joel/PIM-Monitor",
     "path": "docs-site/src/data/eam-role-catalog.json"
@@ -1792,16 +1792,17 @@
     {
       "templateId": "8835291a-918c-4fd7-a9ce-faa49f0cf7d9",
       "displayName": "Search Editor",
-      "plane": "Data",
-      "securityLevel": "Enterprise",
+      "plane": "Management",
+      "securityLevel": "Specialized",
       "isPrivileged": false,
       "expectedConfig": {
-        "maxActivationDuration": "PT8H",
+        "maxActivationDuration": "PT4H",
         "requireMFA": true,
+        "authContext": "phish-resistant-no-sif",
         "requireJustification": true,
-        "requireApproval": false
+        "requireApproval": true
       },
-      "note": null,
+      "note": "office365.search/content/manage authors bookmarks and Q&As every user sees in search; authoring workload content is Specialized (maintainer decision 2026-11-16).",
       "reviewNeeded": false
     },
     {
@@ -1855,17 +1856,16 @@
     {
       "templateId": "f023fd81-a637-4b56-95fd-791ac0226033",
       "displayName": "Service Support Administrator",
-      "plane": "Management",
-      "securityLevel": "Specialized",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
       "isPrivileged": false,
       "expectedConfig": {
-        "maxActivationDuration": "PT4H",
+        "maxActivationDuration": "PT8H",
         "requireMFA": true,
-        "authContext": "phish-resistant-no-sif",
         "requireJustification": true,
-        "requireApproval": true
+        "requireApproval": false
       },
-      "note": null,
+      "note": "Only supportTickets and serviceHealth tasks plus reads: support actions, no service configuration. Data and Enterprise (maintainer decision 2026-11-16).",
       "reviewNeeded": false
     },
     {

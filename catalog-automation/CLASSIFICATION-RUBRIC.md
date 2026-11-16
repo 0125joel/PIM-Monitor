@@ -33,7 +33,9 @@ and related):
   `onPremisesSynchronization/*`
 - access-shaping configuration: `customSecurityAttributeDefinitions/*`, `microsoft.permissionsManagement/*`,
   `microsoft.agentRegistry/*`, `microsoft.commerce.tenantRelationships/customerDelegatedAdminPrivileges/*`,
-  `resourcePolicy/*` (resource access policies: their definitions, assignments and tenant configuration)
+  `resourcePolicy/*` (resource access policies: their definitions, assignments and tenant configuration),
+  `cloudAppSecurity/*` (Defender for Cloud Apps sets session and access policies on cloud apps, so it
+  controls access even though it is a security product)
 
 Test: a compromise changes who can access what across the tenant, or reveals the security
 architecture. Readers of identity and security configuration stay Control (Global Reader, Security
@@ -52,10 +54,13 @@ and the actions are configuration, not full business data. A workload namespace 
 Management even when its name sounds tenant-wide.
 
 **Data: the actions mostly read or serve business data, telemetry or end-user support.** Signals:
-`microsoft.office365.usageReports/*`, `microsoft.office365.messageCenter/*`, support actions,
-`.../standard/read`, printer technician and device-user actions (read and join, not write), backup
-readers. A role whose actions are only reads of reports or the message center is Data even when its
-name is managerial. The same holds for a role whose actions are only `/read` on a workload namespace
+`microsoft.office365.usageReports/*`, `microsoft.office365.messageCenter/*`, support actions
+(`supportTickets/*` and `serviceHealth/*`: opening Microsoft support cases and following service
+health), `.../standard/read`, printer technician and device-user actions (read and join, not write),
+backup readers. A role whose actions are only reads of reports or the message center is Data even when
+its name is managerial, and so is a role whose actions are only support actions and reads. Support
+actions next to workload actions do not make a role Data: almost every workload administrator has them,
+and the workload actions decide. The same holds for a role whose actions are only `/read` on a workload namespace
 (Teams Reader, Usage Summary Reports Reader, Global Secure Access Log Reader): Data, Enterprise. Two
 exceptions: reads of directory or identity configuration stay Control (Directory Readers), and device
 roles stay Management (Teams Devices Administrator).
@@ -85,7 +90,10 @@ After the isPrivileged floor:
   configuration is Specialized, not Enterprise.
 - **Enterprise**: read-only, end-user, default, or low-impact actions. Enterprise is not the default
   for an admin role: a role that writes something that shapes identity or access is at least
-  Specialized.
+  Specialized. Writing only how the sign-in page looks (`loginOrganizationBranding/*`: logo, texts,
+  background) is cosmetic: it changes no authentication method or policy, so it is Control by function
+  and Enterprise by level. Authoring content that every user sees inside a workload (search answers,
+  organizational messages) is Specialized.
 
 ## Privileged comes from two places only
 
@@ -149,6 +157,10 @@ Privileged. Do not assign Privileged to an unflagged role on the strength of its
 | Resource Policy Administrator | Control | Specialized | Creates, updates and deletes `resourcePolicy` definitions, assignments and configuration; access-shaping write is Specialized |
 | Resource Policy Reader | Control | Enterprise | Only reads and evaluates `resourcePolicy`; a reader of access configuration stays Control, read-only lowers the level |
 | Resource Policy Evaluator | Control | Enterprise | Only `resourcePolicy/evaluatePolicy`; evaluating access policy is Control by function, not Data |
+| Service Support Administrator | Data | Enterprise | Only `supportTickets` and `serviceHealth` tasks plus reads; support actions alone are Data |
+| Search Editor | Management | Specialized | `office365.search/content/manage` authors bookmarks and Q&As every user sees; authoring workload content is Specialized |
+| Organizational Branding Administrator | Control | Enterprise | Only `loginOrganizationBranding`; the look of the sign-in page is cosmetic, not access-shaping |
+| Cloud App Security Administrator | Control | Specialized | `cloudAppSecurity` sets session and access policies on cloud apps; access control, not a bounded workload |
 
 ## Output per role
 
