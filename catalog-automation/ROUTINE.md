@@ -149,6 +149,8 @@ above 4, each seed once.
 | 4 | 2026-11-16 | 20 | 4 | 85% | 94.4% (18) | 95% | 0 | 0 | yes |
 | 5A | 2026-11-16 | 94 (full pool) | 5 | 93.6% | 95.3% (86) | 96.8% | 1 | 0 | **no** |
 | 5B | 2026-11-16 | 94 (full pool) | 6 | 95.7% | 95.5% (88) | 94.7% | 1 | 0 | **no** |
+| 6A | 2026-11-16 | 90 (full pool) | 7 | 95.6% | 97.6% (83) | 97.8% | 1 | 0 | **no** |
+| 6B | 2026-11-16 | 90 (full pool) | 8 | 95.6% | 95.2% (84) | 97.8% | 1 | 0 | **no** |
 
 Rounds 1 to 4 are samples of 20, kept for history. Rounds 1 to 3 matched only the examples table and a
 hand-written exclusion list. Round 4 (`backtests/2026-11-16-seed4.json`) left out every role the rubric
@@ -161,6 +163,16 @@ role: Service Support Administrator, Data/Enterprise at medium confidence in bot
 Management/Specialized in the catalog. Its actions are only support tickets, service health and reads,
 and the rubric lists "support actions" as a Data signal, so the routine followed the rubric: the rubric
 and the catalog contradict each other on this role. The pin did not move on round 5.
+
+Round 6 measured the rubric with the four decisions from round 5 (`backtests/2026-11-16-seed7.json`,
+`-seed8.json`, `-stability-seed7-seed8.json`). Stability was perfect: both passes gave every role the
+same plane and level. Both passes failed `passedAutoEligible` on Kaizala Administrator: Data/Enterprise
+at medium confidence against Management/Specialized in the catalog. Its actions are the same kind as
+those of Service Support Administrator (support tickets, service health and reads; no Kaizala action
+is exposed), so the new rule "only support actions and reads is Data" caught it. In round 5 it was
+correct. The round 5 decision caused the round 6 miss. Compliance Data Administrator moved to Control
+in both passes because of the new `cloudAppSecurity` signal; the level, and so the policy, is the same.
+The pin did not move on round 6.
 
 ### Before go-live (done)
 
