@@ -280,7 +280,7 @@ Describe 'Invoke-CatalogBacktest' {
         $in | Should -Not -Match '"plane"'
         $key = @(Get-Content -Raw (Join-Path $script:btOut 'answer-key.json') | ConvertFrom-Json)
         $reduced = Get-Content -Raw (Join-Path $script:btOut 'catalog-without-sample.json') | ConvertFrom-Json
-        $reduced.roles.Count | Should -Be (145 - 20)
+        $reduced.roles.Count | Should -Be (@((Get-Content -Raw $script:realCatalog | ConvertFrom-Json).roles).Count - 20)
         @($reduced.roles.templateId | Where-Object { $_ -in $key.templateId }).Count | Should -Be 0
     }
 

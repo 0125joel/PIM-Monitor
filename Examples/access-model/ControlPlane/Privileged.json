@@ -34,6 +34,7 @@
     { "id": "194ae4cb-b126-40b2-bd5b-6091b380977d", "displayName": "Security Administrator" },
     { "id": "5f2222b1-57c3-48ba-8ad5-d4759f1fde6f", "displayName": "Security Operator" },
     { "id": "5d6b6bb7-de71-4623-b4af-96380a352509", "displayName": "Security Reader" },
+    { "id": "1981f584-96e9-4a6f-95b0-f522373f8fae", "displayName": "Tenant Governance Administrator" },
     { "id": "fe930be7-5e62-47db-91af-98c3a49a38b1", "displayName": "User Administrator" }
   ],
   "expectedConfig": {
