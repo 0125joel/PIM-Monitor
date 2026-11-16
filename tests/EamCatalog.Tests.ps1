@@ -62,6 +62,52 @@ Describe 'EAM role catalog source' {
         $roleWithoutMfa = @($script:roles | Where-Object { -not $_.expectedConfig.requireMFA -and $_.expectedConfig.PSObject.Properties.Name -contains 'authContext' })
         $roleWithoutMfa | Should -BeNullOrEmpty
     }
+
+    It 'puts every isPrivileged role at Privileged (the floor)' {
+        $below = @($script:roles | Where-Object { $_.isPrivileged -and $_.securityLevel -ne 'Privileged' } | ForEach-Object displayName)
+        $below | Should -BeNullOrEmpty
+    }
+
+    It 'gives every role the policy of its level default' {
+        $defaults = Get-Content -Raw -Path (Join-Path $script:repoRoot 'docs-site/src/data/eam-catalog-defaults.json') | ConvertFrom-Json
+        $off = foreach ($r in $script:roles) {
+            $d = $defaults.levels | Where-Object { $_.plane -eq $r.plane -and $_.securityLevel -eq $r.securityLevel } | Select-Object -First 1
+            foreach ($f in 'maxActivationDuration', 'requireMFA', 'authContext', 'requireJustification', 'requireApproval') {
+                if ("$($d.expectedConfig.PSObject.Properties[$f]?.Value)" -ne "$($r.expectedConfig.PSObject.Properties[$f]?.Value)") { "$($r.displayName).$f" }
+            }
+        }
+        @($off) | Should -BeNullOrEmpty
+    }
+
+    It 'keeps every unreviewed (heuristic) role flagged reviewNeeded' {
+        $silent = @($script:roles | Where-Object { $_.sourceAuthority.plane -eq 'heuristic' -and -not $_.reviewNeeded } | ForEach-Object displayName)
+        $silent | Should -BeNullOrEmpty
+    }
+}
+
+Describe 'Classification rubric' {
+    BeforeAll {
+        $script:rubricRoles = @((Get-Content -Raw -Path $script:catalogPath | ConvertFrom-Json).roles)
+        $script:examples = @(Select-String -Path (Join-Path $script:repoRoot 'catalog-automation/CLASSIFICATION-RUBRIC.md') -Pattern '^\| (.+?) \| (Control|Management|Data) \| (Privileged|Specialized|Enterprise) \|' |
+            ForEach-Object { [pscustomobject]@{ name = $_.Matches[0].Groups[1].Value; plane = $_.Matches[0].Groups[2].Value; level = $_.Matches[0].Groups[3].Value } })
+    }
+
+    It 'has worked examples' {
+        $script:examples.Count | Should -BeGreaterThan 0
+    }
+
+    It 'names only roles that exist in the catalog in its examples table' {
+        $unknown = @($script:examples | Where-Object { $_.name -cnotin $script:rubricRoles.displayName } | ForEach-Object name)
+        $unknown | Should -BeNullOrEmpty
+    }
+
+    It 'teaches the same plane and level as the catalog in every worked example' {
+        $wrong = foreach ($e in $script:examples) {
+            $r = $script:rubricRoles | Where-Object displayName -ceq $e.name | Select-Object -First 1
+            if ($r -and ($r.plane -ne $e.plane -or $r.securityLevel -ne $e.level)) { "$($e.name): rubric $($e.plane)/$($e.level), catalog $($r.plane)/$($r.securityLevel)" }
+        }
+        @($wrong) | Should -BeNullOrEmpty
+    }
 }
 
 Describe 'Published catalog file' {

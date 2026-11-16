@@ -11,6 +11,7 @@
     { "id": "0526716b-113d-4c15-b2c8-68e3c22b9f80", "displayName": "Authentication Policy Administrator" },
     { "id": "3edaf663-341e-4475-9f94-5c398ef6c070", "displayName": "B2C IEF Policy Administrator" },
     { "id": "892c5842-a9a6-463a-8041-72aa08ca3cf6", "displayName": "Cloud App Security Administrator" },
+    { "id": "e6d1a23a-da11-4be4-9570-befc86d067a7", "displayName": "Compliance Data Administrator" },
     { "id": "fc8ad4e2-40e4-4724-8317-bcda7503ecbf", "displayName": "Customer Delegated Admin Relationship Administrator" },
     { "id": "d29b2b05-8046-44ba-8758-1e26182fcf32", "displayName": "Directory Synchronization Accounts" },
     { "id": "dd13091a-6207-4fc0-82ba-3641e056ab95", "displayName": "Extended Directory User Administrator" },

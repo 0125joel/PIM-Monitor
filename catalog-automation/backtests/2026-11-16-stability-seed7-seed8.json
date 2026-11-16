@@ -1,0 +1,11 @@
+{
+  "stability": {
+    "roles": 90,
+    "planeAgreement": 1.0,
+    "levelAgreement": 1.0,
+    "disagreements": [],
+    "confidentLevelContradictions": [],
+    "missing": [],
+    "passed": true
+  }
+}

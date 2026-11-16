@@ -32,12 +32,17 @@ and related):
   `identityProviders/*`, `b2cUserFlows/*`, `b2cUserAttribute/*`, `externalUserProfiles/*`,
   `onPremisesSynchronization/*`
 - access-shaping configuration: `customSecurityAttributeDefinitions/*`, `microsoft.permissionsManagement/*`,
-  `microsoft.agentRegistry/*`, `microsoft.commerce.tenantRelationships/customerDelegatedAdminPrivileges/*`
+  `microsoft.agentRegistry/*`, `microsoft.commerce.tenantRelationships/customerDelegatedAdminPrivileges/*`,
+  `resourcePolicy/*` (resource access policies: their definitions, assignments and tenant configuration),
+  `cloudAppSecurity/*` (Defender for Cloud Apps sets session and access policies on cloud apps, so it
+  controls access even though it is a security product)
 
 Test: a compromise changes who can access what across the tenant, or reveals the security
 architecture. Readers of identity and security configuration stay Control (Global Reader, Security
-Reader). Default and pathway roles (User, Guest User, Guest Inviter, Directory Readers) are Control by
-function and Enterprise by level.
+Reader). A role that only evaluates access policies (`resourcePolicy/evaluatePolicy`) stays Control as
+well: it works on access configuration, not on business data, so it is not Data. Default and pathway
+roles (User, Guest User, Guest Inviter, Directory Readers) are Control by function and Enterprise by
+level.
 
 **Management: the actions administer one workload or the hosting infrastructure, bounded to a
 service.** Signals: `microsoft.office365.exchange/*`, `microsoft.office365.sharepoint/*`,
@@ -49,10 +54,13 @@ and the actions are configuration, not full business data. A workload namespace 
 Management even when its name sounds tenant-wide.
 
 **Data: the actions mostly read or serve business data, telemetry or end-user support.** Signals:
-`microsoft.office365.usageReports/*`, `microsoft.office365.messageCenter/*`, support actions,
-`.../standard/read`, printer technician and device-user actions (read and join, not write), backup
-readers. A role whose actions are only reads of reports or the message center is Data even when its
-name is managerial. The same holds for a role whose actions are only `/read` on a workload namespace
+`microsoft.office365.usageReports/*`, `microsoft.office365.messageCenter/*`, support actions
+(`supportTickets/*` and `serviceHealth/*`: opening Microsoft support cases and following service
+health), `.../standard/read`, printer technician and device-user actions (read and join, not write),
+backup readers. A role whose actions are only reads of reports or the message center is Data even when
+its name is managerial, and so is a role whose actions are only support actions and reads. Support
+actions next to workload actions do not make a role Data: almost every workload administrator has them,
+and the workload actions decide. The same holds for a role whose actions are only `/read` on a workload namespace
 (Teams Reader, Usage Summary Reports Reader, Global Secure Access Log Reader): Data, Enterprise. Two
 exceptions: reads of directory or identity configuration stay Control (Directory Readers), and device
 roles stay Management (Teams Devices Administrator).
@@ -68,9 +76,10 @@ After the isPrivileged floor:
   The action strings alone do not show it. `<workload>/allEntities/allTasks` appears on 48 roles that
   are not escalated (Places, Printer, Billing and many more), so a pattern cannot decide it. A backtest
   confirmed that a model reading only the actions misses it. Anchor on the roles that are escalated
-  today: the full administrators of the big content workloads. Exchange, SharePoint, Teams, Yammer
-  (Viva Engage), Power Platform, Dynamics 365, Fabric, Azure DevOps and Windows 365 Administrator, plus
-  Knowledge Administrator and Knowledge Manager. A new role that is the full administrator of a
+  today: the full administrators of the big content workloads. Exchange Administrator, SharePoint
+  Administrator, Teams Administrator, Yammer Administrator (Viva Engage), Power Platform Administrator,
+  Dynamics 365 Administrator, Fabric Administrator, Azure DevOps Administrator and Windows 365
+  Administrator, plus Knowledge Administrator and Knowledge Manager. A new role that is the full administrator of a
   workload that holds mail, files, chat, social content, source code or business-application data
   belongs in that group: classify it Privileged and set `confidence` to medium. Scoped sub-roles of the
   same workload (Exchange Recipient Administrator, SharePoint Backup Administrator, Dynamics 365
@@ -81,12 +90,15 @@ After the isPrivileged floor:
   configuration is Specialized, not Enterprise.
 - **Enterprise**: read-only, end-user, default, or low-impact actions. Enterprise is not the default
   for an admin role: a role that writes something that shapes identity or access is at least
-  Specialized.
+  Specialized. Writing only how the sign-in page looks (`loginOrganizationBranding/*`: logo, texts,
+  background) is cosmetic: it changes no authentication method or policy, so it is Control by function
+  and Enterprise by level. Authoring content that every user sees inside a workload (search answers,
+  organizational messages) is Specialized.
 
 ## Privileged comes from two places only
 
-In the catalog, Privileged is reached in exactly two ways: Microsoft's `isPrivileged` flag (34 roles)
-or the workload escalation above (11 roles). No role that Microsoft does not flag is Privileged because
+In the catalog, Privileged is reached in exactly two ways: Microsoft's `isPrivileged` flag or the
+workload escalation above. No role that Microsoft does not flag is Privileged because
 of its identity control. Tenant-wide identity or security control that Microsoft does not flag is
 Specialized: Authentication Policy Administrator writes tenant-wide authentication settings and has as
 many actions as Authentication Administrator, but only the latter is flagged, so only the latter is
@@ -112,7 +124,7 @@ Privileged. Do not assign Privileged to an unflagged role on the strength of its
 8. A role with no `allowedResourceActions` (deprecated or not yet exposed) cannot be read from its
    actions. Classify it by function and set `confidence` to low: device-join and device-user roles
    and readers are Data and Enterprise; administrator and writer roles of a workload are Management
-   and Specialized (Purview Workload Content Administrator and Writer).
+   and Specialized (Purview Workload Content Administrator, Purview Workload Content Writer).
 
 ## Worked examples
 
@@ -142,6 +154,15 @@ Privileged. Do not assign Privileged to an unflagged role on the strength of its
 | Tenant Governance Relationship Administrator | Control | Specialized | Writes tenantGovernance relationships and policy templates; access-shaping write is Specialized |
 | AI Administrator | Control | Privileged | isPrivileged; writes agent identities and permission grants, so Control like Agent ID Administrator |
 | Attribute Definition Administrator | Control | Specialized | Writes `customSecurityAttributeDefinitions`; access-shaping write is Specialized |
+| Resource Policy Administrator | Control | Specialized | Creates, updates and deletes `resourcePolicy` definitions, assignments and configuration; access-shaping write is Specialized |
+| Resource Policy Reader | Control | Enterprise | Only reads and evaluates `resourcePolicy`; a reader of access configuration stays Control, read-only lowers the level |
+| Resource Policy Evaluator | Control | Enterprise | Only `resourcePolicy/evaluatePolicy`; evaluating access policy is Control by function, not Data |
+| Service Support Administrator | Data | Enterprise | Only `supportTickets` and `serviceHealth` tasks plus reads; support actions alone are Data |
+| Search Editor | Management | Specialized | `office365.search/content/manage` authors bookmarks and Q&As every user sees; authoring workload content is Specialized |
+| Organizational Branding Administrator | Control | Enterprise | Only `loginOrganizationBranding`; the look of the sign-in page is cosmetic, not access-shaping |
+| Cloud App Security Administrator | Control | Specialized | `cloudAppSecurity` sets session and access policies on cloud apps; access control, not a bounded workload |
+| Kaizala Administrator | Data | Enterprise | Only `supportTickets` and `serviceHealth` tasks plus reads; no Kaizala action is exposed, so the actions decide, not the name |
+| Compliance Data Administrator | Control | Specialized | `cloudAppSecurity` next to `informationProtection` and `complianceManager`; security actions outrank workload actions (tie-breaker 1) |
 
 ## Output per role
 
@@ -158,5 +179,9 @@ The routine records one verdict per role, in the pull request description:
 }
 ```
 
-A role with `confidence: low` is written to the pull request description as a question and keeps
-`reviewNeeded: true`. Auto-merge never applies to it (see ROUTINE.md).
+A role with `confidence: low` is written to the pull request description as a question. Auto-merge
+never applies to it (see ROUTINE.md).
+
+Every new role, whatever its confidence, lands with `reviewNeeded: true` and
+`sourceAuthority.plane: "heuristic"` (shown as "unreviewed"). Only a person clears that, by confirming
+the verdict: see "After the pull request" in ROUTINE.md. The routine never clears it.

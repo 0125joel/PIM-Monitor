@@ -333,6 +333,91 @@ Describe 'Invoke-CatalogBacktest' {
         $names.Count | Should -Be 40
     }
 
+    It 'cuts the whole pool into disjoint folds that together cover it once' {
+        $all = @(Get-Content -Raw $script:realCatalog | ConvertFrom-Json).roles
+        $seen = foreach ($f in 1..5) {
+            $o = Join-Path $TestDrive "bt-fold$f"
+            & $script:backtest -Mode Prepare -CatalogPath $script:realCatalog -SnapshotDir $script:btSnap -OutDir $o -Seed 7 -Folds 5 -Fold $f | Out-Null
+            $ids = @(Get-Content -Raw (Join-Path $o 'answer-key.json') | ConvertFrom-Json).templateId
+            # The classifier sees the full catalog minus its own fold, as the routine does in production.
+            $ctx = (Get-Content -Raw (Join-Path $o 'catalog-without-sample.json') | ConvertFrom-Json).roles
+            $ctx.Count | Should -Be ($all.Count - $ids.Count)
+            @($ctx.templateId | Where-Object { $_ -in $ids }).Count | Should -Be 0
+            [math]::Abs($ids.Count - ($all.Count / 5)) | Should -BeLessThan 1
+            $ids
+        }
+        @($seen).Count | Should -Be $all.Count
+        @($seen | Sort-Object -Unique).Count | Should -Be $all.Count
+    }
+
+    It 'writes meta.json with seed, fold and the hashes of what it measured' {
+        $o = Join-Path $TestDrive 'bt-fold1'
+        $m = Get-Content -Raw (Join-Path $o 'meta.json') | ConvertFrom-Json
+        $m.seed | Should -Be 7
+        $m.folds | Should -Be 5
+        $m.fold | Should -Be 1
+        $m.catalogSha256 | Should -Be ((Get-FileHash -Algorithm SHA256 $script:realCatalog).Hash.ToLowerInvariant())
+        $m.snapshotSha256 | Should -Match '^[0-9a-f]{64}$'
+        @($m.sampleTemplateIds).Count | Should -Be $m.sampleSize
+    }
+
+    It 'rejects a fold outside the range' {
+        { & $script:backtest -Mode Prepare -CatalogPath $script:realCatalog -SnapshotDir $script:btSnap -OutDir (Join-Path $TestDrive 'bt-bad-fold') -Folds 5 -Fold 6 } | Should -Throw '*between 1 and 5*'
+    }
+
+    It 'scores the folds of one pass together and writes a record' {
+        $keys = 1..5 | ForEach-Object { Join-Path $TestDrive "bt-fold$_/answer-key.json" }
+        $metas = 1..5 | ForEach-Object { Join-Path $TestDrive "bt-fold$_/meta.json" }
+        $rec = Join-Path $TestDrive 'bt-record.json'
+        $s = & $script:backtest -Mode Score -ResultsPath $keys -AnswerKeyPath $keys -MetaPath $metas -RecordPath $rec
+        $s.roles | Should -Be @((Get-Content -Raw $script:realCatalog | ConvertFrom-Json).roles).Count
+        $s.levelAgreement | Should -Be 1
+        $r = Get-Content -Raw $rec | ConvertFrom-Json
+        @($r.meta).Count | Should -Be 5
+        $r.score.roles | Should -Be $s.roles
+    }
+
+    It 'refuses to score overlapping answer keys as one pass' {
+        $k = Join-Path $TestDrive 'bt-fold1/answer-key.json'
+        { & $script:backtest -Mode Score -ResultsPath $k -AnswerKeyPath $k, $k } | Should -Throw '*overlap*'
+    }
+
+    It 'measures whether two passes give the same answer' {
+        $key = @(Get-Content -Raw (Join-Path $script:btOut 'answer-key.json') | ConvertFrom-Json)
+        $p1 = Join-Path $TestDrive 'stab-1.json'; $p2 = Join-Path $TestDrive 'stab-2.json'
+        $key | ForEach-Object { $_ | Add-Member confidence 'high' -Force; $_ } | ConvertTo-Json -Depth 5 | Set-Content $p1
+        $flip = $key | Where-Object { -not $_.isPrivileged } | Select-Object -First 1
+        $key | ForEach-Object { $c = $_ | ConvertTo-Json | ConvertFrom-Json; if ($c.templateId -eq $flip.templateId) { $c.securityLevel = if ($c.securityLevel -eq 'Privileged') { 'Enterprise' } else { 'Privileged' } }; $c } | ConvertTo-Json -Depth 5 | Set-Content $p2
+        $same = & $script:backtest -Mode Stability -ResultsPath $p1 -SecondResultsPath $p1
+        $same.levelAgreement | Should -Be 1
+        $same.passed | Should -BeTrue
+        $s = & $script:backtest -Mode Stability -ResultsPath $p1 -SecondResultsPath $p2 -MinLevelAgreement 0.99
+        $s.levelAgreement | Should -Be ([Math]::Round(($key.Count - 1) / $key.Count, 3))
+        $s.confidentLevelContradictions | Should -Contain $flip.templateId
+        $s.passed | Should -BeFalse
+    }
+
+    It 'leaves out every role the rubric names in prose, also across a line break' {
+        $rubric = Join-Path $TestDrive 'mini-rubric.md'
+        # Anchor in prose, one name broken over two lines, one only in the table; none of them may be sampled.
+        @(
+            'Anchor on SharePoint Administrator and Azure DevOps'
+            'Administrator. Exchange Recipient Administrator stays Specialized. Cloud App Security Administrator too.'
+            ''
+            '| Role | Plane | Level | Why |'
+            '| Reports Reader | Data | Enterprise | example |'
+        ) | Set-Content $rubric
+        $o = Join-Path $TestDrive 'bt-prose'
+        & $script:backtest -Mode Prepare -CatalogPath $script:realCatalog -SnapshotDir $script:btSnap -OutDir $o -Count 200 -RubricPath $rubric | Out-Null
+        $names = @(Get-Content -Raw (Join-Path $o 'answer-key.json') | ConvertFrom-Json).displayName
+        foreach ($named in 'SharePoint Administrator', 'Azure DevOps Administrator', 'Exchange Recipient Administrator', 'Cloud App Security Administrator', 'Reports Reader') {
+            $names | Should -Not -Contain $named
+        }
+        $names | Should -Contain 'Exchange Administrator' -Because 'a name that is only part of a longer named role is not named itself'
+        $names | Should -Contain 'Security Administrator' -Because 'the tail of a longer named role is not named itself'
+        $names.Count | Should -Be (@((Get-Content -Raw $script:realCatalog | ConvertFrom-Json).roles).Count - 5)
+    }
+
     It 'scores the roles the routine would auto-label separately from low-confidence verdicts' {
         $key = @(Get-Content -Raw (Join-Path $script:btOut 'answer-key.json') | ConvertFrom-Json)
         $res = Join-Path $TestDrive 'bt-conf.json'

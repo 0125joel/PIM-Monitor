@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "catalogVersion": "2026-11-16.2",
-  "publishedAt": "2026-11-16T13:00:00Z",
+  "catalogVersion": "2026-11-16.5",
+  "publishedAt": "2026-11-16T06:13:31Z",
   "source": {
     "repository": "https://github.com/0125joel/PIM-Monitor",
     "path": "docs-site/src/data/eam-role-catalog.json"
@@ -502,7 +502,7 @@
     {
       "templateId": "e6d1a23a-da11-4be4-9570-befc86d067a7",
       "displayName": "Compliance Data Administrator",
-      "plane": "Management",
+      "plane": "Control",
       "securityLevel": "Specialized",
       "isPrivileged": false,
       "expectedConfig": {
@@ -512,7 +512,7 @@
         "requireJustification": true,
         "requireApproval": true
       },
-      "note": null,
+      "note": "cloudAppSecurity allTasks next to informationProtection and complianceManager; security actions outrank workload actions, so Control (maintainer decision 2026-11-16).",
       "reviewNeeded": false
     },
     {
@@ -1179,17 +1179,16 @@
     {
       "templateId": "74ef975b-6605-40af-a5d2-b9539d836353",
       "displayName": "Kaizala Administrator",
-      "plane": "Management",
-      "securityLevel": "Specialized",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
       "isPrivileged": false,
       "expectedConfig": {
-        "maxActivationDuration": "PT4H",
+        "maxActivationDuration": "PT8H",
         "requireMFA": true,
-        "authContext": "phish-resistant-no-sif",
         "requireJustification": true,
-        "requireApproval": true
+        "requireApproval": false
       },
-      "note": null,
+      "note": "Only supportTickets and serviceHealth tasks plus reads; no Kaizala action is exposed, so the actions decide: Data and Enterprise (maintainer decision 2026-11-16).",
       "reviewNeeded": false
     },
     {
@@ -1726,7 +1725,7 @@
         "requireApproval": true
       },
       "note": "Creates, updates and deletes resourcePolicy definitions, assignments and tenant configuration. Access-shaping write without isPrivileged is Specialized.",
-      "reviewNeeded": true
+      "reviewNeeded": false
     },
     {
       "templateId": "1dae4b79-8aea-40ab-9ad0-30d3ab1fa9c1",
@@ -1740,8 +1739,8 @@
         "requireJustification": true,
         "requireApproval": false
       },
-      "note": "Only resourcePolicy/evaluatePolicy, no read or write of definitions. Low impact. Plane confirmed Control by the maintainer on 2026-11-16.",
-      "reviewNeeded": true
+      "note": "Only resourcePolicy/evaluatePolicy, no read or write of definitions. Evaluating access policy is Control by function, not Data; low impact, so Enterprise.",
+      "reviewNeeded": false
     },
     {
       "templateId": "311877b7-9a2e-4337-81c2-068a250eaa22",
@@ -1756,7 +1755,7 @@
         "requireApproval": false
       },
       "note": "Reads resourcePolicy definitions, assignments and configuration and evaluates them. Reader of access-policy configuration stays Control; read-only lowers the level.",
-      "reviewNeeded": true
+      "reviewNeeded": false
     },
     {
       "templateId": "2af84b1e-32c8-42b7-82bc-daa82404023b",
@@ -1792,16 +1791,17 @@
     {
       "templateId": "8835291a-918c-4fd7-a9ce-faa49f0cf7d9",
       "displayName": "Search Editor",
-      "plane": "Data",
-      "securityLevel": "Enterprise",
+      "plane": "Management",
+      "securityLevel": "Specialized",
       "isPrivileged": false,
       "expectedConfig": {
-        "maxActivationDuration": "PT8H",
+        "maxActivationDuration": "PT4H",
         "requireMFA": true,
+        "authContext": "phish-resistant-no-sif",
         "requireJustification": true,
-        "requireApproval": false
+        "requireApproval": true
       },
-      "note": null,
+      "note": "office365.search/content/manage authors bookmarks and Q&As every user sees in search; authoring workload content is Specialized (maintainer decision 2026-11-16).",
       "reviewNeeded": false
     },
     {
@@ -1855,17 +1855,16 @@
     {
       "templateId": "f023fd81-a637-4b56-95fd-791ac0226033",
       "displayName": "Service Support Administrator",
-      "plane": "Management",
-      "securityLevel": "Specialized",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
       "isPrivileged": false,
       "expectedConfig": {
-        "maxActivationDuration": "PT4H",
+        "maxActivationDuration": "PT8H",
         "requireMFA": true,
-        "authContext": "phish-resistant-no-sif",
         "requireJustification": true,
-        "requireApproval": true
+        "requireApproval": false
       },
-      "note": null,
+      "note": "Only supportTickets and serviceHealth tasks plus reads: support actions, no service configuration. Data and Enterprise (maintainer decision 2026-11-16).",
       "reviewNeeded": false
     },
     {

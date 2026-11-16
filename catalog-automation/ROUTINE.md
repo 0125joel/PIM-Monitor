@@ -1,18 +1,26 @@
 # Weekly catalog review routine
 
-Prompt for the scheduled Claude routine (cloud, weekly, Monday 07:00 CEST). It reads the role export
+Prompt for the scheduled Claude routine (cloud, weekly, Monday 05:00 UTC). It reads the role export
 report, classifies new and changed roles with `CLASSIFICATION-RUBRIC.md`, and proposes catalog changes.
 It never pushes to `main` and never merges.
 
 ## Routine configuration (set in the routine, not in this file)
 
 ```
-Follow catalog-automation/ROUTINE.md on the main branch of 0125joel/PIM-Monitor.
-MODE: dry-run
+Follow catalog-automation/ROUTINE.md as it is at commit <sha>
+(read it with: git show <sha>:catalog-automation/ROUTINE.md).
+Repository: 0125joel/PIM-Monitor.
+MODE: pr
 ```
 
-`MODE: dry-run` is the starting point (first two weeks): the routine only comments, it opens no
-pull request. Change the line to `MODE: pr` in the routine settings to go live. Nothing else changes.
+The routine is pinned to a commit, not to `main`. It reads this file and the rubric at that commit
+(step "Inputs"), so a change on `main` has no effect until the pin moves, and a bad change can be rolled
+back by moving the pin back. After every merge that changes this file or `CLASSIFICATION-RUBRIC.md`,
+set `<sha>` to that merge commit in the routine settings. Only a person can do this: the routine was
+created in the settings, and agents cannot edit it.
+
+`MODE: dry-run` only comments and opens no pull request. `MODE: pr` opens pull requests. The routine
+went live in `MODE: pr` on 2026-11-16 (see Go-live).
 
 ## Access it needs
 
@@ -63,9 +71,13 @@ Steps
    when you choose a stricter level out of doubt. A low verdict is never labelled auto. A role with no
    allowedResourceActions is always low.
 7. In your working copy: run docs-site/scripts/Build-EamCatalog.ps1, update roleCount, set
-   lastReviewedSnapshot in eam-review-state.json to report.head.sha, bump catalogVersion and
-   publishedAt in eam-catalog-defaults.json, run the Pester tests. Then run
-   catalog-automation/Test-CatalogChangeIsAutoSafe.ps1 and keep its verdict and reasons.
+   lastReviewedSnapshot in eam-review-state.json to report.head.sha, bump catalogVersion and set
+   publishedAt in eam-catalog-defaults.json to the current UTC time (date -u +%Y-%m-%dT%H:%M:%SZ, never a
+   made-up or future time), run the Pester tests. Make every edit first. Then, as the last step, run
+   catalog-automation/Test-CatalogChangeIsAutoSafe.ps1 with -SnapshotDir set to the role-definitions
+   folder of the entra-role-export branch and -ChangedFiles set to the full list from
+   `git diff --name-only origin/main` of the final working copy. Keep its verdict and reasons. A
+   verdict from a run without -SnapshotDir, or before the last edit, does not count.
 8. MODE: dry-run. Do not push. Comment on the role-changes issue: per role the verdict, the deciding
    actions, and the gate verdict you got in step 7 ("would have opened a PR, gate: merge-now").
    MODE: pr. Push `catalog-auto/<date>`, open a pull request to main titled
@@ -86,25 +98,95 @@ no changes.
 Do not touch any other file. Do not change levels[], groups[] or authContexts[] in the defaults file.
 ```
 
+## After the pull request
+
+Every new role lands with `reviewNeeded: true` and `sourceAuthority.plane: "heuristic"`, shown as
+"unreviewed" on the catalog page. The routine never clears that. A person does, per role, after
+checking the verdict: set `reviewNeeded` to false and `sourceAuthority.plane` to `"curated"`, adjust
+plane or level first if the verdict was wrong, rebuild and open a pull request. Do it in the review
+pull request itself before merging, or in a follow-up. Answer every low-confidence question from the
+pull request description before you clear a role. When a review shows that the rubric missed a
+namespace or a pattern, add it to the rubric with the role as a worked example, then run the full
+measurement (Go-live) before the pin moves.
+
 ## Go-live
 
-Backtest results with the rubric as of 2026-10-03, same model as the routine, blind samples of 20:
+The pin moves to a rubric change only after a full measurement passes. A sample of 20 is too small to
+decide on, so the measurement covers the whole pool: every catalog role the rubric does not name.
 
-| Round | Level | Plane | Lenient | Floor violations |
-|---|---|---|---|---|
-| 1 | 65% | 80% | 3 | 0 |
-| 2 | 75% | 85% | 0 | 0 |
-| 3 | 90% | 95% | 0 | 0 |
+### Full measurement
 
-Round 3 passed both `passed` and `passedAutoEligible` (94.7% on the 19 verdicts with confidence high or
-medium). 20 roles is a small sample and the rubric was tuned on rounds 1 and 2, so treat round 3 as
-the first honest measurement, not as proof.
+1. **Pass A.** For fold 1 to 5: `Invoke-CatalogBacktest.ps1 -Mode Prepare -CatalogPath <catalog>
+   -SnapshotDir <role-definitions> -RubricPath CLASSIFICATION-RUBRIC.md -Folds 5 -Fold <n> -Seed <A>
+   -OutDir <dir>`. Every role in the pool lands in exactly one fold.
+2. **Blind verdicts.** Each fold gets its own fresh session, same model as the routine, that may read
+   only that fold's `input.json`, `catalog-without-sample.json` and the rubric, and writes
+   `results.json`. Whoever wrote the rubric change has seen the catalog and is not blind, so never
+   classifies.
+3. **Pass B.** Steps 1 and 2 again with a second seed `<B>`: other folds, other sessions. Every role
+   gets two independent verdicts.
+4. **Score.** `-Mode Score` per pass, with the five results, answer keys and meta files, and
+   `-RecordPath backtests/<date>-seed<A>.json` (and `<B>`). `-Mode Stability -ResultsPath <A results>
+   -SecondResultsPath <B results> -RecordPath backtests/<date>-stability.json`. Add a row below.
+5. **Decide, with these criteria fixed in advance.** Both passes `passedAutoEligible` (no isPrivileged
+   role below Privileged, nothing more lenient than the catalog among the high and medium verdicts, at
+   least 90% level agreement on those), and Stability `passed` (both passes give the same level for at
+   least 90% of the roles). Only then move the pin.
+6. **No tuning on the same measurement.** If it fails, do not change the rubric to fix the misses and
+   measure again with the same roles in mind: report the misses to the maintainer, decide per role
+   whether the catalog or the rubric is wrong, and measure the next rubric change with new seeds.
 
-1. Stay in dry-run for at least two weeks. Compare the comments with your own judgement. Note that a
-   quiet tenant produces no review at all, so the backtest may be all the evidence there is.
-2. Before every rubric change, run `Invoke-CatalogBacktest.ps1` again with a new seed and
-   `-RubricPath` and `-ExcludeDisplayNames` (the roles the rubric names in prose). Go live, and stay
-   live, only while `passedAutoEligible` is true: no isPrivileged role below Privileged, nothing more
-   lenient than the catalog, and at least 90% level agreement on the high and medium verdicts.
-3. Switch the routine configuration to `MODE: pr`. The pull requests are merged by a person until
-   auto-merge exists.
+Seeds: rounds 1 and 3 did not record theirs and may have used 1 and 3, so new measurements use seeds
+above 4, each seed once.
+
+### Results
+
+| Round | Date | Roles | Seed | Level | Level (high + medium) | Plane | Lenient | Floor violations | passedAutoEligible |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 2026-10-03 | 20 | not recorded | 65% | not measured | 80% | 3 | 0 | not measured |
+| 2 | 2026-10-03 | 20 | 2 | 75% | not measured | 85% | 0 | 0 | not measured |
+| 3 | 2026-10-03 | 20 | not recorded | 90% | 94.7% (19) | 95% | 0 | 0 | yes |
+| 4 | 2026-11-16 | 20 | 4 | 85% | 94.4% (18) | 95% | 0 | 0 | yes |
+| 5A | 2026-11-16 | 94 (full pool) | 5 | 93.6% | 95.3% (86) | 96.8% | 1 | 0 | **no** |
+| 5B | 2026-11-16 | 94 (full pool) | 6 | 95.7% | 95.5% (88) | 94.7% | 1 | 0 | **no** |
+| 6A | 2026-11-16 | 90 (full pool) | 7 | 95.6% | 97.6% (83) | 97.8% | 1 | 0 | **no** |
+| 6B | 2026-11-16 | 90 (full pool) | 8 | 95.6% | 95.2% (84) | 97.8% | 1 | 0 | **no** |
+| 7A | 2026-11-16 | 88 (full pool) | 9 | 95.5% | 98.7% (79) | 98.9% | 0 | 0 | **yes** |
+| 7B | 2026-11-16 | 88 (full pool) | 10 | 96.6% | 96.3% (81) | 97.7% | 0 | 0 | **yes** |
+
+Rounds 1 to 4 are samples of 20, kept for history. Rounds 1 to 3 matched only the examples table and a
+hand-written exclusion list. Round 4 (`backtests/2026-11-16-seed4.json`) left out every role the rubric
+names, but its classifier saw the catalog without those roles, not the full catalog.
+
+Round 5 is the first full measurement (`backtests/2026-11-16-seed5.json`, `-seed6.json`,
+`-stability-seed5-seed6.json`). Stability passed: 97.9% same level and 97.9% same plane between the two
+passes, no contradiction between two confident verdicts. Both passes failed `passedAutoEligible` on one
+role: Service Support Administrator, Data/Enterprise at medium confidence in both passes against
+Management/Specialized in the catalog. Its actions are only support tickets, service health and reads,
+and the rubric lists "support actions" as a Data signal, so the routine followed the rubric: the rubric
+and the catalog contradict each other on this role. The pin did not move on round 5.
+
+Round 6 measured the rubric with the four decisions from round 5 (`backtests/2026-11-16-seed7.json`,
+`-seed8.json`, `-stability-seed7-seed8.json`). Stability was perfect: both passes gave every role the
+same plane and level. Both passes failed `passedAutoEligible` on Kaizala Administrator: Data/Enterprise
+at medium confidence against Management/Specialized in the catalog. Its actions are the same kind as
+those of Service Support Administrator (support tickets, service health and reads; no Kaizala action
+is exposed), so the new rule "only support actions and reads is Data" caught it. In round 5 it was
+correct. The round 5 decision caused the round 6 miss. Compliance Data Administrator moved to Control
+in both passes because of the new `cloudAppSecurity` signal; the level, and so the policy, is the same.
+The pin did not move on round 6.
+
+Round 7 measured the rubric with the two decisions from round 6 (`backtests/2026-11-16-seed9.json`,
+`-seed10.json`, `-stability-seed9-seed10.json`) and **passed** every criterion: both passes
+`passedAutoEligible`, no lenient verdict and no floor violation in either pass, Stability 96.6% same
+level. Every level miss is stricter than the catalog (SharePoint Embedded Administrator, Attribute Log
+Administrator, Tenant Creator, Dragon Administrator, Teams Communications Support Engineer). One role got
+two confident verdicts that disagree: Teams Communications Support Engineer, Data/Enterprise in one pass
+and Management/Specialized in the other, both medium; the catalog says Data/Enterprise. It is the one
+role to watch in the first live reviews. The pin moves to the merge commit of the pull request that
+holds this rubric.
+
+### Before go-live (done)
+
+- Dry-run from 2026-10-03 to 2026-11-16, then `MODE: pr`.
+- The pull requests are merged by a person until auto-merge exists.
