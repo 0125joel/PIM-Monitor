@@ -71,15 +71,13 @@ $srcPath = Resolve-Path (Join-Path $PSScriptRoot '..' 'src')
 $core = @('templateId', 'id', 'displayName', 'isBuiltIn', 'isPrivileged', 'rolePermissions')
 $documented = @('allowedPrincipalTypes', 'description', 'displayName', 'id', 'isBuiltIn', 'isEnabled', 'isPrivileged', 'resourceScopes', 'rolePermissions', 'templateId', 'version')
 
-if (-not $PSBoundParameters.ContainsKey('Definitions')) {
+# The live path calls Get-AllGraphItems directly in script scope. Do not wrap it in a scriptblock
+# with GetNewClosure(): that binds it to a dynamic module in which the dot-sourced helpers are not visible.
+$fromGraph = -not $PSBoundParameters.ContainsKey('Definitions')
+$token = $null
+if ($fromGraph) {
     $token = Get-GraphAccessTokenString
     $Definitions = @(Get-AllGraphItems -Uri $script:GraphEndpoints.RoleDefinitions -AccessToken $token)
-    if (-not $PSBoundParameters.ContainsKey('FetchSelect')) {
-        $FetchSelect = {
-            param([string] $Select)
-            Get-AllGraphItems -Uri "$($script:GraphEndpoints.RoleDefinitions)?`$select=$Select" -AccessToken $token
-        }.GetNewClosure()
-    }
 }
 
 $builtIn = @($Definitions | Where-Object { $_.PSObject.Properties['isBuiltIn']?.Value -eq $true })
@@ -99,12 +97,23 @@ function Get-PropertyNames {
 # 1. Documented properties missing from every role: one extra call with $select, merged by id.
 $present = Get-PropertyNames $builtIn
 $missing = @($documented | Where-Object { -not $present.Contains($_) })
-if ($missing.Count -gt 0 -and $FetchSelect) {
+$supplementaryFetchError = $null
+if ($missing.Count -gt 0 -and ($FetchSelect -or $fromGraph)) {
     $select = (@('id') + $missing) -join ','
     $byId = @{}
-    foreach ($item in @(& $FetchSelect $select)) {
-        $itemId = $item.PSObject.Properties['id']?.Value
-        if ($itemId) { $byId[([string]$itemId).ToLowerInvariant()] = $item }
+    # This extra call must never stop the daily export: on failure, warn, record the error in
+    # export-status.json and write the snapshot with what the list call returned.
+    try {
+        $extra = if ($FetchSelect) { @(& $FetchSelect $select) }
+        else { @(Get-AllGraphItems -Uri "$($script:GraphEndpoints.RoleDefinitions)?`$select=$select" -AccessToken $token) }
+        foreach ($item in $extra) {
+            $itemId = $item.PSObject.Properties['id']?.Value
+            if ($itemId) { $byId[([string]$itemId).ToLowerInvariant()] = $item }
+        }
+    }
+    catch {
+        $supplementaryFetchError = "$($_.Exception.Message)"
+        Write-Warning "Supplementary `$select call failed; continuing without it: $supplementaryFetchError"
     }
     foreach ($role in $builtIn) {
         $roleId = [string]($role.PSObject.Properties['id']?.Value ?? $role.PSObject.Properties['templateId']?.Value)
@@ -172,6 +181,7 @@ $status = [ordered]@{
     lostProperties              = @($lost)
     documentedProperties        = @($documented | Sort-Object)
     missingDocumentedProperties = $stillMissing
+    supplementaryFetchError     = $supplementaryFetchError
     properties                  = @($names | Sort-Object)
 }
 if (-not $StatusPath) {
