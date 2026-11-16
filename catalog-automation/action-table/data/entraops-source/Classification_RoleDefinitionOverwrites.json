@@ -1,0 +1,101 @@
+[
+  {
+    "RbacSystem": "EntraID",
+    "RoleDefinitionId": "d2562ede-74db-457e-a7b6-544e236ebb61",
+    "RoleDefinitionName": "AI Administrator",
+    "EAMTierLevelName": "ControlPlane",
+    "EAMTierLevelTagValue": "0",
+    "Service": "Application and Workload Identity",
+    "Justification": "Has permission similar to Application Administrator (microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-applications) but not listed as role action."
+  },
+  {
+    "RbacSystem": "EntraID",
+    "RoleDefinitionId": "d29b2b05-8046-44ba-8758-1e26182fcf32",
+    "RoleDefinitionName": "Directory Synchronization Accounts",
+    "EAMTierLevelName": "ControlPlane",
+    "EAMTierLevelTagValue": "0",
+    "Service": "Hybrid Identity Synchronization",
+    "Justification": "Has permission to overwrite synced identities but not listed as role action."
+  },
+  {
+    "RbacSystem": "EntraID",
+    "RoleDefinitionId": "a92aed5d-d78a-4d16-b381-09adb37eb3b0",
+    "RoleDefinitionName": "On Premises Directory Sync Account",
+    "EAMTierLevelName": "ControlPlane",
+    "EAMTierLevelTagValue": "0",
+    "Service": "Hybrid Identity Synchronization",
+    "Justification": "Has permission to overwrite synced identities but not listed as role action."
+  },
+  {
+    "RbacSystem": "EntraID",
+    "RoleDefinitionId": "9f06204d-73c1-4d4c-880a-6edb90606fd8",
+    "RoleDefinitionName": "Microsoft Entra Joined Device Local Administrator",
+    "EAMTierLevelName": "ControlPlane",
+    "EAMTierLevelTagValue": "0",
+    "Service": "Global Endpoint Local Administrator",
+    "Justification": "Has permission to become local administrator on Microsoft Entra joined devices but not listed as role action."
+  },
+  {
+    "RbacSystem": "EntraID",
+    "RoleDefinitionId": "7be44c8a-adaf-4e2a-84d6-ab2649e08a13",
+    "RoleDefinitionName": "Privileged Authentication Administrator",
+    "EAMTierLevelName": "ControlPlane",
+    "EAMTierLevelTagValue": "0",
+    "Service": "Privileged User Management",
+    "Justification": "Has permissions to manage authentication methods and password reset for privileged accounts and should be classified independently of scope."
+  },
+  {
+    "RbacSystem": "EntraID",
+    "RoleDefinitionId": "3f04f91a-4ad7-4bd3-bcfa-49882ea1a88a",
+    "RoleDefinitionName": "Purview Workload Content Administrator",
+    "EAMTierLevelName": "ManagementPlane",
+    "EAMTierLevelTagValue": "1",
+    "Service": "Security and Compliance",
+    "Justification": "Has service-specific permissions in Microsoft Purview workloads but not listed as role actions in Microsoft Entra ID."
+  },
+  {
+    "RbacSystem": "EntraID",
+    "RoleDefinitionId": "e07494ad-1654-4dd2-922e-6f81a71bf00f",
+    "RoleDefinitionName": "Purview Workload Content Reader",
+    "EAMTierLevelName": "ManagementPlane",
+    "EAMTierLevelTagValue": "1",
+    "Service": "Security and Compliance",
+    "Justification": "Has service-specific permissions in Microsoft Purview workloads but not listed as role actions in Microsoft Entra ID."
+  },
+  {
+    "RbacSystem": "EntraID",
+    "RoleDefinitionId": "02d5655b-c1cf-4e5f-98da-5fb919085bf6",
+    "RoleDefinitionName": "Purview Workload Content Writer",
+    "EAMTierLevelName": "ManagementPlane",
+    "EAMTierLevelTagValue": "1",
+    "Service": "Security and Compliance",
+    "Justification": "Has service-specific permissions in Microsoft Purview workloads but not listed as role actions in Microsoft Entra ID."
+  },
+  {
+    "RbacSystem": "EntraID",
+    "RoleDefinitionId": "9c094953-4995-41c8-84c8-3ebb9b32c93f",
+    "RoleDefinitionName": "Device Join",
+    "EAMTierLevelName": "UserAccess",
+    "EAMTierLevelTagValue": "2",
+    "Service": "Default member",
+    "Justification": "Deprecated role with unpublished actions for nonadministrative device join."
+  },
+  {
+    "RbacSystem": "EntraID",
+    "RoleDefinitionId": "c34f683f-4d5a-4403-affd-6615e00e3a7f",
+    "RoleDefinitionName": "Workplace Device Join",
+    "EAMTierLevelName": "UserAccess",
+    "EAMTierLevelTagValue": "2",
+    "Service": "Default member",
+    "Justification": "Deprecated role with unpublished actions for nonadministrative device registration."
+  },
+  {
+    "RbacSystem": "EntraID",
+    "RoleDefinitionId": "d405c6df-0af8-4e3b-95e4-4d06e542189e",
+    "RoleDefinitionName": "Device Users",
+    "EAMTierLevelName": "UserAccess",
+    "EAMTierLevelTagValue": "2",
+    "Service": "Default member",
+    "Justification": "Deprecated role with unpublished actions for nonadministrative device access."
+  }
+]

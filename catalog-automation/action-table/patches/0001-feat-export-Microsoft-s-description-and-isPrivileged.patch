@@ -1,0 +1,318 @@
+From 1cc57b50c449f7500343bb37487ce4fdb55713f3 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 16 Nov 2026 11:21:45 +0000
+Subject: [PATCH 1/5] feat: export Microsoft's description and isPrivileged
+ flag per resource action
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JQVkCwrr6JcCnvT3VV2czd
+---
+ .github/workflows/entra-role-export.yml       |   9 ++
+ catalog-automation/Export-ResourceActions.ps1 | 109 ++++++++++++++++++
+ catalog-automation/Invoke-CatalogBacktest.ps1 |  30 ++++-
+ tests/RoleSnapshot.Tests.ps1                  |  74 ++++++++++++
+ 4 files changed, 221 insertions(+), 1 deletion(-)
+ create mode 100644 catalog-automation/Export-ResourceActions.ps1
+
+diff --git a/.github/workflows/entra-role-export.yml b/.github/workflows/entra-role-export.yml
+index 16ab268..75568ab 100644
+--- a/.github/workflows/entra-role-export.yml
++++ b/.github/workflows/entra-role-export.yml
+@@ -59,12 +59,21 @@ jobs:
+         shell: pwsh
+         run: ./repo/catalog-automation/Export-RoleDefinitions.ps1 -OutputPath ./snapshot/role-definitions
+ 
++      - name: Export the resource actions the roles use
++        # Context for the review: Microsoft's description and isPrivileged flag per action. Optional: a
++        # failure here must not stop the role export or the report. resource-actions/index.json records
++        # which namespaces failed; a failed namespace keeps its previous file.
++        continue-on-error: true
++        shell: pwsh
++        run: ./repo/catalog-automation/Export-ResourceActions.ps1 -RoleDefinitionsDir ./snapshot/role-definitions -OutputPath ./snapshot/resource-actions
++
+       - name: Commit the snapshot when it changed
+         id: commit
+         shell: bash
+         working-directory: snapshot
+         run: |
+           git add role-definitions
++          if [ -d resource-actions ]; then git add resource-actions; fi
+           if ! git diff --cached --quiet; then
+             git commit --quiet -m "snapshot: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+             git push origin entra-role-export
+diff --git a/catalog-automation/Export-ResourceActions.ps1 b/catalog-automation/Export-ResourceActions.ps1
+new file mode 100644
+index 0000000..fae8454
+--- /dev/null
++++ b/catalog-automation/Export-ResourceActions.ps1
+@@ -0,0 +1,109 @@
++#requires -Version 7.0
++<#
++.SYNOPSIS
++    Writes Microsoft's description and isPrivileged flag for every resource action the built-in roles use.
++
++.DESCRIPTION
++    A role definition lists its actions (rolePermissions[].allowedResourceActions) but says nothing
++    about them. Graph describes each action per namespace:
++    GET /beta/roleManagement/directory/resourceNamespaces/{namespace}/resourceActions
++    with name, description and isPrivileged (Microsoft's flag for a privileged permission). Like the
++    role definitions, this is the same in every tenant and holds no tenant data.
++
++    The namespaces are taken from the actions in the role snapshot, so only what the roles use is
++    fetched. Output, in deterministic JSON:
++      <OutputPath>/<namespace>.json   actions of one namespace, sorted by name
++      <OutputPath>/index.json         per namespace: status (ok, failed), action count, and for a
++                                      failed namespace the error; plus how many role actions have a
++                                      description (coverage)
++
++    A namespace that fails keeps its previous file, so one bad response never wipes good data. The
++    status in index.json says it is stale. Needs RoleManagement.Read.Directory, the same permission as
++    the role export.
++
++.PARAMETER RoleDefinitionsDir
++    The role snapshot folder (role-definitions/) to read the action names from.
++
++.PARAMETER OutputPath
++    Folder to write to (resource-actions/). Files of namespaces no role uses any more are removed.
++
++.PARAMETER Fetch
++    Scriptblock that takes a namespace and returns its resource actions, instead of calling Graph.
++    For tests.
++#>
++[CmdletBinding()]
++param(
++    [Parameter(Mandatory)] [string] $RoleDefinitionsDir,
++    [Parameter(Mandatory)] [string] $OutputPath,
++    [Parameter()] [scriptblock] $Fetch
++)
++
++Set-StrictMode -Version Latest
++$ErrorActionPreference = 'Stop'
++
++$srcPath = Resolve-Path (Join-Path $PSScriptRoot '..' 'src')
++. (Join-Path $srcPath 'helpers.ps1')
++. (Join-Path $srcPath 'graphEndpoints.ps1')
++
++function Write-JsonFile { param($Object, [string] $Path)
++    $json = ($Object | ConvertTo-DeterministicJson) -replace "`r`n", "`n"
++    [System.IO.File]::WriteAllText($Path, $json + "`n", [System.Text.UTF8Encoding]::new($false))
++}
++
++$roleActions = @(Get-ChildItem -Path $RoleDefinitionsDir -Filter '*.json' -File | ForEach-Object {
++        $role = Get-Content -Raw -Path $_.FullName | ConvertFrom-Json
++        @($role.rolePermissions | ForEach-Object { $_.allowedResourceActions }) | Where-Object { $_ }
++    } | Sort-Object -Unique)
++if ($roleActions.Count -eq 0) { throw "No role actions found in $RoleDefinitionsDir." }
++$namespaces = @($roleActions | ForEach-Object { ($_ -split '/', 2)[0] } | Sort-Object -Unique)
++
++if (-not $Fetch) {
++    $token = Get-GraphAccessTokenString
++    $Fetch = {
++        param([string] $Namespace)
++        $uri = "$script:GraphBeta/roleManagement/directory/resourceNamespaces/$([uri]::EscapeDataString($Namespace))/resourceActions?`$select=name,description,isPrivileged"
++        Get-AllGraphItems -Uri $uri -AccessToken $token
++    }
++}
++
++New-Item -ItemType Directory -Force -Path $OutputPath | Out-Null
++$status = [ordered]@{}
++$known = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
++foreach ($ns in $namespaces) {
++    $file = Join-Path $OutputPath "$ns.json"
++    try {
++        $items = @(& $Fetch $ns)
++        if ($items.Count -eq 0) { throw 'empty response' }
++        $actions = @($items | ForEach-Object {
++                [ordered]@{
++                    name         = [string]$_.name
++                    description  = [string]($_.PSObject.Properties['description']?.Value ?? '')
++                    isPrivileged = [bool]($_.PSObject.Properties['isPrivileged']?.Value)
++                }
++            } | Sort-Object { $_.name })
++        Write-JsonFile @{ namespace = $ns; actions = $actions } $file
++        $status[$ns] = [ordered]@{ status = 'ok'; actions = $actions.Count }
++    }
++    catch {
++        # Keep the previous file: stale but correct beats empty.
++        $status[$ns] = [ordered]@{ status = if (Test-Path $file) { 'failed-kept-previous' } else { 'failed' }; error = "$($_.Exception.Message)" }
++    }
++    if (Test-Path $file) {
++        (Get-Content -Raw -Path $file | ConvertFrom-Json).actions | ForEach-Object { [void]$known.Add([string]$_.name) }
++    }
++}
++
++foreach ($f in Get-ChildItem -Path $OutputPath -Filter '*.json' -File) {
++    if ($f.Name -ne 'index.json' -and $f.BaseName -notin $namespaces) { Remove-Item $f.FullName }
++}
++
++$described = @($roleActions | Where-Object { $known.Contains($_) }).Count
++Write-JsonFile ([ordered]@{
++        namespaces  = $status
++        roleActions = $roleActions.Count
++        described   = $described
++        undescribed = @($roleActions | Where-Object { -not $known.Contains($_) })
++    }) (Join-Path $OutputPath 'index.json')
++
++$failed = @($status.Keys | Where-Object { $status[$_].status -ne 'ok' })
++Write-Host "Resource actions: $($namespaces.Count) namespaces, $($failed.Count) failed; $described of $($roleActions.Count) role actions described."
+diff --git a/catalog-automation/Invoke-CatalogBacktest.ps1 b/catalog-automation/Invoke-CatalogBacktest.ps1
+index 7aa8688..9ad7327 100644
+--- a/catalog-automation/Invoke-CatalogBacktest.ps1
++++ b/catalog-automation/Invoke-CatalogBacktest.ps1
+@@ -43,6 +43,11 @@
+ .PARAMETER SnapshotDir
+     A role snapshot folder (role-definitions/). Supplies description and allowedResourceActions.
+ 
++.PARAMETER ResourceActionsDir
++    Optional: the resource-actions/ folder Export-ResourceActions.ps1 writes. When given, every role in
++    input.json also gets actionDetails: per action Microsoft's description and isPrivileged flag, for
++    the actions that have one. meta.json records the coverage and a hash of the folder.
++
+ .PARAMETER ResultsPath / AnswerKeyPath
+     Score: one or more verdict files and the answer keys that go with them (one per fold).
+     Stability: -ResultsPath is the first pass, -SecondResultsPath the second.
+@@ -56,6 +61,7 @@ param(
+     [Parameter(Mandatory)] [ValidateSet('Prepare', 'Score', 'Stability')] [string] $Mode,
+     [Parameter()] [string] $CatalogPath,
+     [Parameter()] [string] $SnapshotDir,
++    [Parameter()] [string] $ResourceActionsDir,
+     [Parameter()] [string] $OutDir,
+     [Parameter()] [int] $Count = 20,
+     [Parameter()] [int] $Seed = 1,
+@@ -141,18 +147,35 @@ if ($Mode -eq 'Prepare') {
+         $picked = @($ordered | Select-Object -First ([Math]::Min($Count, $ordered.Count)))
+     }
+ 
++    $details = @{}
++    $detailFiles = @()
++    if ($ResourceActionsDir) {
++        $detailFiles = @(Get-ChildItem -Path $ResourceActionsDir -Filter '*.json' -File | Where-Object Name -ne 'index.json' | Sort-Object Name)
++        foreach ($f in $detailFiles) {
++            foreach ($a in @((Get-Content -Raw -Path $f.FullName | ConvertFrom-Json).actions)) {
++                $details[([string]$a.name).ToLowerInvariant()] = [ordered]@{ name = [string]$a.name; description = [string]$a.description; isPrivileged = [bool]$a.isPrivileged }
++            }
++        }
++    }
++    $sampleActions = 0; $sampleDescribed = 0
+     $inputs = foreach ($r in $picked) {
+         $file = Join-Path $SnapshotDir "$(Get-Id $r).json"
+         if (-not (Test-Path $file)) { throw "No snapshot file for $($r.displayName) ($($r.templateId))." }
+         $snap = Get-Content -Raw -Path $file | ConvertFrom-Json
+         $actions = @($snap.rolePermissions | ForEach-Object { $_.allowedResourceActions } | Where-Object { $_ } | Sort-Object -Unique)
+-        [ordered]@{
++        $entry = [ordered]@{
+             templateId             = [string]$r.templateId
+             displayName            = [string]$r.displayName
+             description            = [string]($snap.PSObject.Properties['description']?.Value ?? '')
+             isPrivileged           = [bool]$snap.isPrivileged
+             allowedResourceActions = $actions
+         }
++        if ($ResourceActionsDir) {
++            $found = @($actions | ForEach-Object { $details[([string]$_).ToLowerInvariant()] } | Where-Object { $_ })
++            $sampleActions += $actions.Count; $sampleDescribed += $found.Count
++            $entry.actionDetails = $found
++        }
++        $entry
+     }
+     $key = foreach ($r in $picked) {
+         [ordered]@{ templateId = [string]$r.templateId; displayName = [string]$r.displayName; plane = [string]$r.plane; securityLevel = [string]$r.securityLevel; isPrivileged = [bool]$r.isPrivileged }
+@@ -176,6 +199,11 @@ if ($Mode -eq 'Prepare') {
+         catalogSha256   = Get-Sha256 $CatalogPath
+         rubricSha256    = if ($RubricPath) { Get-Sha256 $RubricPath } else { $null }
+         snapshotSha256  = [Convert]::ToHexString($snapHash).ToLowerInvariant()
++        resourceActionsSha256 = if ($ResourceActionsDir) {
++            $h = [System.Security.Cryptography.SHA256]::HashData([System.Text.Encoding]::UTF8.GetBytes((($detailFiles | ForEach-Object { "$($_.Name):$(Get-Sha256 $_.FullName)" }) -join "`n")))
++            [Convert]::ToHexString($h).ToLowerInvariant()
++        } else { $null }
++        actionCoverage  = if ($ResourceActionsDir) { [ordered]@{ actions = $sampleActions; described = $sampleDescribed } } else { $null }
+         sampleTemplateIds = $sampleIds
+     }
+ 
+diff --git a/tests/RoleSnapshot.Tests.ps1 b/tests/RoleSnapshot.Tests.ps1
+index 0916d7f..4e4f877 100644
+--- a/tests/RoleSnapshot.Tests.ps1
++++ b/tests/RoleSnapshot.Tests.ps1
+@@ -83,6 +83,80 @@ Describe 'Export-RoleDefinitions' {
+     }
+ }
+ 
++Describe 'Export-ResourceActions' {
++    BeforeAll {
++        $script:exportActions = Join-Path $script:repoRoot 'catalog-automation/Export-ResourceActions.ps1'
++        $script:raSnap = Join-Path $TestDrive 'ra-snap'
++        Write-Snapshot $script:raSnap @(
++            (New-RoleDef 'aaaaaaaa-0000-0000-0000-000000000001' 'One' -Actions @('microsoft.directory/users/password/update', 'microsoft.office365.supportTickets/allEntities/allTasks')),
++            (New-RoleDef 'aaaaaaaa-0000-0000-0000-000000000002' 'Two' -Actions @('microsoft.directory/users/standard/read'))
++        )
++        $script:raGood = {
++            param($ns)
++            switch ($ns) {
++                'microsoft.directory' { @(
++                        [pscustomobject]@{ name = 'microsoft.directory/users/standard/read'; description = 'Read users'; isPrivileged = $false },
++                        [pscustomobject]@{ name = 'microsoft.directory/users/password/update'; description = 'Reset passwords'; isPrivileged = $true }) }
++                'microsoft.office365.supportTickets' { @([pscustomobject]@{ name = 'microsoft.office365.supportTickets/allEntities/allTasks'; description = 'Manage tickets'; isPrivileged = $false }) }
++            }
++        }
++    }
++
++    It 'writes one sorted file per namespace the roles use, and an index with coverage' {
++        $out = Join-Path $TestDrive 'ra-out'
++        & $script:exportActions -RoleDefinitionsDir $script:raSnap -OutputPath $out -Fetch $script:raGood | Out-Null
++        @(Get-ChildItem $out -Filter '*.json').Name | Sort-Object | Should -Be @('index.json', 'microsoft.directory.json', 'microsoft.office365.supportTickets.json')
++        $dir = Get-Content -Raw (Join-Path $out 'microsoft.directory.json') | ConvertFrom-Json
++        @($dir.actions.name) | Should -Be @('microsoft.directory/users/password/update', 'microsoft.directory/users/standard/read')
++        ($dir.actions | Where-Object name -like '*password*').isPrivileged | Should -BeTrue
++        $idx = Get-Content -Raw (Join-Path $out 'index.json') | ConvertFrom-Json
++        $idx.roleActions | Should -Be 3
++        $idx.described | Should -Be 3
++        $idx.namespaces.'microsoft.directory'.status | Should -Be 'ok'
++    }
++
++    It 'keeps the previous file of a namespace that fails, and says so in the index' {
++        $out = Join-Path $TestDrive 'ra-out'
++        $before = Get-Content -Raw (Join-Path $out 'microsoft.directory.json')
++        $bad = { param($ns) if ($ns -eq 'microsoft.directory') { throw 'HTTP 503' } else { & $script:raGood $ns } }
++        & $script:exportActions -RoleDefinitionsDir $script:raSnap -OutputPath $out -Fetch $bad | Out-Null
++        Get-Content -Raw (Join-Path $out 'microsoft.directory.json') | Should -Be $before
++        $idx = Get-Content -Raw (Join-Path $out 'index.json') | ConvertFrom-Json
++        $idx.namespaces.'microsoft.directory'.status | Should -Be 'failed-kept-previous'
++        $idx.namespaces.'microsoft.directory'.error | Should -BeLike '*503*'
++    }
++
++    It 'treats an empty response as a failure, not as a namespace without actions' {
++        $out = Join-Path $TestDrive 'ra-empty'
++        & $script:exportActions -RoleDefinitionsDir $script:raSnap -OutputPath $out -Fetch { param($ns) @() } | Out-Null
++        Test-Path (Join-Path $out 'microsoft.directory.json') | Should -BeFalse
++        $idx = Get-Content -Raw (Join-Path $out 'index.json') | ConvertFrom-Json
++        $idx.namespaces.'microsoft.directory'.status | Should -Be 'failed'
++        $idx.described | Should -Be 0
++        @($idx.undescribed).Count | Should -Be 3
++    }
++
++    It 'gives the backtest input the description and flag of each action' {
++        $out = Join-Path $TestDrive 'ra-out2'
++        & $script:exportActions -RoleDefinitionsDir $script:raSnap -OutputPath $out -Fetch $script:raGood | Out-Null
++        $cat = Join-Path $TestDrive 'ra-cat.json'
++        @{ roleCount = 2; roles = @(
++                @{ templateId = 'aaaaaaaa-0000-0000-0000-000000000001'; displayName = 'One'; plane = 'Control'; securityLevel = 'Specialized'; isPrivileged = $false },
++                @{ templateId = 'aaaaaaaa-0000-0000-0000-000000000002'; displayName = 'Two'; plane = 'Control'; securityLevel = 'Enterprise'; isPrivileged = $false }) } | ConvertTo-Json -Depth 5 | Set-Content $cat
++        $bt = Join-Path $script:repoRoot 'catalog-automation/Invoke-CatalogBacktest.ps1'
++        $o = Join-Path $TestDrive 'ra-bt'
++        & $bt -Mode Prepare -CatalogPath $cat -SnapshotDir $script:raSnap -ResourceActionsDir $out -OutDir $o -Count 2 | Out-Null
++        $in = Get-Content -Raw (Join-Path $o 'input.json') | ConvertFrom-Json
++        $one = $in | Where-Object displayName -eq 'One'
++        @($one.actionDetails).Count | Should -Be 2
++        ($one.actionDetails | Where-Object name -like '*password*').description | Should -Be 'Reset passwords'
++        $m = Get-Content -Raw (Join-Path $o 'meta.json') | ConvertFrom-Json
++        $m.actionCoverage.actions | Should -Be 3
++        $m.actionCoverage.described | Should -Be 3
++        $m.resourceActionsSha256 | Should -Match '^[0-9a-f]{64}$'
++    }
++}
++
+ Describe 'Compare-RoleSnapshots' {
+     BeforeAll {
+         $script:catalogPath = Join-Path $TestDrive 'catalog.json'
+-- 
+2.43.0
+

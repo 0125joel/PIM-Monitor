@@ -1,0 +1,374 @@
+From 0cdf327a1733a3a86812485ac0320957c611566d Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 16 Nov 2026 12:36:29 +0000
+Subject: [PATCH 5/5] feat: one shared join of a role definition and
+ Microsoft's per-action information
+
+Get-RoleContext.ps1 links role-definitions/ and resource-actions/ by action name, without writing
+anything to the snapshot. Per role: every action with its condition, description and isPrivileged
+(null outside microsoft.directory); privilegedBecause, the actions Microsoft flags as sensitive,
+which are the reason the role is privileged; privilegeCheck, whether the role flag agrees with its
+actions (consistent, either mismatch, or unknown when data is missing); the inherited roles by
+name; and every action without a description, listed. The backtest now uses this same join, so it
+measures the routine on the production input.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JQVkCwrr6JcCnvT3VV2czd
+---
+ catalog-automation/Get-RoleContext.ps1        | 162 ++++++++++++++++++
+ catalog-automation/Invoke-CatalogBacktest.ps1 |  43 ++---
+ tests/RoleSnapshot.Tests.ps1                  |  81 ++++++++-
+ 3 files changed, 263 insertions(+), 23 deletions(-)
+ create mode 100644 catalog-automation/Get-RoleContext.ps1
+
+diff --git a/catalog-automation/Get-RoleContext.ps1 b/catalog-automation/Get-RoleContext.ps1
+new file mode 100644
+index 0000000..49d5aeb
+--- /dev/null
++++ b/catalog-automation/Get-RoleContext.ps1
+@@ -0,0 +1,162 @@
++#requires -Version 7.0
++<#
++.SYNOPSIS
++    Joins a role definition with Microsoft's per-action information: what each action does, and which
++    actions make the role privileged.
++
++.DESCRIPTION
++    The one place where role-definitions/ and resource-actions/ meet. The review routine and the
++    backtest both use it, so the backtest measures the routine on exactly the input it gets in
++    production. Nothing is written to the snapshot: the definition files stay as Microsoft delivers
++    them, and resource-actions/ stays one file per namespace. The link is the action name, which is in
++    both; the part before the first '/' names the namespace file.
++
++    Per role:
++      definition          the definition file, unchanged
++      permissions         per rolePermissions block: its condition, and per action the namespace,
++                          Microsoft's description and isPrivileged (null outside microsoft.directory,
++                          where Microsoft does not apply the flag), and whether a description was found
++      privilegedBecause   the role's own actions Microsoft flags as sensitive, with their condition:
++                          the reason the role is privileged
++      privilegeCheck      does the role's isPrivileged agree with its actions? Microsoft: "a role is
++                          privileged if it contains at least one sensitive resource action ... applies
++                          only to the microsoft.directory namespace".
++                            consistent                               they agree
++                            role-flag-without-sensitive-action       flag true, no flagged action
++                            sensitive-action-without-role-flag       a flagged action, flag false
++                            unknown                                  cannot tell (no data for
++                                                                     microsoft.directory, or directory
++                                                                     actions without a description)
++      inheritsFrom        the roles it inherits from, with name, and their actions flagged sensitive
++      undescribedActions  actions with no description, listed rather than silently left out
++
++.PARAMETER RoleDefinitionsDir
++    role-definitions/ of a snapshot.
++
++.PARAMETER ResourceActionsDir
++    resource-actions/ of the same snapshot. Optional: without it every action is undescribed and
++    privilegeCheck is unknown.
++
++.PARAMETER TemplateId
++    The roles to return. Default: every role in RoleDefinitionsDir.
++#>
++[CmdletBinding()]
++param(
++    [Parameter(Mandatory)] [string] $RoleDefinitionsDir,
++    [Parameter()] [string] $ResourceActionsDir,
++    [Parameter()] [string[]] $TemplateId
++)
++
++Set-StrictMode -Version Latest
++$ErrorActionPreference = 'Stop'
++
++$directoryNs = 'microsoft.directory'
++
++$roles = @{}
++foreach ($f in Get-ChildItem -Path $RoleDefinitionsDir -Filter '*.json' -File) {
++    $r = Get-Content -Raw -Path $f.FullName | ConvertFrom-Json
++    $roles[([string]$r.templateId).ToLowerInvariant()] = $r
++}
++
++# Action details by lower-case name, and the status of each namespace.
++$details = @{}
++$nsStatus = @{}
++if ($ResourceActionsDir -and (Test-Path $ResourceActionsDir -PathType Container)) {
++    $indexFile = Join-Path $ResourceActionsDir 'index.json'
++    if (Test-Path $indexFile) {
++        $index = Get-Content -Raw -Path $indexFile | ConvertFrom-Json
++        foreach ($p in @($index.PSObject.Properties['namespaces']?.Value.PSObject.Properties)) { $nsStatus[$p.Name] = [string]$p.Value.status }
++    }
++    foreach ($f in Get-ChildItem -Path $ResourceActionsDir -Filter '*.json' -File | Where-Object Name -ne 'index.json') {
++        $doc = Get-Content -Raw -Path $f.FullName | ConvertFrom-Json
++        if (-not $nsStatus.ContainsKey($f.BaseName)) { $nsStatus[$f.BaseName] = 'ok' }
++        foreach ($a in @($doc.actions)) { $details[([string]$a.name).ToLowerInvariant()] = $a }
++    }
++}
++$directoryAvailable = $nsStatus.ContainsKey($directoryNs) -and (Test-Path (Join-Path ($ResourceActionsDir ?? '.') "$directoryNs.json"))
++
++function Get-Namespace { param([string] $Action) ($Action -split '/', 2)[0] }
++
++function Get-SensitiveActions {
++    # The role's own actions that Microsoft flags as sensitive, with the condition of their block.
++    param($Role)
++    foreach ($perm in @($Role.PSObject.Properties['rolePermissions']?.Value)) {
++        if ($null -eq $perm) { continue }
++        $cond = $perm.PSObject.Properties['condition']?.Value
++        foreach ($a in @($perm.PSObject.Properties['allowedResourceActions']?.Value)) {
++            if (-not $a) { continue }
++            $d = $details[([string]$a).ToLowerInvariant()]
++            if ($d -and $d.isPrivileged -eq $true) { [ordered]@{ action = [string]$a; condition = if ($cond) { [string]$cond } else { $null } } }
++        }
++    }
++}
++
++$ids = if ($TemplateId) { @($TemplateId | ForEach-Object { $_.ToLowerInvariant() }) } else { @($roles.Keys | Sort-Object) }
++foreach ($id in $ids) {
++    if (-not $roles.ContainsKey($id)) { throw "No role definition for $id in $RoleDefinitionsDir." }
++    $role = $roles[$id]
++
++    $undescribed = [System.Collections.Generic.List[string]]::new()
++    $undescribedDirectory = 0
++    $permissions = foreach ($perm in @($role.PSObject.Properties['rolePermissions']?.Value)) {
++        if ($null -eq $perm) { continue }
++        $cond = $perm.PSObject.Properties['condition']?.Value
++        $actions = foreach ($a in @($perm.PSObject.Properties['allowedResourceActions']?.Value | Where-Object { $_ } | Sort-Object)) {
++            $ns = Get-Namespace $a
++            $d = $details[([string]$a).ToLowerInvariant()]
++            if (-not $d) {
++                $undescribed.Add([string]$a)
++                if ($ns -eq $directoryNs) { $undescribedDirectory++ }
++            }
++            [ordered]@{
++                name         = [string]$a
++                namespace    = $ns
++                described    = [bool]$d
++                description  = if ($d) { [string]$d.description } else { $null }
++                isPrivileged = if ($d -and $ns -eq $directoryNs) { $d.isPrivileged } else { $null }
++            }
++        }
++        [ordered]@{ condition = if ($cond) { [string]$cond } else { $null }; actions = @($actions) }
++    }
++
++    $sensitive = @(Get-SensitiveActions $role)
++    $flag = [bool]($role.PSObject.Properties['isPrivileged']?.Value)
++    $check = if (-not $directoryAvailable) {
++        [ordered]@{ status = 'unknown'; reason = "No resource-action data for $directoryNs." }
++    }
++    elseif ($flag -and $sensitive.Count -gt 0) { [ordered]@{ status = 'consistent'; reason = "Privileged, and $($sensitive.Count) of its actions are flagged sensitive." } }
++    elseif (-not $flag -and $sensitive.Count -eq 0) {
++        if ($undescribedDirectory -gt 0) { [ordered]@{ status = 'unknown'; reason = "Not privileged; $undescribedDirectory $directoryNs actions have no data, so a sensitive one cannot be ruled out." } }
++        else { [ordered]@{ status = 'consistent'; reason = 'Not privileged, and none of its actions is flagged sensitive.' } }
++    }
++    elseif ($flag) {
++        if ($undescribedDirectory -gt 0) { [ordered]@{ status = 'unknown'; reason = "Privileged, but no flagged action found and $undescribedDirectory $directoryNs actions have no data." } }
++        else { [ordered]@{ status = 'role-flag-without-sensitive-action'; reason = 'Privileged, but none of its actions is flagged sensitive.' } }
++    }
++    else { [ordered]@{ status = 'sensitive-action-without-role-flag'; reason = "Not privileged, but $($sensitive.Count) of its actions are flagged sensitive." } }
++
++    $inherits = foreach ($ref in @($role.PSObject.Properties['inheritsPermissionsFrom']?.Value | Where-Object { $_ })) {
++        $rid = if ($ref -is [string]) { $ref } else { [string]($ref.PSObject.Properties['id']?.Value ?? $ref.PSObject.Properties['templateId']?.Value) }
++        $rid = $rid.ToLowerInvariant()
++        $parent = $roles[$rid]
++        [ordered]@{
++            templateId        = $rid
++            displayName       = if ($parent) { [string]$parent.displayName } else { $null }
++            found             = [bool]$parent
++            sensitiveActions  = if ($parent) { @(Get-SensitiveActions $parent) } else { @() }
++        }
++    }
++
++    [pscustomobject][ordered]@{
++        templateId         = $id
++        displayName        = [string]$role.displayName
++        isPrivileged       = $flag
++        privilegedBecause  = $sensitive
++        privilegeCheck     = $check
++        permissions        = @($permissions)
++        inheritsFrom       = @($inherits)
++        undescribedActions = @($undescribed | Sort-Object -Unique)
++        resourceActions    = [ordered]@{ provided = [bool]$ResourceActionsDir; directoryStatus = if ($nsStatus.ContainsKey($directoryNs)) { $nsStatus[$directoryNs] } else { 'missing' } }
++        definition         = $role
++    }
++}
+diff --git a/catalog-automation/Invoke-CatalogBacktest.ps1 b/catalog-automation/Invoke-CatalogBacktest.ps1
+index e4813f7..73eb9c9 100644
+--- a/catalog-automation/Invoke-CatalogBacktest.ps1
++++ b/catalog-automation/Invoke-CatalogBacktest.ps1
+@@ -45,9 +45,10 @@
+     A role snapshot folder (role-definitions/). Supplies description and allowedResourceActions.
+ 
+ .PARAMETER ResourceActionsDir
+-    Optional: the resource-actions/ folder Export-ResourceActions.ps1 writes. When given, every role in
+-    input.json also gets actionDetails: per action Microsoft's description and isPrivileged flag, for
+-    the actions that have one. meta.json records the coverage and a hash of the folder.
++    Optional: the resource-actions/ folder Export-ResourceActions.ps1 writes. When given, every role's
++    context (Get-RoleContext.ps1) has per action Microsoft's description and isPrivileged
++    flag, the actions that make it privileged, and the privilege check. Without it the context is still
++    there, with every action undescribed. meta.json records the coverage and a hash of the folder.
+ 
+ .PARAMETER ResultsPath / AnswerKeyPath
+     Score: one or more verdict files and the answer keys that go with them (one per fold).
+@@ -84,7 +85,7 @@ $ErrorActionPreference = 'Stop'
+ $levelRank = @{ Privileged = 0; Specialized = 1; Enterprise = 2 }   # lower is stricter
+ 
+ function Write-Json { param($Object, [string] $Path)
+-    [System.IO.File]::WriteAllText($Path, (($Object | ConvertTo-Json -Depth 10) -replace "`r`n", "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
++    [System.IO.File]::WriteAllText($Path, (($Object | ConvertTo-Json -Depth 20) -replace "`r`n", "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
+ }
+ function Get-Sha256 { param([string] $Path) (Get-FileHash -Algorithm SHA256 -Path $Path).Hash.ToLowerInvariant() }
+ function Read-JsonArray { param([string[]] $Paths)
+@@ -148,36 +149,36 @@ if ($Mode -eq 'Prepare') {
+         $picked = @($ordered | Select-Object -First ([Math]::Min($Count, $ordered.Count)))
+     }
+ 
+-    $details = @{}
+-    $detailFiles = @()
+-    if ($ResourceActionsDir) {
+-        $detailFiles = @(Get-ChildItem -Path $ResourceActionsDir -Filter '*.json' -File | Where-Object Name -ne 'index.json' | Sort-Object Name)
+-        foreach ($f in $detailFiles) {
+-            foreach ($a in @((Get-Content -Raw -Path $f.FullName | ConvertFrom-Json).actions)) {
+-                $details[([string]$a.name).ToLowerInvariant()] = [ordered]@{ name = [string]$a.name; description = [string]$a.description; isPrivileged = $a.isPrivileged }
+-            }
+-        }
+-    }
++    # The same join the routine uses (Get-RoleContext.ps1), so the backtest measures the production input.
++    $detailFiles = if ($ResourceActionsDir) { @(Get-ChildItem -Path $ResourceActionsDir -Filter '*.json' -File | Sort-Object Name) } else { @() }
++    $contextArgs = @{ RoleDefinitionsDir = $SnapshotDir; TemplateId = @($picked | ForEach-Object { Get-Id $_ }) }
++    if ($ResourceActionsDir) { $contextArgs.ResourceActionsDir = $ResourceActionsDir }
++    $contexts = @{}
++    foreach ($c in @(& (Join-Path $PSScriptRoot 'Get-RoleContext.ps1') @contextArgs)) { $contexts[$c.templateId] = $c }
+     $sampleActions = 0; $sampleDescribed = 0
+     $inputs = foreach ($r in $picked) {
+         $file = Join-Path $SnapshotDir "$(Get-Id $r).json"
+         if (-not (Test-Path $file)) { throw "No snapshot file for $($r.displayName) ($($r.templateId))." }
+         $snap = Get-Content -Raw -Path $file | ConvertFrom-Json
+         $actions = @($snap.rolePermissions | ForEach-Object { $_.allowedResourceActions } | Where-Object { $_ } | Sort-Object -Unique)
+-        $entry = [ordered]@{
++        $ctx = $contexts[(Get-Id $r)]
++        $sampleActions += $actions.Count; $sampleDescribed += ($actions.Count - @($ctx.undescribedActions).Count)
++        [ordered]@{
+             templateId             = [string]$r.templateId
+             displayName            = [string]$r.displayName
+             description            = [string]($snap.PSObject.Properties['description']?.Value ?? '')
+             isPrivileged           = [bool]$snap.isPrivileged
+             allowedResourceActions = $actions
+             definition             = $snap
++            context                = [ordered]@{
++                privilegedBecause  = $ctx.privilegedBecause
++                privilegeCheck     = $ctx.privilegeCheck
++                permissions        = $ctx.permissions
++                inheritsFrom       = $ctx.inheritsFrom
++                undescribedActions = $ctx.undescribedActions
++                resourceActions    = $ctx.resourceActions
++            }
+         }
+-        if ($ResourceActionsDir) {
+-            $found = @($actions | ForEach-Object { $details[([string]$_).ToLowerInvariant()] } | Where-Object { $_ })
+-            $sampleActions += $actions.Count; $sampleDescribed += $found.Count
+-            $entry.actionDetails = $found
+-        }
+-        $entry
+     }
+     $key = foreach ($r in $picked) {
+         [ordered]@{ templateId = [string]$r.templateId; displayName = [string]$r.displayName; plane = [string]$r.plane; securityLevel = [string]$r.securityLevel; isPrivileged = [bool]$r.isPrivileged }
+diff --git a/tests/RoleSnapshot.Tests.ps1 b/tests/RoleSnapshot.Tests.ps1
+index 3e879a3..558cceb 100644
+--- a/tests/RoleSnapshot.Tests.ps1
++++ b/tests/RoleSnapshot.Tests.ps1
+@@ -238,8 +238,11 @@ Describe 'Export-ResourceActions' {
+         & $bt -Mode Prepare -CatalogPath $cat -SnapshotDir $script:raSnap -ResourceActionsDir $out -OutDir $o -Count 2 | Out-Null
+         $in = Get-Content -Raw (Join-Path $o 'input.json') | ConvertFrom-Json
+         $one = $in | Where-Object displayName -eq 'One'
+-        @($one.actionDetails).Count | Should -Be 2
+-        ($one.actionDetails | Where-Object name -like '*password*').description | Should -Be 'Reset passwords'
++        $acts = @($one.context.permissions.actions)
++        $acts.Count | Should -Be 2
++        ($acts | Where-Object name -like '*password*').description | Should -Be 'Reset passwords'
++        @($one.context.privilegedBecause.action) | Should -Be @('microsoft.directory/users/password/update')
++        $one.context.privilegeCheck.status | Should -Be 'sensitive-action-without-role-flag'
+         $m = Get-Content -Raw (Join-Path $o 'meta.json') | ConvertFrom-Json
+         $m.actionCoverage.actions | Should -Be 3
+         $m.actionCoverage.described | Should -Be 3
+@@ -247,6 +250,80 @@ Describe 'Export-ResourceActions' {
+     }
+ }
+ 
++Describe 'Get-RoleContext' {
++    BeforeAll {
++        $script:ctxScript = Join-Path $script:repoRoot 'catalog-automation/Get-RoleContext.ps1'
++        $script:ctxSnap = Join-Path $TestDrive 'ctx-snap'
++        $owner = [pscustomobject]@{ allowedResourceActions = @('microsoft.directory/applications/credentials/update'); condition = '$SubjectIsOwner' }
++        $priv = New-RoleDef 'bbbbbbbb-0000-0000-0000-000000000001' 'Priv' -Actions @('microsoft.directory/users/password/update', 'microsoft.office365.supportTickets/allEntities/allTasks') -Privileged $true
++        $plain = New-RoleDef 'bbbbbbbb-0000-0000-0000-000000000002' 'Plain' -Actions @('microsoft.directory/users/standard/read')
++        $plain | Add-Member -NotePropertyName inheritsPermissionsFrom -NotePropertyValue @([pscustomobject]@{ id = 'bbbbbbbb-0000-0000-0000-000000000001' })
++        $noFlag = New-RoleDef 'bbbbbbbb-0000-0000-0000-000000000003' 'NoFlag' -Actions @('microsoft.directory/users/password/update')
++        $flagOnly = New-RoleDef 'bbbbbbbb-0000-0000-0000-000000000004' 'FlagOnly' -Actions @('microsoft.directory/users/standard/read') -Privileged $true
++        $ownerRole = New-RoleDef 'bbbbbbbb-0000-0000-0000-000000000005' 'Owner' -Actions @('microsoft.directory/users/standard/read') -Privileged $true
++        $ownerRole.rolePermissions = @($ownerRole.rolePermissions) + $owner
++        $unknown = New-RoleDef 'bbbbbbbb-0000-0000-0000-000000000006' 'Unknown' -Actions @('microsoft.directory/brandNew/allTasks')
++        Write-Snapshot $script:ctxSnap @($priv, $plain, $noFlag, $flagOnly, $ownerRole, $unknown)
++        $script:ctxActions = Join-Path $TestDrive 'ctx-actions'
++        $fetch = {
++            param($ns)
++            switch ($ns) {
++                'microsoft.directory' { @(
++                        [pscustomobject]@{ name = 'microsoft.directory/users/standard/read'; description = 'Read users'; isPrivileged = $false },
++                        [pscustomobject]@{ name = 'microsoft.directory/users/password/update'; description = 'Reset passwords'; isPrivileged = $true },
++                        [pscustomobject]@{ name = 'microsoft.directory/applications/credentials/update'; description = 'Update app credentials'; isPrivileged = $true }) }
++                'microsoft.office365.supportTickets' { @([pscustomobject]@{ name = 'microsoft.office365.supportTickets/allEntities/allTasks'; description = 'Manage tickets'; isPrivileged = $false }) }
++            }
++        }
++        & (Join-Path $script:repoRoot 'catalog-automation/Export-ResourceActions.ps1') -RoleDefinitionsDir $script:ctxSnap -OutputPath $script:ctxActions -Fetch $fetch | Out-Null
++        $script:ctx = @{}
++        foreach ($c in @(& $script:ctxScript -RoleDefinitionsDir $script:ctxSnap -ResourceActionsDir $script:ctxActions)) { $script:ctx[$c.displayName] = $c }
++    }
++
++    It 'names the actions that make a privileged role privileged, and calls it consistent' {
++        $c = $script:ctx['Priv']
++        @($c.privilegedBecause.action) | Should -Be @('microsoft.directory/users/password/update')
++        $c.privilegeCheck.status | Should -Be 'consistent'
++    }
++
++    It 'keeps the condition of a sensitive action, so an owner-only cause is visible' {
++        $c = $script:ctx['Owner']
++        ($c.privilegedBecause | Where-Object action -like '*credentials*').condition | Should -Be '$SubjectIsOwner'
++        $c.privilegeCheck.status | Should -Be 'consistent'
++    }
++
++    It 'flags a role whose flag and actions disagree, in both directions' {
++        $script:ctx['FlagOnly'].privilegeCheck.status | Should -Be 'role-flag-without-sensitive-action'
++        $script:ctx['NoFlag'].privilegeCheck.status | Should -Be 'sensitive-action-without-role-flag'
++    }
++
++    It 'says unknown, not consistent, when a directory action has no data' {
++        $c = $script:ctx['Unknown']
++        $c.privilegeCheck.status | Should -Be 'unknown'
++        @($c.undescribedActions) | Should -Be @('microsoft.directory/brandNew/allTasks')
++        ($c.permissions[0].actions[0]).described | Should -BeFalse
++    }
++
++    It 'leaves isPrivileged null outside microsoft.directory and keeps the description' {
++        $a = @($script:ctx['Priv'].permissions.actions) | Where-Object namespace -eq 'microsoft.office365.supportTickets'
++        $a.description | Should -Be 'Manage tickets'
++        $a.isPrivileged | Should -BeNullOrEmpty
++    }
++
++    It 'resolves inherited roles by name, with their sensitive actions' {
++        $i = @($script:ctx['Plain'].inheritsFrom)[0]
++        $i.displayName | Should -Be 'Priv'
++        @($i.sensitiveActions.action) | Should -Be @('microsoft.directory/users/password/update')
++    }
++
++    It 'says unknown for every role without resource-action data, and keeps the definition unchanged' {
++        $c = @(& $script:ctxScript -RoleDefinitionsDir $script:ctxSnap -TemplateId 'bbbbbbbb-0000-0000-0000-000000000001')[0]
++        $c.privilegeCheck.status | Should -Be 'unknown'
++        $c.resourceActions.directoryStatus | Should -Be 'missing'
++        ($c.definition | ConvertTo-Json -Depth 10) | Should -Be ((Get-Content -Raw (Join-Path $script:ctxSnap 'bbbbbbbb-0000-0000-0000-000000000001.json') | ConvertFrom-Json) | ConvertTo-Json -Depth 10)
++    }
++}
++
+ Describe 'Compare-RoleSnapshots' {
+     BeforeAll {
+         $script:catalogPath = Join-Path $TestDrive 'catalog.json'
+-- 
+2.43.0
+

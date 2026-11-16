@@ -1,0 +1,146 @@
+[
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:04:15.151Z",
+  "decision": "aangepast",
+  "entity": "microsoft.azure.devOps/allEntities",
+  "levelFloor": "Specialized",
+  "note": "geen removal actie oid dus specialized is prima.",
+  "plane": "Management"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:07:03.979Z",
+  "decision": "akkoord",
+  "entity": "microsoft.directory/agentIdentities",
+  "levelFloor": "Specialized",
+  "note": "",
+  "plane": "Control"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:07:35.204Z",
+  "decision": "akkoord",
+  "entity": "microsoft.directory/agentIdentityBlueprintPrincipals",
+  "levelFloor": "Specialized",
+  "note": "",
+  "plane": "Control"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:08:53.555Z",
+  "decision": "akkoord",
+  "entity": "microsoft.directory/backup",
+  "levelFloor": "Specialized",
+  "note": "",
+  "plane": "Control"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:14:35.315Z",
+  "decision": "akkoord",
+  "entity": "microsoft.directory/deviceLocalCredentials",
+  "levelFloor": "Privileged",
+  "note": "",
+  "plane": "Control"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:14:44.588Z",
+  "decision": "akkoord",
+  "entity": "microsoft.directory/oAuth2PermissionGrants",
+  "levelFloor": "Privileged",
+  "note": "",
+  "plane": "Control"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:14:59.884Z",
+  "decision": "akkoord",
+  "entity": "microsoft.directory/resourcePolicy",
+  "levelFloor": "Specialized",
+  "note": "",
+  "plane": "Control"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:15:49.084Z",
+  "decision": "akkoord",
+  "entity": "microsoft.directory/servicePrincipals",
+  "levelFloor": "Privileged",
+  "note": "",
+  "plane": "Control"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:16:09.003Z",
+  "decision": "akkoord",
+  "entity": "microsoft.directory/tenantManagement",
+  "levelFloor": "Specialized",
+  "note": "",
+  "plane": "Data"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:18:43.274Z",
+  "decision": "akkoord",
+  "entity": "microsoft.directory/userInfos",
+  "levelFloor": "Enterprise",
+  "note": "",
+  "plane": "Data"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:19:13.536Z",
+  "decision": "akkoord",
+  "entity": "microsoft.directory/users",
+  "levelFloor": "Privileged",
+  "note": "",
+  "plane": "Control"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:19:25.107Z",
+  "decision": "akkoord",
+  "entity": "microsoft.flow/allEntities",
+  "levelFloor": "Specialized",
+  "note": "",
+  "plane": "Management"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:19:59.745Z",
+  "decision": "aangepast",
+  "entity": "microsoft.graph.dataConnect/allEntities",
+  "levelFloor": "Privileged",
+  "note": "All properties en all tasks lijkt me privileged?",
+  "plane": "Management"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:20:15.157Z",
+  "decision": "akkoord",
+  "entity": "microsoft.office365.userCommunication/allEntities",
+  "levelFloor": "Specialized",
+  "note": "",
+  "plane": "Management"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:20:24.081Z",
+  "decision": "akkoord",
+  "entity": "microsoft.people/users",
+  "levelFloor": "Specialized",
+  "note": "",
+  "plane": "Data"
+ },
+ {
+  "actionOverrides": [],
+  "decidedAt": "2026-11-16T20:20:36.380Z",
+  "decision": "akkoord",
+  "entity": "microsoft.teams/allEntities",
+  "levelFloor": "Privileged",
+  "note": "",
+  "plane": "Management"
+ }
+]

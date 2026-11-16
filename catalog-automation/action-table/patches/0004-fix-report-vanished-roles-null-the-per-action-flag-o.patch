@@ -1,0 +1,634 @@
+From d3d830078a596c0fabb707bbaa95cb8b293a93c0 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 16 Nov 2026 12:24:23 +0000
+Subject: [PATCH 4/5] fix: report vanished roles, null the per-action flag
+ outside microsoft.directory, stop the export only on core properties
+
+- Compare: vanishedRoles lists roles that were in the base snapshot, are gone from head and were
+  never in the catalog; they count towards needsReview (schema v2 updated).
+- Export-ResourceActions: Microsoft applies isPrivileged only to the microsoft.directory namespace,
+  so it is null for every other namespace instead of a misleading false.
+- Export-RoleDefinitions: only a lost core property (templateId, id, displayName, isBuiltIn,
+  isPrivileged, rolePermissions) stops the export. Any other lost property, such as resourceScopes,
+  which Microsoft documents as deprecated soon, is written, recorded as lostProperties, and reaches
+  review through the comparison.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JQVkCwrr6JcCnvT3VV2czd
+---
+ catalog-automation/Compare-RoleSnapshots.ps1  |  15 +-
+ catalog-automation/Export-ResourceActions.ps1 |   7 +-
+ catalog-automation/Export-RoleDefinitions.ps1 |  21 +-
+ catalog-automation/Invoke-CatalogBacktest.ps1 |   2 +-
+ schemas/entra-role-export-report-v2.json      | 324 +++++++++++++++---
+ tests/RoleSnapshot.Tests.ps1                  |  32 +-
+ 6 files changed, 336 insertions(+), 65 deletions(-)
+
+diff --git a/catalog-automation/Compare-RoleSnapshots.ps1 b/catalog-automation/Compare-RoleSnapshots.ps1
+index fe8e1d0..dd99872 100644
+--- a/catalog-automation/Compare-RoleSnapshots.ps1
++++ b/catalog-automation/Compare-RoleSnapshots.ps1
+@@ -8,6 +8,7 @@
+ 
+       newRoles      roles in the head snapshot that the catalog does not list
+       removedRoles  roles the catalog lists that the head snapshot no longer has
++      vanishedRoles roles in the base snapshot that head no longer has and the catalog never listed
+       changedRoles  every role present in base and head whose definition differs, field by field:
+                       addedPermissions / removedPermissions  permissions as (action, condition) pairs;
+                                                              a condition change shows as one removed
+@@ -206,6 +207,13 @@ $removedRoles = foreach ($id in ($catalogById.Keys | Sort-Object)) {
+     }
+ }
+ 
++# Roles that were in the base snapshot and are gone from head, but were never in the catalog (they
++# appeared and disappeared between two reviews). removedRoles does not cover them: it is catalog-based.
++$vanishedRoles = foreach ($id in ($base.Keys | Sort-Object)) {
++    if ($head.ContainsKey($id) -or $catalogById.ContainsKey($id)) { continue }
++    [ordered]@{ templateId = $id; displayName = [string]$base[$id].displayName }
++}
++
+ # Own changes of every role present in both snapshots. Nothing is skipped.
+ $own = @{}
+ foreach ($id in $head.Keys) {
+@@ -280,6 +288,7 @@ $changedRoles = foreach ($id in ($head.Keys | Sort-Object)) {
+ 
+ $newRoles = @($newRoles)
+ $removedRoles = @($removedRoles)
++$vanishedRoles = @($vanishedRoles)
+ $changedRoles = @($changedRoles)
+ 
+ $report = [ordered]@{
+@@ -290,12 +299,14 @@ $report = [ordered]@{
+     summary       = [ordered]@{
+         newRoles        = $newRoles.Count
+         removedRoles    = $removedRoles.Count
++        vanishedRoles   = $vanishedRoles.Count
+         changedRoles    = $changedRoles.Count
+         readOnlyChanges = $readOnlyChanges
+-        needsReview     = ($newRoles.Count + $removedRoles.Count + $changedRoles.Count) -gt 0
++        needsReview     = ($newRoles.Count + $removedRoles.Count + $vanishedRoles.Count + $changedRoles.Count) -gt 0
+     }
+     newRoles      = $newRoles
+     removedRoles  = $removedRoles
++    vanishedRoles = $vanishedRoles
+     changedRoles  = $changedRoles
+ }
+ 
+@@ -303,4 +314,4 @@ $json = ($report | ConvertTo-Json -Depth 20) -replace "`r`n", "`n"
+ $outDir = Split-Path -Parent ([System.IO.Path]::GetFullPath($OutputPath))
+ New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+ [System.IO.File]::WriteAllText($OutputPath, $json + "`n", [System.Text.UTF8Encoding]::new($false))
+-Write-Host "Report: $($newRoles.Count) new, $($removedRoles.Count) removed, $($changedRoles.Count) changed, $readOnlyChanges of them read-only"
++Write-Host "Report: $($newRoles.Count) new, $($removedRoles.Count) removed, $($vanishedRoles.Count) vanished, $($changedRoles.Count) changed, $readOnlyChanges of them read-only"
+diff --git a/catalog-automation/Export-ResourceActions.ps1 b/catalog-automation/Export-ResourceActions.ps1
+index fae8454..00af120 100644
+--- a/catalog-automation/Export-ResourceActions.ps1
++++ b/catalog-automation/Export-ResourceActions.ps1
+@@ -7,7 +7,8 @@
+     A role definition lists its actions (rolePermissions[].allowedResourceActions) but says nothing
+     about them. Graph describes each action per namespace:
+     GET /beta/roleManagement/directory/resourceNamespaces/{namespace}/resourceActions
+-    with name, description and isPrivileged (Microsoft's flag for a privileged permission). Like the
++    with name, description and isPrivileged (Microsoft's flag for a sensitive action; it applies only to
++    the microsoft.directory namespace, so it is null for every other namespace). Like the
+     role definitions, this is the same in every tenant and holds no tenant data.
+ 
+     The namespaces are taken from the actions in the role snapshot, so only what the roles use is
+@@ -78,7 +79,9 @@ foreach ($ns in $namespaces) {
+                 [ordered]@{
+                     name         = [string]$_.name
+                     description  = [string]($_.PSObject.Properties['description']?.Value ?? '')
+-                    isPrivileged = [bool]($_.PSObject.Properties['isPrivileged']?.Value)
++                    # Microsoft: isPrivileged "applies only for actions in the microsoft.directory
++                    # resource namespace". Elsewhere it is not a verdict, so it is null, not false.
++                    isPrivileged = if ($ns -eq 'microsoft.directory') { [bool]($_.PSObject.Properties['isPrivileged']?.Value) } else { $null }
+                 }
+             } | Sort-Object { $_.name })
+         Write-JsonFile @{ namespace = $ns; actions = $actions } $file
+diff --git a/catalog-automation/Export-RoleDefinitions.ps1 b/catalog-automation/Export-RoleDefinitions.ps1
+index c7ca4f2..715da73 100644
+--- a/catalog-automation/Export-RoleDefinitions.ps1
++++ b/catalog-automation/Export-RoleDefinitions.ps1
+@@ -15,8 +15,11 @@
+     into the roles by id. A documented property that the API does not return even then is not an
+     error: it is listed in export-status.json and reported with Write-Warning.
+ 
+-    Regression guard: a property that every previously written file had, and that no role has now,
+-    stops the export (API shape regression). Nothing is written in that case.
++    Regression guard: a core property (templateId, id, displayName, isBuiltIn, isPrivileged,
++    rolePermissions) that every previously written file had, and that no role has now, stops the
++    export (API shape regression); nothing is written then. Any other property that disappears is
++    written as is, listed under lostProperties in export-status.json, and reaches review through the
++    comparison.
+ 
+     export-status.json goes next to the output folder (not inside it, so role-definitions/ holds only
+     role files). It has no timestamp, so it changes only when the content changes.
+@@ -64,6 +67,8 @@ $srcPath = Resolve-Path (Join-Path $PSScriptRoot '..' 'src')
+ . (Join-Path $srcPath 'graphEndpoints.ps1')
+ 
+ # Documented properties of unifiedRoleDefinition (beta).
++# Without these the snapshot is unusable: losing one from every role stops the export.
++$core = @('templateId', 'id', 'displayName', 'isBuiltIn', 'isPrivileged', 'rolePermissions')
+ $documented = @('allowedPrincipalTypes', 'description', 'displayName', 'id', 'isBuiltIn', 'isEnabled', 'isPrivileged', 'resourceScopes', 'rolePermissions', 'templateId', 'version')
+ 
+ if (-not $PSBoundParameters.ContainsKey('Definitions')) {
+@@ -128,6 +133,7 @@ foreach ($role in $builtIn) {
+ }
+ 
+ # 2. Regression guard: nothing that every previous file had may disappear. Checked before any write.
++$lost = @()
+ $outFull = [System.IO.Path]::GetFullPath($OutputPath)
+ if (Test-Path -Path $outFull -PathType Container) {
+     $previous = $null
+@@ -139,9 +145,15 @@ if (Test-Path -Path $outFull -PathType Container) {
+     }
+     if ($null -ne $previous -and $previous.Count -gt 0) {
+         $lost = @($previous | Where-Object { -not $names.Contains($_) } | Sort-Object)
+-        if ($lost.Count -gt 0) {
+-            throw "API shape regression: every previous role file had '$($lost -join "', '")', and no role has it now. Refusing to overwrite the snapshot."
++        # Only the properties everything rests on stop the export: without them the snapshot is
++        # unusable, which points to an API failure. Any other lost property (resourceScopes is
++        # documented as "will be deprecated soon") is written, recorded in export-status.json, and
++        # reaches review through the comparison like any other change.
++        $fatal = @($lost | Where-Object { $_ -in $core })
++        if ($fatal.Count -gt 0) {
++            throw "API shape regression: every previous role file had '$($fatal -join "', '")', and no role has it now. Refusing to overwrite the snapshot."
+         }
++        foreach ($name in $lost) { Write-Warning "Property '$name' was in every previous role file and is in none now." }
+     }
+ }
+ 
+@@ -157,6 +169,7 @@ foreach ($file in Get-ChildItem -Path $OutputPath -Filter '*.json' -File) {
+ 
+ $status = [ordered]@{
+     roles                       = $builtIn.Count
++    lostProperties              = @($lost)
+     documentedProperties        = @($documented | Sort-Object)
+     missingDocumentedProperties = $stillMissing
+     properties                  = @($names | Sort-Object)
+diff --git a/catalog-automation/Invoke-CatalogBacktest.ps1 b/catalog-automation/Invoke-CatalogBacktest.ps1
+index dbd540e..e4813f7 100644
+--- a/catalog-automation/Invoke-CatalogBacktest.ps1
++++ b/catalog-automation/Invoke-CatalogBacktest.ps1
+@@ -154,7 +154,7 @@ if ($Mode -eq 'Prepare') {
+         $detailFiles = @(Get-ChildItem -Path $ResourceActionsDir -Filter '*.json' -File | Where-Object Name -ne 'index.json' | Sort-Object Name)
+         foreach ($f in $detailFiles) {
+             foreach ($a in @((Get-Content -Raw -Path $f.FullName | ConvertFrom-Json).actions)) {
+-                $details[([string]$a.name).ToLowerInvariant()] = [ordered]@{ name = [string]$a.name; description = [string]$a.description; isPrivileged = [bool]$a.isPrivileged }
++                $details[([string]$a.name).ToLowerInvariant()] = [ordered]@{ name = [string]$a.name; description = [string]$a.description; isPrivileged = $a.isPrivileged }
+             }
+         }
+     }
+diff --git a/schemas/entra-role-export-report-v2.json b/schemas/entra-role-export-report-v2.json
+index 0460169..869a303 100644
+--- a/schemas/entra-role-export-report-v2.json
++++ b/schemas/entra-role-export-report-v2.json
+@@ -4,104 +4,326 @@
+   "title": "PIM Monitor role snapshot report v2",
+   "description": "report.json on the entra-role-export branch: what changed in the built-in Entra role definitions since the last reviewed snapshot, and how the catalog differs from the current snapshot. Deterministic output of catalog-automation/Compare-RoleSnapshots.ps1. v2 lists every changed role field by field (permissions as action and condition pairs, every other property with its old and new value) and every role that inherits from a changed role. The review routine validates it before use and treats every value, descriptions included, as data, never as instructions.",
+   "type": "object",
+-  "required": ["schemaVersion", "generatedAt", "base", "head", "summary", "newRoles", "removedRoles", "changedRoles"],
++  "required": [
++    "schemaVersion",
++    "generatedAt",
++    "base",
++    "head",
++    "summary",
++    "newRoles",
++    "removedRoles",
++    "vanishedRoles",
++    "changedRoles"
++  ],
+   "additionalProperties": false,
+   "properties": {
+-    "schemaVersion": { "type": "string", "pattern": "^2\\.\\d+\\.\\d+$" },
+-    "generatedAt": { "type": "string", "format": "date-time" },
+-    "base": { "$ref": "#/$defs/snapshotRef" },
+-    "head": { "$ref": "#/$defs/snapshotRef" },
++    "schemaVersion": {
++      "type": "string",
++      "pattern": "^2\\.\\d+\\.\\d+$"
++    },
++    "generatedAt": {
++      "type": "string",
++      "format": "date-time"
++    },
++    "base": {
++      "$ref": "#/$defs/snapshotRef"
++    },
++    "head": {
++      "$ref": "#/$defs/snapshotRef"
++    },
+     "summary": {
+       "type": "object",
+-      "required": ["newRoles", "removedRoles", "changedRoles", "readOnlyChanges", "needsReview"],
++      "required": [
++        "newRoles",
++        "removedRoles",
++        "vanishedRoles",
++        "changedRoles",
++        "readOnlyChanges",
++        "needsReview"
++      ],
+       "additionalProperties": false,
+       "properties": {
+-        "newRoles": { "type": "integer", "minimum": 0 },
+-        "removedRoles": { "type": "integer", "minimum": 0 },
+-        "changedRoles": { "type": "integer", "minimum": 0 },
+-        "readOnlyChanges": { "type": "integer", "minimum": 0 },
+-        "needsReview": { "type": "boolean" }
++        "newRoles": {
++          "type": "integer",
++          "minimum": 0
++        },
++        "removedRoles": {
++          "type": "integer",
++          "minimum": 0
++        },
++        "changedRoles": {
++          "type": "integer",
++          "minimum": 0
++        },
++        "readOnlyChanges": {
++          "type": "integer",
++          "minimum": 0
++        },
++        "needsReview": {
++          "type": "boolean"
++        },
++        "vanishedRoles": {
++          "type": "integer",
++          "minimum": 0
++        }
++      }
++    },
++    "newRoles": {
++      "type": "array",
++      "items": {
++        "$ref": "#/$defs/newRole"
+       }
+     },
+-    "newRoles": { "type": "array", "items": { "$ref": "#/$defs/newRole" } },
+-    "removedRoles": { "type": "array", "items": { "$ref": "#/$defs/removedRole" } },
+-    "changedRoles": { "type": "array", "items": { "$ref": "#/$defs/changedRole" } }
++    "removedRoles": {
++      "type": "array",
++      "items": {
++        "$ref": "#/$defs/removedRole"
++      }
++    },
++    "changedRoles": {
++      "type": "array",
++      "items": {
++        "$ref": "#/$defs/changedRole"
++      }
++    },
++    "vanishedRoles": {
++      "type": "array",
++      "items": {
++        "type": "object",
++        "required": [
++          "templateId",
++          "displayName"
++        ],
++        "additionalProperties": false,
++        "properties": {
++          "templateId": {
++            "type": "string"
++          },
++          "displayName": {
++            "type": "string"
++          }
++        }
++      }
++    }
+   },
+   "$defs": {
+     "snapshotRef": {
+       "type": "object",
+-      "required": ["sha"],
++      "required": [
++        "sha"
++      ],
+       "additionalProperties": false,
+-      "properties": { "sha": { "type": "string", "pattern": "^([0-9a-f]{7,40})?$" } }
++      "properties": {
++        "sha": {
++          "type": "string",
++          "pattern": "^([0-9a-f]{7,40})?$"
++        }
++      }
++    },
++    "guid": {
++      "type": "string",
++      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
++    },
++    "level": {
++      "enum": [
++        "Privileged",
++        "Specialized",
++        "Enterprise",
++        null
++      ]
+     },
+-    "guid": { "type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" },
+-    "level": { "enum": ["Privileged", "Specialized", "Enterprise", null] },
+     "newRole": {
+       "type": "object",
+-      "required": ["templateId", "displayName", "description", "isPrivileged", "floorLevel", "allowedResourceActions"],
++      "required": [
++        "templateId",
++        "displayName",
++        "description",
++        "isPrivileged",
++        "floorLevel",
++        "allowedResourceActions"
++      ],
+       "additionalProperties": false,
+       "properties": {
+-        "templateId": { "$ref": "#/$defs/guid" },
+-        "displayName": { "type": "string" },
+-        "description": { "type": "string" },
+-        "isPrivileged": { "type": "boolean" },
+-        "floorLevel": { "enum": ["Privileged", null] },
+-        "allowedResourceActions": { "type": "array", "items": { "type": "string" } }
++        "templateId": {
++          "$ref": "#/$defs/guid"
++        },
++        "displayName": {
++          "type": "string"
++        },
++        "description": {
++          "type": "string"
++        },
++        "isPrivileged": {
++          "type": "boolean"
++        },
++        "floorLevel": {
++          "enum": [
++            "Privileged",
++            null
++          ]
++        },
++        "allowedResourceActions": {
++          "type": "array",
++          "items": {
++            "type": "string"
++          }
++        }
+       }
+     },
+     "removedRole": {
+       "type": "object",
+-      "required": ["templateId", "displayName", "plane", "securityLevel"],
++      "required": [
++        "templateId",
++        "displayName",
++        "plane",
++        "securityLevel"
++      ],
+       "additionalProperties": false,
+       "properties": {
+-        "templateId": { "$ref": "#/$defs/guid" },
+-        "displayName": { "type": "string" },
+-        "plane": { "type": "string" },
+-        "securityLevel": { "type": "string" }
++        "templateId": {
++          "$ref": "#/$defs/guid"
++        },
++        "displayName": {
++          "type": "string"
++        },
++        "plane": {
++          "type": "string"
++        },
++        "securityLevel": {
++          "type": "string"
++        }
+       }
+     },
+     "permission": {
+       "type": "object",
+-      "required": ["action", "condition"],
++      "required": [
++        "action",
++        "condition"
++      ],
+       "additionalProperties": false,
+       "properties": {
+-        "action": { "type": "string" },
+-        "condition": { "type": ["string", "null"] }
++        "action": {
++          "type": "string"
++        },
++        "condition": {
++          "type": [
++            "string",
++            "null"
++          ]
++        }
+       }
+     },
+     "propertyChange": {
+       "type": "object",
+-      "required": ["property", "old", "new"],
++      "required": [
++        "property",
++        "old",
++        "new"
++      ],
+       "additionalProperties": false,
+       "properties": {
+-        "property": { "type": "string" },
++        "property": {
++          "type": "string"
++        },
+         "old": {},
+         "new": {}
+       }
+     },
+     "changedRole": {
+       "type": "object",
+-      "required": ["templateId", "displayName", "inCatalog", "currentPlane", "currentLevel", "isPrivileged", "floorLevel", "addedActions", "removedActions", "addedPermissions", "removedPermissions", "changedProperties", "inheritedChanges"],
++      "required": [
++        "templateId",
++        "displayName",
++        "inCatalog",
++        "currentPlane",
++        "currentLevel",
++        "isPrivileged",
++        "floorLevel",
++        "addedActions",
++        "removedActions",
++        "addedPermissions",
++        "removedPermissions",
++        "changedProperties",
++        "inheritedChanges"
++      ],
+       "additionalProperties": false,
+       "properties": {
+-        "templateId": { "$ref": "#/$defs/guid" },
+-        "displayName": { "type": "string" },
+-        "inCatalog": { "type": "boolean" },
+-        "currentPlane": { "type": ["string", "null"] },
+-        "currentLevel": { "$ref": "#/$defs/level" },
++        "templateId": {
++          "$ref": "#/$defs/guid"
++        },
++        "displayName": {
++          "type": "string"
++        },
++        "inCatalog": {
++          "type": "boolean"
++        },
++        "currentPlane": {
++          "type": [
++            "string",
++            "null"
++          ]
++        },
++        "currentLevel": {
++          "$ref": "#/$defs/level"
++        },
+         "isPrivileged": {
+           "type": "object",
+-          "required": ["old", "new"],
++          "required": [
++            "old",
++            "new"
++          ],
+           "additionalProperties": false,
+-          "properties": { "old": { "type": "boolean" }, "new": { "type": "boolean" } }
+-        },
+-        "floorLevel": { "enum": ["Privileged", null] },
+-        "addedActions": { "type": "array", "items": { "type": "string" } },
+-        "removedActions": { "type": "array", "items": { "type": "string" } },
+-        "addedPermissions": { "type": "array", "items": { "$ref": "#/$defs/permission" } },
+-        "removedPermissions": { "type": "array", "items": { "$ref": "#/$defs/permission" } },
+-        "changedProperties": { "type": "array", "items": { "$ref": "#/$defs/propertyChange" } },
+-        "inheritedChanges": { "type": "array", "items": { "$ref": "#/$defs/guid" } }
++          "properties": {
++            "old": {
++              "type": "boolean"
++            },
++            "new": {
++              "type": "boolean"
++            }
++          }
++        },
++        "floorLevel": {
++          "enum": [
++            "Privileged",
++            null
++          ]
++        },
++        "addedActions": {
++          "type": "array",
++          "items": {
++            "type": "string"
++          }
++        },
++        "removedActions": {
++          "type": "array",
++          "items": {
++            "type": "string"
++          }
++        },
++        "addedPermissions": {
++          "type": "array",
++          "items": {
++            "$ref": "#/$defs/permission"
++          }
++        },
++        "removedPermissions": {
++          "type": "array",
++          "items": {
++            "$ref": "#/$defs/permission"
++          }
++        },
++        "changedProperties": {
++          "type": "array",
++          "items": {
++            "$ref": "#/$defs/propertyChange"
++          }
++        },
++        "inheritedChanges": {
++          "type": "array",
++          "items": {
++            "$ref": "#/$defs/guid"
++          }
++        }
+       }
+     }
+   }
+diff --git a/tests/RoleSnapshot.Tests.ps1 b/tests/RoleSnapshot.Tests.ps1
+index d7ea96f..3e879a3 100644
+--- a/tests/RoleSnapshot.Tests.ps1
++++ b/tests/RoleSnapshot.Tests.ps1
+@@ -127,15 +127,15 @@ Describe 'Export-RoleDefinitions' {
+         $status.roles | Should -Be 120
+     }
+ 
+-    It 'refuses to write when a property every previous file had is gone, and leaves the folder unchanged' {
++    It 'refuses to write when a core property every previous file had is gone, and leaves the folder unchanged' {
+         $out = Join-Path $TestDrive 'regress/role-definitions'
+-        $withFlag = @(1..120 | ForEach-Object { New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_" | Add-Member -NotePropertyName featureFlag -NotePropertyValue 'on' -PassThru })
+-        & $script:export -OutputPath $out -Definitions $withFlag 3>$null | Out-Null
++        $defs = @(1..120 | ForEach-Object { New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_" })
++        & $script:export -OutputPath $out -Definitions $defs 3>$null | Out-Null
+         $before = @{}
+         foreach ($f in Get-ChildItem $out -File) { $before[$f.Name] = Get-Content -Raw $f.FullName }
+         $statusBefore = Get-Content -Raw (Join-Path $TestDrive 'regress/export-status.json')
+-        $without = @(1..120 | ForEach-Object { New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_" })
+-        { & $script:export -OutputPath $out -Definitions $without 3>$null } | Should -Throw '*API shape regression*'
++        $without = @(1..120 | ForEach-Object { $r = New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_"; $r.PSObject.Properties.Remove('rolePermissions'); $r })
++        { & $script:export -OutputPath $out -Definitions $without 3>$null } | Should -Throw '*API shape regression*rolePermissions*'
+         $after = @{}
+         foreach ($f in Get-ChildItem $out -File) { $after[$f.Name] = Get-Content -Raw $f.FullName }
+         $after.Count | Should -Be $before.Count
+@@ -143,6 +143,16 @@ Describe 'Export-RoleDefinitions' {
+         Get-Content -Raw (Join-Path $TestDrive 'regress/export-status.json') | Should -Be $statusBefore
+     }
+ 
++    It 'writes on when a non-core property disappears, and records it as lost' {
++        $out = Join-Path $TestDrive 'lost/role-definitions'
++        $withFlag = @(1..120 | ForEach-Object { New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_" | Add-Member -NotePropertyName resourceScopes -NotePropertyValue @('/') -PassThru })
++        & $script:export -OutputPath $out -Definitions $withFlag 3>$null | Out-Null
++        $without = @(1..120 | ForEach-Object { New-RoleDef -Id ('{0:x8}-0000-0000-0000-000000000000' -f $_) -Name "Role $_" })
++        & $script:export -OutputPath $out -Definitions $without 3>$null | Out-Null
++        (Get-Content -Raw (Join-Path $out '00000001-0000-0000-0000-000000000000.json') | ConvertFrom-Json).PSObject.Properties.Name | Should -Not -Contain 'resourceScopes'
++        @((Get-Content -Raw (Join-Path $TestDrive 'lost/export-status.json') | ConvertFrom-Json).lostProperties) | Should -Be @('resourceScopes')
++    }
++
+     It 'writes export-status.json without a timestamp, identical on two runs with the same input' {
+         $fetch = {
+             param([string] $Select)
+@@ -187,6 +197,8 @@ Describe 'Export-ResourceActions' {
+         $dir = Get-Content -Raw (Join-Path $out 'microsoft.directory.json') | ConvertFrom-Json
+         @($dir.actions.name) | Should -Be @('microsoft.directory/users/password/update', 'microsoft.directory/users/standard/read')
+         ($dir.actions | Where-Object name -like '*password*').isPrivileged | Should -BeTrue
++        $tickets = Get-Content -Raw (Join-Path $out 'microsoft.office365.supportTickets.json') | ConvertFrom-Json
++        $tickets.actions[0].isPrivileged | Should -BeNullOrEmpty -Because 'Microsoft applies isPrivileged only to the microsoft.directory namespace'
+         $idx = Get-Content -Raw (Join-Path $out 'index.json') | ConvertFrom-Json
+         $idx.roleActions | Should -Be 3
+         $idx.described | Should -Be 3
+@@ -266,6 +278,16 @@ Describe 'Compare-RoleSnapshots' {
+         $r.removedRoles.templateId | Should -Contain $script:idB
+     }
+ 
++    It 'reports a role that appeared and disappeared before it reached the catalog as vanished' {
++        $a = New-RoleDef $script:idA 'Alpha'; $b = New-RoleDef $script:idB 'Beta'; $c = New-RoleDef $script:idC 'Gamma'
++        $r = Invoke-Compare -Base @($a, $b, $c) -Head @($a, $b) -Name 'vanished'
++        $r.summary.vanishedRoles | Should -Be 1
++        $r.vanishedRoles[0].templateId | Should -Be $script:idC
++        $r.vanishedRoles[0].displayName | Should -Be 'Gamma'
++        $r.summary.removedRoles | Should -Be 0 -Because 'Gamma was never in the catalog'
++        $r.summary.needsReview | Should -BeTrue
++    }
++
+     It 'reports a flipped isPrivileged and an added write action' {
+         $a1 = New-RoleDef $script:idA 'Alpha' -Actions @('x/read')
+         $a2 = New-RoleDef $script:idA 'Alpha' -Actions @('x/read', 'x/allProperties/update') -Privileged $true
+-- 
+2.43.0
+

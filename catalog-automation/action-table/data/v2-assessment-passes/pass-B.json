@@ -1,0 +1,210 @@
+[
+ {
+  "action": "microsoft.directory/agentIdentities/idJagConfiguration/update",
+  "service": "Agent Identity",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "high",
+  "reason": "Write on agent identity outbound ID-JAG config; same entity as other Agent Identity updates (basic, authentication)."
+ },
+ {
+  "action": "microsoft.directory/agentIdentityBlueprintPrincipals/idJagConfiguration/update",
+  "service": "Agent Identity",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "high",
+  "reason": "Write on blueprint principal outbound ID-JAG config; same entity as Agent Identity service updates. Owner condition is role-level."
+ },
+ {
+  "action": "microsoft.directory/resourcePolicy/assignments/basic/update",
+  "service": "Tenant Policy Management",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "medium",
+  "reason": "Changes which tenant-wide resource policies apply to resources; closest fit is Tenant Policy Management (policies/basic/update)."
+ },
+ {
+  "action": "microsoft.directory/resourcePolicy/assignments/create",
+  "service": "Tenant Policy Management",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "medium",
+  "reason": "Creates resource policy assignments, steering tenant policy; fits Tenant Policy Management like policies/create."
+ },
+ {
+  "action": "microsoft.directory/resourcePolicy/assignments/delete",
+  "service": "Tenant Policy Management",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "medium",
+  "reason": "Deletes resource policy assignments, can remove tenant policy enforcement; fits Tenant Policy Management like policies/delete."
+ },
+ {
+  "action": "microsoft.directory/resourcePolicy/assignments/standard/read",
+  "service": "Tenant Configuration (Reader)",
+  "plane": "Management",
+  "levelFloor": "Enterprise",
+  "confidence": "medium",
+  "reason": "Unflagged standard read of tenant resource policy assignments; reading tenant configuration."
+ },
+ {
+  "action": "microsoft.directory/resourcePolicy/configuration/basic/update",
+  "service": "Tenant Policy Management",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "medium",
+  "reason": "Updates tenant-wide resource policy config incl. privileged-read app ID; shapes access, fits Tenant Policy Management."
+ },
+ {
+  "action": "microsoft.directory/resourcePolicy/configuration/standard/read",
+  "service": "Tenant Configuration (Reader)",
+  "plane": "Management",
+  "levelFloor": "Enterprise",
+  "confidence": "medium",
+  "reason": "Unflagged standard read of tenant-wide resource policy configuration; reading tenant configuration."
+ },
+ {
+  "action": "microsoft.directory/resourcePolicy/definitions/basic/update",
+  "service": "Tenant Policy Management",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "medium",
+  "reason": "Updates resource policy definitions, tenant policy content; fits Tenant Policy Management like policies/basic/update."
+ },
+ {
+  "action": "microsoft.directory/resourcePolicy/definitions/create",
+  "service": "Tenant Policy Management",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "medium",
+  "reason": "Creates resource policy definitions; fits Tenant Policy Management like policies/create."
+ },
+ {
+  "action": "microsoft.directory/resourcePolicy/definitions/delete",
+  "service": "Tenant Policy Management",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "medium",
+  "reason": "Deletes resource policy definitions; fits Tenant Policy Management like policies/delete."
+ },
+ {
+  "action": "microsoft.directory/resourcePolicy/definitions/standard/read",
+  "service": "Tenant Configuration (Reader)",
+  "plane": "Management",
+  "levelFloor": "Enterprise",
+  "confidence": "medium",
+  "reason": "Unflagged standard read of resource policy definitions; reading tenant configuration."
+ },
+ {
+  "action": "microsoft.directory/resourcePolicy/evaluateAssignedPolicies",
+  "service": "Tenant Configuration (Reader)",
+  "plane": "Management",
+  "levelFloor": "Enterprise",
+  "confidence": "low",
+  "reason": "Evaluates assigned policies for a resource, a read-like operation on tenant policy config; no exact service match."
+ },
+ {
+  "action": "microsoft.directory/resourcePolicy/evaluatePolicy",
+  "service": "Tenant Configuration (Reader)",
+  "plane": "Management",
+  "levelFloor": "Enterprise",
+  "confidence": "low",
+  "reason": "Evaluates a policy against a supplied resource, read-like and non-mutating; no exact service match."
+ },
+ {
+  "action": "microsoft.directory/userInfos/address/read",
+  "service": "Default member",
+  "plane": "Data",
+  "levelFloor": "Enterprise",
+  "confidence": "medium",
+  "reason": "OpenID userinfo read of user address; ordinary profile read like users/standard/read in Default member."
+ },
+ {
+  "action": "microsoft.directory/userInfos/email/read",
+  "service": "Default member",
+  "plane": "Data",
+  "levelFloor": "Enterprise",
+  "confidence": "medium",
+  "reason": "OpenID userinfo read of user email; ordinary profile read like users/standard/read in Default member."
+ },
+ {
+  "action": "microsoft.directory/userInfos/openId/read",
+  "service": "Default member",
+  "plane": "Data",
+  "levelFloor": "Enterprise",
+  "confidence": "medium",
+  "reason": "OpenID userinfo read of user identifier; ordinary profile read like users/standard/read in Default member."
+ },
+ {
+  "action": "microsoft.directory/userInfos/phone/read",
+  "service": "Default member",
+  "plane": "Data",
+  "levelFloor": "Enterprise",
+  "confidence": "medium",
+  "reason": "OpenID userinfo read of user phone number; ordinary profile read like users/standard/read in Default member."
+ },
+ {
+  "action": "microsoft.directory/userInfos/profile/read",
+  "service": "Default member",
+  "plane": "Data",
+  "levelFloor": "Enterprise",
+  "confidence": "medium",
+  "reason": "OpenID userinfo read of user profile properties; ordinary profile read like users/standard/read in Default member."
+ },
+ {
+  "action": "microsoft.directory/users/basicProfile/update",
+  "service": "Global User Management",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "high",
+  "reason": "Update of user profile properties; same entity as users/basic/update in Global User Management. Self condition is role-level."
+ },
+ {
+  "action": "microsoft.directory/users/changePassword",
+  "service": "Global User Management",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "high",
+  "reason": "Changes user passwords; same purpose as users/password/update in Global User Management. Self condition is role-level."
+ },
+ {
+  "action": "microsoft.directory/users/eligibleMemberOf/read",
+  "service": "Default member",
+  "plane": "Data",
+  "levelFloor": "Enterprise",
+  "confidence": "high",
+  "reason": "Unflagged read of user eligible memberships; sibling of users/memberOf/read in Default member."
+ },
+ {
+  "action": "microsoft.directory/users/identities/update",
+  "service": "Global User Management",
+  "plane": "Control",
+  "levelFloor": "Privileged",
+  "confidence": "high",
+  "reason": "Microsoft flags isPrivileged; updating sign-in identities of users. Global User Management, rule 1."
+ },
+ {
+  "action": "microsoft.directory/users/mobile/update",
+  "service": "Global User Management",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "high",
+  "reason": "Update of user mobile numbers; same entity as users/basic/update in Global User Management. Self condition is role-level."
+ },
+ {
+  "action": "microsoft.directory/users/pendingMemberOf/read",
+  "service": "Default member",
+  "plane": "Data",
+  "levelFloor": "Enterprise",
+  "confidence": "high",
+  "reason": "Unflagged read of user pending memberships; sibling of users/memberOf/read in Default member."
+ },
+ {
+  "action": "microsoft.directory/users/searchableDeviceKey/update",
+  "service": "Global User Management",
+  "plane": "Control",
+  "levelFloor": "Specialized",
+  "confidence": "medium",
+  "reason": "Updates device keys tied to user authentication; user write in Global User Management. Self condition is role-level."
+ }
+]

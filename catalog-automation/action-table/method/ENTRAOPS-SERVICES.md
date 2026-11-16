@@ -1,0 +1,899 @@
+# EntraOps services (reference, by Thomas Naunheim)
+
+Each service groups actions that EntraOps puts in one tier. Tier names are mapped to our planes:
+ControlPlane = Control, ManagementPlane = Management, UserAccess = Data.
+
+## Control (EntraOps ControlPlane)
+
+### Agent Identity
+
+- `microsoft.directory/agentIdentities/appRoleAssignedTo/update`
+- `microsoft.directory/agentIdentities/authentication/update`
+- `microsoft.directory/agentIdentities/basic/update`
+- `microsoft.directory/agentIdentities/create`
+- `microsoft.directory/agentIdentities/delete`
+- `microsoft.directory/agentIdentities/disable`
+- `microsoft.directory/agentIdentities/enable`
+- `microsoft.directory/agentIdentities/owners/update`
+- `microsoft.directory/agentIdentities/tag/update`
+- `microsoft.directory/agentIdentityBlueprintPrincipals/appRoleAssignedTo/update`
+- `microsoft.directory/agentIdentityBlueprintPrincipals/authentication/update`
+- `microsoft.directory/agentIdentityBlueprintPrincipals/basic/update`
+- `microsoft.directory/agentIdentityBlueprintPrincipals/create`
+- `microsoft.directory/agentIdentityBlueprintPrincipals/delete`
+- `microsoft.directory/agentIdentityBlueprintPrincipals/disable`
+- `microsoft.directory/agentIdentityBlueprintPrincipals/enable`
+- `microsoft.directory/agentIdentityBlueprintPrincipals/owners/update`
+- `microsoft.directory/agentIdentityBlueprintPrincipals/tag/update`
+- `microsoft.directory/agentIdentityBlueprints/allProperties/update`
+- `microsoft.directory/agentIdentityBlueprints/appRoles/update`
+- `microsoft.directory/agentIdentityBlueprints/audience/update`
+- `microsoft.directory/agentIdentityBlueprints/authentication/update`
+- `microsoft.directory/agentIdentityBlueprints/basic/update`
+- `microsoft.directory/agentIdentityBlueprints/create`
+- `microsoft.directory/agentIdentityBlueprints/credentials/update`
+- `microsoft.directory/agentIdentityBlueprints/delete`
+- `microsoft.directory/agentIdentityBlueprints/owners/update`
+- `microsoft.directory/agentIdentityBlueprints/permissions/update`
+- `microsoft.directory/agentIdentityBlueprints/tag/update`
+- `microsoft.directory/deletedItems.agentIdentities/delete`
+- `microsoft.directory/deletedItems.agentIdentities/restore`
+- `microsoft.agentRegistry/allEntities/allProperties/allTasks`
+- `microsoft.directory/deletedItems.agentIdentityBlueprintPrincipals/delete`
+- `microsoft.directory/deletedItems.agentIdentityBlueprintPrincipals/restore`
+- `microsoft.directory/deletedItems.agentIdentityBlueprints/delete`
+- `microsoft.directory/deletedItems.agentIdentityBlueprints/restore`
+- `microsoft.directory/agentIdentityBlueprints/verification/update`
+
+### Tenant Governance
+
+- `microsoft.directory/tenantGovernance/invitations/create`
+- `microsoft.directory/tenantGovernance/invitations/delete`
+- `microsoft.directory/tenantGovernance/policyTemplates/allProperties/update`
+- `microsoft.directory/tenantGovernance/policyTemplates/create`
+- `microsoft.directory/tenantGovernance/policyTemplates/delete`
+- `microsoft.directory/tenantGovernance/relatedTenants/refresh`
+- `microsoft.directory/tenantGovernance/relationships/allProperties/update`
+- `microsoft.directory/tenantGovernance/relationships/create`
+- `microsoft.directory/tenantGovernance/requests/allProperties/update`
+- `microsoft.directory/tenantGovernance/requests/create`
+- `microsoft.directory/tenantGovernance/settings/allProperties/update`
+
+### Application and Workload Identity
+
+- `microsoft.directory/adminConsentRequestPolicy/allProperties/allTasks`
+- `microsoft.directory/applicationPolicies/basic/update`
+- `microsoft.directory/applicationPolicies/create`
+- `microsoft.directory/applicationPolicies/delete`
+- `microsoft.directory/applicationPolicies/owners/update`
+- `microsoft.directory/applications/allProperties/allTasks`
+- `microsoft.directory/applications/applicationProxy/update`
+- `microsoft.directory/applications/applicationProxyAuthentication/update`
+- `microsoft.directory/applications/applicationProxySslCertificate/update`
+- `microsoft.directory/applications/applicationProxyUrlSettings/update`
+- `microsoft.directory/applications/appRoles/update`
+- `microsoft.directory/applications/audience/update`
+- `microsoft.directory/applications/authentication/update`
+- `microsoft.directory/applications/create`
+- `microsoft.directory/applications/credentials/update`
+- `microsoft.directory/applications/delete`
+- `microsoft.directory/applications/disablement/update`
+- `microsoft.directory/applications/extensionProperties/update`
+- `microsoft.directory/applications/notes/update`
+- `microsoft.directory/applications/owners/update`
+- `microsoft.directory/applications/permissions/update`
+- `microsoft.directory/applications/tag/update`
+- `microsoft.directory/applications/verification/update`
+- `microsoft.directory/applicationTemplates/instantiate`
+- `microsoft.directory/deletedItems.applications/delete`
+- `microsoft.directory/deletedItems.applications/restore`
+- `microsoft.directory/oAuth2PermissionGrants/allProperties/allTasks`
+- `microsoft.directory/oAuth2PermissionGrants/basic/update`
+- `microsoft.directory/oAuth2PermissionGrants/create`
+- `microsoft.directory/permissionGrantPolicies/allProperties/update`
+- `microsoft.directory/permissionGrantPolicies/basic/update`
+- `microsoft.directory/permissionGrantPolicies/create`
+- `microsoft.directory/permissionGrantPolicies/delete`
+- `microsoft.directory/servicePrincipals/allProperties/allTasks`
+- `microsoft.directory/servicePrincipals/appRoleAssignedTo/update`
+- `microsoft.directory/servicePrincipals/audience/update`
+- `microsoft.directory/servicePrincipals/authentication/update`
+- `microsoft.directory/servicePrincipals/create`
+- `microsoft.directory/servicePrincipals/credentials/update`
+- `microsoft.directory/servicePrincipals/customSecurityAttributes/update`
+- `microsoft.directory/servicePrincipals/synchronization.customSecurityAttributes/schema/update`
+- `microsoft.directory/servicePrincipals/delete`
+- `microsoft.directory/servicePrincipals/enable`
+- `microsoft.directory/servicePrincipals/getPasswordSingleSignOnCredentials`
+- `microsoft.directory/servicePrincipals/managePasswordSingleSignOnCredentials`
+- `microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-application-admin`
+- `microsoft.directory/servicePrincipals/managePermissionGrantsForAll.microsoft-company-admin`
+- `microsoft.directory/servicePrincipals/notes/update`
+- `microsoft.directory/servicePrincipals/owners/update`
+- `microsoft.directory/servicePrincipals/permissions/update`
+- `microsoft.directory/servicePrincipals/policies/update`
+- `microsoft.directory/servicePrincipals/synchronizationCredentials/manage`
+- `microsoft.directory/servicePrincipals/synchronizationJobs/manage`
+- `microsoft.directory/servicePrincipals/synchronizationSchema/manage`
+- `microsoft.directory/servicePrincipals/tag/update`
+
+### Authentication
+
+- `microsoft.directory/customAuthenticationExtensions/allProperties/allTasks`
+- `microsoft.directory/domains/federation/update`
+- `microsoft.directory/domains/federationConfiguration/basic/update`
+- `microsoft.directory/domains/federationConfiguration/create`
+- `microsoft.directory/domains/federationConfiguration/delete`
+- `microsoft.directory/hybridAuthenticationPolicy/allProperties/allTasks`
+- `microsoft.directory/onPasswordSubmitCustomAuthenticationExtension/allProperties/allTasks`
+- `microsoft.directory/onPasswordUpdateCustomAuthenticationExtension/allProperties/allTasks`
+- `microsoft.directory/organization/strongAuthentication/allTasks`
+- `microsoft.directory/passwordHashSync/allProperties/allTasks`
+- `microsoft.directory/userCredentialPolicies/basic/update`
+- `microsoft.directory/userCredentialPolicies/create`
+- `microsoft.directory/userCredentialPolicies/delete`
+- `microsoft.directory/userCredentialPolicies/owners/update`
+- `microsoft.directory/userCredentialPolicies/tenantDefault/update`
+
+### Backup and Recovery
+
+- `microsoft.directory/backup/preview/cancel`
+- `microsoft.directory/backup/preview/create`
+- `microsoft.directory/backup/recovery/cancel`
+- `microsoft.directory/backup/recovery/create`
+- `microsoft.directory/backup/standard/read`
+
+### Cloud Access Security Broker
+
+- `microsoft.directory/cloudAppSecurity/allProperties/allTasks`
+
+### Cloud Infrastructure Entitlement Management
+
+- `microsoft.permissionsManagement/allEntities/allProperties/allTasks`
+
+### Conditional Access
+
+- `microsoft.directory/conditionalAccessPolicies/allProperties/allTasks`
+- `microsoft.directory/conditionalAccessPolicies/basic/update`
+- `microsoft.directory/conditionalAccessPolicies/create`
+- `microsoft.directory/conditionalAccessPolicies/delete`
+- `microsoft.directory/conditionalAccessPolicies/owners/update`
+- `microsoft.directory/conditionalAccessPolicies/tenantDefault/update`
+- `microsoft.directory/conditionalAccessPolicyPlans/basic/update`
+- `microsoft.directory/conditionalAccessPolicyPlans/create`
+- `microsoft.directory/conditionalAccessPolicyPlans/delete`
+- `microsoft.directory/crossTenantAccessPolicy/basic/update`
+- `microsoft.directory/crossTenantAccessPolicy/default/b2bCollaboration/update`
+- `microsoft.directory/crossTenantAccessPolicy/default/b2bDirectConnect/update`
+- `microsoft.directory/crossTenantAccessPolicy/default/tenantRestrictions/update`
+- `microsoft.directory/crossTenantAccessPolicy/partners/b2bCollaboration/update`
+- `microsoft.directory/crossTenantAccessPolicy/partners/b2bDirectConnect/update`
+- `microsoft.directory/crossTenantAccessPolicy/partners/delete`
+- `microsoft.directory/crossTenantAccessPolicy/partners/identitySynchronization/basic/update`
+- `microsoft.directory/crossTenantAccessPolicy/partners/identitySynchronization/create`
+- `microsoft.directory/crossTenantAccessPolicy/partners/templates/multiTenantOrganizationIdentitySynchronization/basic/update`
+- `microsoft.directory/crossTenantAccessPolicy/partners/templates/multiTenantOrganizationIdentitySynchronization/resetToDefaultSettings`
+- `microsoft.directory/crossTenantAccessPolicy/partners/templates/multiTenantOrganizationPartnerConfiguration/basic/update`
+- `microsoft.directory/crossTenantAccessPolicy/partners/templates/multiTenantOrganizationPartnerConfiguration/resetToDefaultSettings`
+- `microsoft.directory/crossTenantAccessPolicy/partners/tenantRestrictions/update`
+- `microsoft.directory/namedLocations/basic/update`
+- `microsoft.directory/namedLocations/create`
+- `microsoft.directory/namedLocations/delete`
+- `microsoft.directory/policies/allProperties/allTasks`
+- `microsoft.directory/resourceNamespaces/resourceActions/authenticationContext/update`
+
+### Cross Tenant Management
+
+- `microsoft.commerce.tenantRelationships/customerDelegatedAdminPrivileges/allProperties/allTasks`
+
+### Entitlement Management
+
+- `microsoft.directory/accessReviews/allProperties/allTasks`
+- `microsoft.directory/accessReviews/definitions.applications/allProperties/allTasks`
+- `microsoft.directory/accessReviews/definitions.directoryRoles/allProperties/allTasks`
+- `microsoft.directory/accessReviews/definitions.entitlementManagement/allProperties/allTasks`
+- `microsoft.directory/accessReviews/definitions.groups/allProperties/update`
+- `microsoft.directory/accessReviews/definitions.groups/create`
+- `microsoft.directory/accessReviews/definitions.groups/delete`
+- `microsoft.directory/accessReviews/definitions.groupsAssignableToRoles/allProperties/update`
+- `microsoft.directory/accessReviews/definitions.groupsAssignableToRoles/create`
+- `microsoft.directory/accessReviews/definitions.groupsAssignableToRoles/delete`
+- `microsoft.directory/accessReviews/definitions/allProperties/allTasks`
+- `microsoft.directory/entitlementManagement/allProperties/allTasks`
+
+### External Identities
+
+- `microsoft.directory/b2cTrustFrameworkKeySet/allProperties/allTasks`
+- `microsoft.directory/b2cTrustFrameworkPolicy/allProperties/allTasks`
+- `microsoft.directory/b2cUserAttribute/allProperties/allTasks`
+- `microsoft.directory/b2cUserFlow/allProperties/allTasks`
+- `microsoft.directory/identityProviders/allProperties/allTasks`
+
+### Global Endpoint Bitlocker Recovery
+
+- `microsoft.directory/bitlockerKeys/key/read`
+
+### Global Endpoint Local Admin
+
+- `microsoft.directory/deviceLocalCredentials/password/read`
+
+### Global Endpoint Management
+
+- `microsoft.directory/certificateBasedDeviceAuthConfigurations/create`
+- `microsoft.directory/certificateBasedDeviceAuthConfigurations/credentials/update`
+- `microsoft.directory/certificateBasedDeviceAuthConfigurations/delete`
+- `microsoft.directory/certificateBasedDeviceAuthConfigurations/standard/read`
+- `microsoft.directory/deletedItems.devices/delete`
+- `microsoft.directory/deletedItems.devices/restore`
+- `microsoft.directory/deviceManagementPolicies/basic/update`
+- `microsoft.directory/deviceRegistrationPolicy/basic/update`
+- `microsoft.directory/devices/allProperties/allTasks`
+- `microsoft.directory/devices/basic/update`
+- `microsoft.directory/devices/create`
+- `microsoft.directory/devices/delete`
+- `microsoft.directory/devices/disable`
+- `microsoft.directory/devices/enable`
+- `microsoft.directory/devices/extensionAttributeSet1/update`
+- `microsoft.directory/devices/extensionAttributeSet2/update`
+- `microsoft.directory/devices/extensionAttributeSet3/update`
+- `microsoft.directory/devices/permissions/update`
+- `microsoft.directory/devices/registeredOwners/update`
+- `microsoft.directory/devices/registeredUsers/update`
+- `microsoft.directory/deviceTemplates/create`
+- `microsoft.directory/deviceTemplates/createDeviceFromTemplate`
+- `microsoft.directory/deviceTemplates/delete`
+- `microsoft.directory/deviceTemplates/deviceInstances/read`
+- `microsoft.directory/deviceTemplates/owners/read`
+- `microsoft.directory/deviceTemplates/owners/update`
+- `microsoft.intune/allEntities/allTasks`
+- `microsoft.intune/allEntities/read`
+- `microsoft.windows.updatesDeployments/allEntities/allProperties/allTasks`
+
+### Global Secure Access Management
+
+- `microsoft.networkAccess/allEntities/allProperties/allTasks`
+
+### Global Security and Compliance Management
+
+- `microsoft.azure.customSecurityAttributeDiagnosticSettings/allEntities/allProperties/allTasks`
+- `microsoft.office365.protectionCenter/allEntities/allProperties/allTasks`
+- `microsoft.office365.protectionCenter/allEntities/basic/update`
+- `microsoft.office365.securityComplianceCenter/allEntities/allTasks`
+- `microsoft.windows.defenderAdvancedThreatProtection/allEntities/allTasks`
+
+### Global Agent User Management
+
+- `microsoft.directory/agentUsers/assignLicense`
+- `microsoft.directory/agentUsers/basic/update`
+- `microsoft.directory/agentUsers/create`
+- `microsoft.directory/agentUsers/delete`
+- `microsoft.directory/agentUsers/disable`
+- `microsoft.directory/agentUsers/enable`
+- `microsoft.directory/agentUsers/invalidateAllRefreshTokens`
+- `microsoft.directory/agentUsers/lifeCycleInfo/read`
+- `microsoft.directory/agentUsers/lifeCycleInfo/update`
+- `microsoft.directory/agentUsers/manager/update`
+- `microsoft.directory/agentUsers/photo/update`
+- `microsoft.directory/agentUsers/reprocessLicenseAssignment`
+- `microsoft.directory/agentUsers/restore`
+- `microsoft.directory/agentUsers/revokeSignInSessions`
+- `microsoft.directory/agentUsers/sponsors/update`
+- `microsoft.directory/agentUsers/usageLocation/update`
+- `microsoft.directory/agentUsers/userPrincipalName/update`
+
+### Global User Management
+
+- `microsoft.directory/contacts/allProperties/allTasks`
+- `microsoft.directory/deletedItems.users/restore`
+- `microsoft.directory/users/allProperties/allTasks`
+- `microsoft.directory/users/authenticationMethods/basic/update`
+- `microsoft.directory/users/authenticationMethods/create`
+- `microsoft.directory/users/authenticationMethods/delete`
+- `microsoft.directory/users/authorizationInfo/update`
+- `microsoft.directory/users/basic/update`
+- `microsoft.directory/users/convertExternalToInternalMemberUser`
+- `microsoft.directory/users/create`
+- `microsoft.directory/users/customSecurityAttributes/update`
+- `microsoft.directory/users/delete`
+- `microsoft.directory/users/disable`
+- `microsoft.directory/users/enable`
+- `microsoft.directory/users/invalidateAllRefreshTokens`
+- `microsoft.directory/users/manager/update`
+- `microsoft.directory/users/password/update`
+- `microsoft.directory/users/photo/update`
+- `microsoft.directory/users/restore`
+- `microsoft.directory/users/sponsors/update`
+- `microsoft.directory/users/usageLocation/update`
+- `microsoft.directory/users/userPrincipalName/update`
+
+### Group Management
+
+- `microsoft.directory/bulkJobs.groups/basic/update`
+- `microsoft.directory/bulkJobs.groups/create`
+- `microsoft.directory/bulkJobs.groups/standard/read`
+- `microsoft.directory/deletedItems.groups/delete`
+- `microsoft.directory/deletedItems.groups/restore`
+- `microsoft.directory/groups.security/assignedLabels/update`
+- `microsoft.directory/groups.security/basic/update`
+- `microsoft.directory/groups.security/classification/update`
+- `microsoft.directory/groups.security/create`
+- `microsoft.directory/groups.security/delete`
+- `microsoft.directory/groups.security/dynamicMembershipRule/update`
+- `microsoft.directory/groups.security/members/update`
+- `microsoft.directory/groups.security/owners/update`
+- `microsoft.directory/groups.security/visibility/update`
+- `microsoft.directory/groups/assignedLabels/update`
+- `microsoft.directory/groups/basic/update`
+- `microsoft.directory/groups/classification/update`
+- `microsoft.directory/groups/create`
+- `microsoft.directory/groups/delete`
+- `microsoft.directory/groups/dynamicMembershipRule/update`
+- `microsoft.directory/groups/groupType/update`
+- `microsoft.directory/groups/members/update`
+- `microsoft.directory/groups/onPremWriteBack/update`
+- `microsoft.directory/groups/owners/update`
+- `microsoft.directory/groups/restore`
+- `microsoft.directory/groups/settings/update`
+- `microsoft.directory/groups/visibility/update`
+- `microsoft.directory/groupSettings/allProperties/allTasks`
+- `microsoft.directory/groupSettings/basic/update`
+- `microsoft.directory/groupSettings/create`
+- `microsoft.directory/groupSettings/delete`
+- `microsoft.directory/groupSettingTemplates/allProperties/allTasks`
+
+### Hybrid Identity Synchronization
+
+- `microsoft.directory/onPremisesSynchronization/basic/update`
+
+### Identity Threat Detection and Response
+
+- `microsoft.azure.advancedThreatProtection/allEntities/allTasks`
+- `microsoft.directory/identityProtection/allProperties/allTasks`
+- `microsoft.directory/identityProtection/allProperties/update`
+
+### License Management
+
+- `microsoft.directory/groups/assignLicense`
+- `microsoft.directory/groups/reprocessLicenseAssignment`
+- `microsoft.directory/groupsAssignableToRoles/assignLicense`
+- `microsoft.directory/groupsAssignableToRoles/reprocessLicenseAssignment`
+- `microsoft.directory/users/assignLicense`
+- `microsoft.directory/users/reprocessLicenseAssignment`
+
+### Multi Tenant Management
+
+- `microsoft.directory/multiTenantOrganization/basic/update`
+- `microsoft.directory/multiTenantOrganization/create`
+- `microsoft.directory/multiTenantOrganization/joinRequest/organizationDetails/update`
+- `microsoft.directory/multiTenantOrganization/tenants/create`
+- `microsoft.directory/multiTenantOrganization/tenants/delete`
+- `microsoft.directory/multiTenantOrganization/tenants/organizationDetails/update`
+
+### Private Secure Access
+
+- `microsoft.directory/connectorGroups/allProperties/update`
+- `microsoft.directory/connectorGroups/create`
+- `microsoft.directory/connectorGroups/delete`
+- `microsoft.directory/connectors/create`
+
+### Privileged ABAC
+
+- `microsoft.directory/attributeSets/allProperties/allTasks`
+- `microsoft.directory/azureManagedIdentities/customSecurityAttributes/update`
+- `microsoft.directory/customSecurityAttributeDefinitions/allProperties/allTasks`
+- `microsoft.directory/devices/customSecurityAttributes/update`
+
+### Privileged IAM
+
+- `microsoft.directory/contracts/allProperties/allTasks`
+- `microsoft.directory/directoryRoles/allProperties/allTasks`
+- `microsoft.directory/directoryRoleTemplates/allProperties/allTasks`
+- `microsoft.directory/groups/allProperties/allTasks`
+- `microsoft.directory/groupsAssignableToRoles/allProperties/update`
+- `microsoft.directory/groupsAssignableToRoles/create`
+- `microsoft.directory/groupsAssignableToRoles/delete`
+- `microsoft.directory/groupsAssignableToRoles/restore`
+- `microsoft.directory/privilegedIdentityManagement/allProperties/allTasks`
+- `microsoft.directory/roleAssignments/allProperties/allTasks`
+- `microsoft.directory/roleDefinitions/allProperties/allTasks`
+- `microsoft.directory/scopedRoleMemberships/allProperties/allTasks`
+
+### Tenant Management
+
+- `microsoft.directory/administrativeUnits/allProperties/allTasks`
+- `microsoft.directory/authorizationPolicy/allProperties/allTasks`
+- `microsoft.directory/bulkJobs/basic/update`
+- `microsoft.directory/bulkJobs/create`
+- `microsoft.directory/deletedItems/delete`
+- `microsoft.directory/deletedItems/restore`
+- `microsoft.directory/domains/allProperties/allTasks`
+- `microsoft.directory/lockbox/requests/update`
+- `microsoft.directory/loginOrganizationBranding/allProperties/allTasks`
+- `microsoft.directory/organization/allProperties/allTasks`
+- `microsoft.directory/organization/basic/update`
+- `microsoft.directory/serviceAction/activateService`
+- `microsoft.directory/serviceAction/disableDirectoryFeature`
+- `microsoft.directory/serviceAction/enableDirectoryFeature`
+
+### Tenant Policy Management
+
+- `microsoft.directory/applications/policies/update`
+- `microsoft.directory/policies/basic/update`
+- `microsoft.directory/policies/create`
+- `microsoft.directory/policies/delete`
+- `microsoft.directory/policies/owners/update`
+- `microsoft.directory/policies/tenantDefault/update`
+- `microsoft.directory/servicePrincipalCreationPolicies/basic/update`
+- `microsoft.directory/servicePrincipalCreationPolicies/create`
+- `microsoft.directory/servicePrincipalCreationPolicies/delete`
+
+### User Lifecycle and Provisioning Management
+
+- `microsoft.directory/cloudProvisioning/allProperties/allTasks`
+- `microsoft.directory/lifecycleWorkflows/workflows/allProperties/allTasks`
+- `microsoft.directory/organization/dirSync/update`
+- `microsoft.directory/servicePrincipals/synchronization.cloudTenantToCloudTenant/credentials/manage`
+- `microsoft.directory/servicePrincipals/synchronization.cloudTenantToCloudTenant/jobs/manage`
+- `microsoft.directory/servicePrincipals/synchronization.cloudTenantToCloudTenant/schema/manage`
+- `microsoft.directory/servicePrincipals/synchronization.cloudTenantToExternalSystem/credentials/manage`
+- `microsoft.directory/servicePrincipals/synchronization.cloudTenantToExternalSystem/jobs/manage`
+- `microsoft.directory/servicePrincipals/synchronization.cloudTenantToExternalSystem/schema/manage`
+
+### Verified ID
+
+- `microsoft.directory/verifiableCredentials/configuration/allProperties/update`
+- `microsoft.directory/verifiableCredentials/configuration/contracts/allProperties/update`
+- `microsoft.directory/verifiableCredentials/configuration/contracts/cards/revoke`
+- `microsoft.directory/verifiableCredentials/configuration/contracts/create`
+- `microsoft.directory/verifiableCredentials/configuration/create`
+- `microsoft.directory/verifiableCredentials/configuration/delete`
+
+## Management (EntraOps ManagementPlane)
+
+### Application and Workload Identity
+
+- `microsoft.directory/agentIdentityBlueprints/createAsOwner`
+- `microsoft.directory/applications/allProperties/read`
+- `microsoft.directory/applications/basic/update`
+- `microsoft.directory/oAuth2PermissionGrants/createAsOwner`
+- `microsoft.directory/servicePrincipals/allProperties/read`
+- `microsoft.directory/servicePrincipals/basic/update`
+- `microsoft.directory/servicePrincipals/disable`
+
+### Azure DevOps
+
+- `microsoft.azure.devOps/allEntities/allTasks`
+
+### Business Apps Management
+
+- `microsoft.flow/allEntities/allTasks`
+- `microsoft.powerApps/allEntities/allTasks`
+- `microsoft.powerApps.powerBI/allEntities/allTasks`
+
+### Cloud Infrastructure Entitlement Management
+
+- `microsoft.permissionsManagement/allEntities/allProperties/read`
+
+### Cross Tenant Partner Management
+
+- `microsoft.directory/crossTenantAccessPolicy/allowedCloudEndpoints/update`
+- `microsoft.directory/crossTenantAccessPolicy/default/crossCloudMeetings/update`
+- `microsoft.directory/crossTenantAccessPolicy/partners/crossCloudMeetings/update`
+- `microsoft.directory/crossTenantAccessPolicy/partners/create`
+
+### Dynamics 365
+
+- `microsoft.dynamics365/allEntities/allTasks`
+- `microsoft.dynamics365.businessCentral/allEntities/allProperties/allTasks`
+
+### Microsoft 365 Backup
+
+- `microsoft.backup/exchangeProtectionPolicies/allProperties/allTasks`
+- `microsoft.backup/exchangeRestoreSessions/allProperties/allTasks`
+- `microsoft.backup/restorePoints/userMailboxes/allProperties/allTasks`
+- `microsoft.backup/userMailboxProtectionUnits/allProperties/allTasks`
+- `microsoft.backup/userMailboxRestoreArtifacts/allProperties/allTasks`
+- `microsoft.backup/oneDriveForBusinessProtectionPolicies/allProperties/allTasks`
+- `microsoft.backup/oneDriveForBusinessRestoreSessions/allProperties/allTasks`
+- `microsoft.backup/restorePoints/sites/allProperties/allTasks`
+- `microsoft.backup/restorePoints/userDrives/allProperties/allTasks`
+- `microsoft.backup/sharePointProtectionPolicies/allProperties/allTasks`
+- `microsoft.backup/sharePointRestoreSessions/allProperties/allTasks`
+- `microsoft.backup/siteProtectionUnits/allProperties/allTasks`
+- `microsoft.backup/siteRestoreArtifacts/allProperties/allTasks`
+- `microsoft.backup/allEntities/allProperties/allTasks`
+- `microsoft.backup/userDriveProtectionUnits/allProperties/allTasks`
+- `microsoft.backup/userDriveRestoreArtifacts/allProperties/allTasks`
+- `microsoft.backup/allEntities/allProperties/read`
+
+### Microsoft 365 Billing Management
+
+- `microsoft.commerce.billing/allEntities/allProperties/allTasks`
+- `microsoft.commerce.billing/allEntities/allProperties/read`
+- `microsoft.commerce.billing/purchases/standard/read`
+- `microsoft.directory/subscribedSkus/allProperties/allTasks`
+
+### Microsoft 365 Group Management
+
+- `microsoft.directory/groups.unified/assignedLabels/update`
+- `microsoft.directory/groups.unified/basic/update`
+- `microsoft.directory/groups.unified/create`
+- `microsoft.directory/groups.unified/delete`
+- `microsoft.directory/groups.unified/members/update`
+- `microsoft.directory/groups.unified/owners/update`
+- `microsoft.directory/groups.unified/restore`
+
+### Microsoft 365 Platform Operations
+
+- `microsoft.graph.dataConnect/allEntities/allProperties/read`
+- `microsoft.graph.dataConnect/allEntities/allProperties/allTasks`
+- `microsoft.office365.copilot/allEntities/allProperties/read`
+- `microsoft.office365.knowledge/contentUnderstanding/allProperties/allTasks`
+- `microsoft.office365.knowledge/contentUnderstanding/analytics/allProperties/read`
+- `microsoft.office365.knowledge/knowledgeNetwork/allProperties/allTasks`
+- `microsoft.office365.knowledge/knowledgeNetwork/topicVisibility/allProperties/allTasks`
+- `microsoft.office365.knowledge/learningSources/allProperties/allTasks`
+- `microsoft.office365.migrations/allEntities/allProperties/allTasks`
+- `microsoft.office365.network/locations/allProperties/allTasks`
+- `microsoft.microsoft365.organizationalData/allEntities/allProperties/allTasks`
+- `microsoft.microsoft365.organizationalData/allEntities/allProperties/read`
+- `microsoft.office365.organizationalMessages/allEntities/allProperties/allTasks`
+- `microsoft.office365.organizationalMessages/allEntities/allProperties/read`
+- `microsoft.office365.organizationalMessages/allEntities/allProperties/update`
+- `microsoft.office365.usageReports/allEntities/standard/read`
+- `microsoft.office365.userCommunication/allEntities/allTasks`
+
+### Microsoft 365 Support Operations
+
+- `microsoft.office365.desktopAnalytics/allEntities/allTasks`
+- `microsoft.office365.messageCenter/messages/read`
+- `microsoft.office365.network/performance/allProperties/read`
+- `microsoft.office365.search/content/manage`
+- `microsoft.office365.serviceHealth/allEntities/allTasks`
+- `microsoft.office365.supportTickets/allEntities/allTasks`
+- `microsoft.office365.usageReports/allEntities/allProperties/read`
+- `microsoft.office365.webPortal/allEntities/standard/read`
+
+### Microsoft Copilot
+
+- `microsoft.office365.copilot/allEntities/allProperties/allTasks`
+
+### Microsoft Dragon
+
+- `microsoft.healthPlatform/allEntities/allProperties/allTasks`
+- `microsoft.healthPlatform/allEntities/allProperties/read`
+
+### Microsoft Exchange Online
+
+- `microsoft.directory/contacts/basic/update`
+- `microsoft.directory/contacts/create`
+- `microsoft.directory/contacts/delete`
+- `microsoft.office365.exchange/allEntities/basic/allTasks`
+- `microsoft.office365.exchange/migration/allProperties/allTasks`
+- `microsoft.office365.exchange/recipients/allProperties/allTasks`
+
+### Microsoft Information Protection
+
+- `microsoft.azure.informationProtection/allEntities/allTasks`
+
+### Microsoft People
+
+- `microsoft.peopleAdmin/organization/allProperties/update`
+
+### Microsoft Places
+
+- `microsoft.places/allEntities/allProperties/allTasks`
+
+### Printer Management
+
+- `microsoft.azure.print/allEntities/allProperties/allTasks`
+- `microsoft.azure.print/connectors/allProperties/read`
+- `microsoft.azure.print/printers/allProperties/read`
+- `microsoft.azure.print/printers/basic/update`
+- `microsoft.azure.print/printers/register`
+- `microsoft.azure.print/printers/unregister`
+
+### Security and Compliance
+
+- `microsoft.directory/auditLogs/allProperties/read`
+- `microsoft.directory/auditLogs/standard/read`
+- `microsoft.directory/customSecurityAttributeAuditLogs/allProperties/read`
+- `microsoft.directory/identityProtection/allProperties/read`
+- `microsoft.directory/provisioningLogs/allProperties/read`
+- `microsoft.directory/signInReports/allProperties/read`
+- `microsoft.networkAccess/trafficLogs/standard/read`
+- `microsoft.office365.complianceManager/allEntities/allTasks`
+- `microsoft.office365.lockbox/allEntities/allTasks`
+- `microsoft.office365.protectionCenter/allEntities/allProperties/read`
+- `microsoft.office365.protectionCenter/allEntities/standard/read`
+- `microsoft.office365.protectionCenter/attackSimulator/payload/allProperties/allTasks`
+- `microsoft.office365.protectionCenter/attackSimulator/payload/allProperties/read`
+- `microsoft.office365.protectionCenter/attackSimulator/reports/allProperties/read`
+- `microsoft.office365.protectionCenter/attackSimulator/simulation/allProperties/allTasks`
+- `microsoft.office365.protectionCenter/attackSimulator/simulation/allProperties/read`
+- `microsoft.office365.protectionCenter/sensitivityLabels/allProperties/read`
+- `microsoft.office365.securityComplianceCenter/allEntities/read`
+- `microsoft.windows.updatesDeployments/allEntities/allProperties/read`
+
+### Microsoft SharePoint
+
+- `microsoft.office365.sharePoint/allEntities/allTasks`
+- `microsoft.office365.sharePointAdvancedManagement/allEntities/allProperties/allTasks`
+- `microsoft.office365.fileStorageContainers/allEntities/allProperties/read`
+- `microsoft.office365.fileStorageContainers/allEntities/allProperties/allTasks`
+
+### Support and Service Health
+
+- `microsoft.azure.serviceHealth/allEntities/allTasks`
+- `microsoft.azure.supportTickets/allEntities/allTasks`
+- `microsoft.office365.messageCenter/securityMessages/read`
+
+### User Hardware Management
+
+- `microsoft.hardware.support/shippingAddress/allProperties/allTasks`
+- `microsoft.hardware.support/shippingAddress/allProperties/read`
+- `microsoft.hardware.support/shippingStatus/allProperties/read`
+- `microsoft.hardware.support/warrantyClaims/allProperties/allTasks`
+- `microsoft.hardware.support/warrantyClaims/allProperties/read`
+- `microsoft.hardware.support/warrantyClaims/createAsOwner`
+
+### User Virtual Endpoint Management
+
+- `microsoft.cloudPC/allEntities/allProperties/allTasks`
+- `microsoft.cloudPC/allEntities/allProperties/read`
+- `microsoft.edge/allEntities/allProperties/allTasks`
+
+### Teams
+
+- `microsoft.office365.skypeForBusiness/allEntities/allTasks`
+- `microsoft.teams/allEntities/allProperties/allTasks`
+- `microsoft.teams/allEntities/allProperties/read`
+- `microsoft.directory/externalUserProfiles/basic/update`
+- `microsoft.directory/externalUserProfiles/delete`
+- `microsoft.teams/callQuality/allProperties/read`
+- `microsoft.teams/callQuality/standard/read`
+- `microsoft.teams/devices/standard/read`
+- `microsoft.teams/meetings/allProperties/allTasks`
+- `microsoft.teams/policies/externalAccessPolicy/allTasks`
+- `microsoft.teams/voice/allProperties/allTasks`
+- `microsoft.directory/pendingExternalUserProfiles/basic/update`
+- `microsoft.directory/pendingExternalUserProfiles/create`
+- `microsoft.directory/pendingExternalUserProfiles/delete`
+
+### ABAC (Reader)
+
+- `microsoft.directory/attributeSets/allProperties/read`
+- `microsoft.directory/customSecurityAttributeDefinitions/allProperties/read`
+- `microsoft.directory/devices/customSecurityAttributes/read`
+- `microsoft.directory/servicePrincipals/customSecurityAttributes/read`
+- `microsoft.directory/servicePrincipals/synchronization.customSecurityAttributes/schema/read`
+- `microsoft.directory/users/customSecurityAttributes/read`
+
+### Tenant Configuration (Reader)
+
+- `microsoft.agentRegistry/allEntities/allProperties/read`
+- `microsoft.directory/accessReviews/allProperties/read`
+- `microsoft.directory/accessReviews/definitions.applications/allProperties/read`
+- `microsoft.directory/accessReviews/definitions.directoryRoles/allProperties/read`
+- `microsoft.directory/accessReviews/definitions.groups/allProperties/read`
+- `microsoft.directory/accessReviews/definitions/allProperties/read`
+- `microsoft.directory/adminConsentRequestPolicy/allProperties/read`
+- `microsoft.directory/administrativeUnits/allProperties/read`
+- `microsoft.directory/appConsent/appConsentRequests/allProperties/read`
+- `microsoft.directory/applicationPolicies/owners/read`
+- `microsoft.directory/applicationPolicies/policyAppliedTo/read`
+- `microsoft.directory/applications/applicationProxy/read`
+- `microsoft.directory/applications/synchronization/standard/read`
+- `microsoft.directory/azureManagedIdentities/customSecurityAttributes/read`
+- `microsoft.directory/bulkJobs/standard/read`
+- `microsoft.directory/cloudAppSecurity/allProperties/read`
+- `microsoft.directory/conditionalAccessPolicies/allProperties/read`
+- `microsoft.directory/conditionalAccessPolicies/owners/read`
+- `microsoft.directory/conditionalAccessPolicies/policyAppliedTo/read`
+- `microsoft.directory/conditionalAccessPolicies/standard/read`
+- `microsoft.directory/connectorGroups/allProperties/read`
+- `microsoft.directory/connectors/allProperties/read`
+- `microsoft.directory/contacts/allProperties/read`
+- `microsoft.directory/crossTenantAccessPolicy/default/standard/read`
+- `microsoft.directory/crossTenantAccessPolicy/partners/identitySynchronization/standard/read`
+- `microsoft.directory/crossTenantAccessPolicy/partners/standard/read`
+- `microsoft.directory/crossTenantAccessPolicy/partners/templates/multiTenantOrganizationIdentitySynchronization/standard/read`
+- `microsoft.directory/crossTenantAccessPolicy/partners/templates/multiTenantOrganizationPartnerConfiguration/standard/read`
+- `microsoft.directory/crossTenantAccessPolicy/standard/read`
+- `microsoft.directory/customAuthenticationExtensions/allProperties/read`
+- `microsoft.directory/deviceLocalCredentials/standard/read`
+- `microsoft.directory/deviceManagementPolicies/standard/read`
+- `microsoft.directory/deviceRegistrationPolicy/standard/read`
+- `microsoft.directory/devices/allProperties/read`
+- `microsoft.directory/directoryRoles/allProperties/read`
+- `microsoft.directory/domains/allProperties/read`
+- `microsoft.directory/domains/federationConfiguration/standard/read`
+- `microsoft.directory/entitlementManagement/allProperties/read`
+- `microsoft.directory/externalUserProfiles/standard/read`
+- `microsoft.directory/groups/allProperties/read`
+- `microsoft.directory/groups/hiddenMembers/read`
+- `microsoft.directory/groups/settings/read`
+- `microsoft.directory/groupSettings/allProperties/read`
+- `microsoft.directory/groupSettings/standard/read`
+- `microsoft.directory/groupSettingTemplates/allProperties/read`
+- `microsoft.directory/groupSettingTemplates/standard/read`
+- `microsoft.directory/lifecycleWorkflows/workflows/allProperties/read`
+- `microsoft.directory/loginOrganizationBranding/allProperties/read`
+- `microsoft.directory/multiTenantOrganization/joinRequest/standard/read`
+- `microsoft.directory/multiTenantOrganization/tenants/organizationDetails/read`
+- `microsoft.directory/namedLocations/standard/read`
+- `microsoft.directory/oAuth2PermissionGrants/allProperties/read`
+- `microsoft.directory/onPremisesSynchronization/standard/read`
+- `microsoft.directory/organization/allProperties/read`
+- `microsoft.directory/organization/strongAuthentication/read`
+- `microsoft.directory/organization/trustedCAsForPasswordlessAuth/read`
+- `microsoft.directory/pendingExternalUserProfiles/standard/read`
+- `microsoft.directory/permissionGrantPolicies/allProperties/read`
+- `microsoft.directory/permissionGrantPolicies/standard/read`
+- `microsoft.directory/policies/allProperties/read`
+- `microsoft.directory/privilegedIdentityManagement/allProperties/read`
+- `microsoft.directory/roleAssignments/allProperties/read`
+- `microsoft.directory/roleDefinitions/allProperties/read`
+- `microsoft.directory/scopedRoleMemberships/allProperties/read`
+- `microsoft.directory/serviceAction/getAvailableExtentionProperties`
+- `microsoft.directory/servicePrincipalCreationPolicies/standard/read`
+- `microsoft.directory/servicePrincipals/synchronization/standard/read`
+- `microsoft.directory/subscribedSkus/allProperties/read`
+- `microsoft.directory/userCredentialPolicies/owners/read`
+- `microsoft.directory/userCredentialPolicies/policyAppliedTo/read`
+- `microsoft.directory/userCredentialPolicies/standard/read`
+- `microsoft.directory/users/allProperties/read`
+- `microsoft.directory/users/authenticationMethods/standard/read`
+- `microsoft.directory/users/authenticationMethods/standard/restrictedRead`
+- `microsoft.directory/users/lifeCycleInfo/read`
+- `microsoft.directory/verifiableCredentials/configuration/allProperties/read`
+- `microsoft.directory/verifiableCredentials/configuration/contracts/allProperties/read`
+- `microsoft.directory/verifiableCredentials/configuration/contracts/cards/allProperties/read`
+- `microsoft.edge/allEntities/allProperties/read`
+- `microsoft.insights/allEntities/allProperties/read`
+- `microsoft.insights/reports/allProperties/read`
+- `microsoft.networkAccess/allEntities/allProperties/read`
+- `microsoft.directory/agentIdentities/allProperties/read`
+- `microsoft.directory/agentIdentityBlueprintPrincipals/allProperties/read`
+- `microsoft.directory/agentIdentityBlueprints/allProperties/read`
+- `microsoft.directory/tenantGovernance/invitations/standard/read`
+- `microsoft.directory/tenantGovernance/policyTemplates/standard/read`
+- `microsoft.directory/tenantGovernance/relatedTenants/standard/read`
+- `microsoft.directory/tenantGovernance/relationships/standard/read`
+- `microsoft.directory/tenantGovernance/requests/standard/read`
+- `microsoft.directory/tenantGovernance/settings/standard/read`
+
+### Virtual Visits
+
+- `microsoft.virtualVisits/allEntities/allProperties/allTasks`
+- `microsoft.virtualVisits/allEntities/allProperties/read`
+
+### Microsoft Viva
+
+- `microsoft.insights/allEntities/allProperties/allTasks`
+- `microsoft.insights/programs/allProperties/update`
+- `microsoft.insights/queries/allProperties/allTasks`
+- `microsoft.viva.glint/allEntities/allProperties/allTasks`
+- `microsoft.viva.glint/allEntities/allProperties/read`
+- `microsoft.viva.goals/allEntities/allProperties/allTasks`
+- `microsoft.viva.goals/allEntities/allProperties/read`
+- `microsoft.viva.pulse/allEntities/allProperties/allTasks`
+- `microsoft.viva.pulse/allEntities/allProperties/read`
+
+### Yammer
+
+- `microsoft.office365.yammer/allEntities/allProperties/allTasks`
+- `microsoft.office365.yammer/allEntities/allProperties/read`
+
+## Data (EntraOps UserAccess)
+
+### Default member
+
+- `microsoft.directory/administrativeUnits/members/read`
+- `microsoft.directory/administrativeUnits/standard/read`
+- `microsoft.directory/agentIdentities/createAsOwner`
+- `microsoft.directory/agentIdentities/standard/read`
+- `microsoft.directory/agentIdentityBlueprintPrincipals/createAsOwner`
+- `microsoft.directory/agentIdentityBlueprintPrincipals/standard/read`
+- `microsoft.directory/agentIdentityBlueprints/standard/read`
+- `microsoft.directory/applicationPolicies/standard/read`
+- `microsoft.directory/applications/owners/read`
+- `microsoft.directory/applications/policies/read`
+- `microsoft.directory/applications/standard/read`
+- `microsoft.directory/authorizationPolicy/standard/read`
+- `microsoft.directory/contacts/memberOf/read`
+- `microsoft.directory/contacts/standard/read`
+- `microsoft.directory/contracts/standard/read`
+- `microsoft.directory/devices/memberOf/read`
+- `microsoft.directory/devices/registeredOwners/read`
+- `microsoft.directory/devices/registeredUsers/read`
+- `microsoft.directory/devices/standard/read`
+- `microsoft.directory/directoryRoles/eligibleMembers/read`
+- `microsoft.directory/directoryRoles/members/read`
+- `microsoft.directory/directoryRoles/standard/read`
+- `microsoft.directory/directoryRoleTemplates/allProperties/read`
+- `microsoft.directory/domains/standard/read`
+- `microsoft.directory/groups/appRoleAssignments/read`
+- `microsoft.directory/groups/memberOf/read`
+- `microsoft.directory/groups/members/read`
+- `microsoft.directory/groups/owners/read`
+- `microsoft.directory/groups/standard/read`
+- `microsoft.directory/multiTenantOrganization/standard/read`
+- `microsoft.directory/multiTenantOrganization/tenants/standard/read`
+- `microsoft.directory/oAuth2PermissionGrants/standard/read`
+- `microsoft.directory/organization/standard/read`
+- `microsoft.directory/policies/owners/read`
+- `microsoft.directory/policies/policyAppliedTo/read`
+- `microsoft.directory/policies/standard/read`
+- `microsoft.directory/roleAssignments/standard/read`
+- `microsoft.directory/roleDefinitions/standard/read`
+- `microsoft.directory/servicePrincipals/appRoleAssignedTo/read`
+- `microsoft.directory/servicePrincipals/appRoleAssignments/read`
+- `microsoft.directory/servicePrincipals/authentication/read`
+- `microsoft.directory/servicePrincipals/memberOf/read`
+- `microsoft.directory/servicePrincipals/oAuth2PermissionGrants/read`
+- `microsoft.directory/servicePrincipals/ownedObjects/read`
+- `microsoft.directory/servicePrincipals/owners/read`
+- `microsoft.directory/servicePrincipals/policies/read`
+- `microsoft.directory/servicePrincipals/standard/read`
+- `microsoft.directory/subscribedSkus/standard/read`
+- `microsoft.directory/tenantManagement/tenants/create`
+- `microsoft.directory/users/activateServicePlan`
+- `microsoft.directory/users/appRoleAssignments/read`
+- `microsoft.directory/users/deviceForResourceAccount/read`
+- `microsoft.directory/users/directReports/read`
+- `microsoft.directory/users/invitedBy/read`
+- `microsoft.directory/users/licenseDetails/read`
+- `microsoft.directory/users/manager/read`
+- `microsoft.directory/users/memberOf/read`
+- `microsoft.directory/users/oAuth2PermissionGrants/read`
+- `microsoft.directory/users/ownedDevices/read`
+- `microsoft.directory/users/ownedObjects/read`
+- `microsoft.directory/users/photo/read`
+- `microsoft.directory/users/registeredDevices/read`
+- `microsoft.directory/users/scopedRoleMemberOf/read`
+- `microsoft.directory/users/sponsorOf/read`
+- `microsoft.directory/users/sponsors/read`
+- `microsoft.directory/users/standard/read`
+- `microsoft.people/users/photo/read`
+- `microsoft.people/users/photo/update`
+- `microsoft.peopleAdmin/organization/allProperties/read`
+
+### Extended member
+
+- `microsoft.directory/applicationPolicies/createAsOwner`
+- `microsoft.directory/applications/createAsOwner`
+- `microsoft.directory/groups.security/createAsOwner`
+- `microsoft.directory/groups.unified/createAsOwner`
+- `microsoft.directory/groups/createAsOwner`
+- `microsoft.directory/servicePrincipals/createAsOwner`
+
+### External Identities
+
+- `microsoft.directory/users/inviteGuest`
+
+### Guest user
+
+- `microsoft.directory/applications/owners/limitedRead`
+- `microsoft.directory/applications/policies/limitedRead`
+- `microsoft.directory/applications/standard/limitedRead`
+- `microsoft.directory/domains/standard/read`
+- `microsoft.directory/groups/appRoleAssignments/limitedRead`
+- `microsoft.directory/groups/memberOf/limitedRead`
+- `microsoft.directory/groups/members/limitedRead`
+- `microsoft.directory/groups/owners/limitedRead`
+- `microsoft.directory/groups/settings/limitedRead`
+- `microsoft.directory/groups/standard/limitedRead`
+- `microsoft.directory/multiTenantOrganization/standard/read`
+- `microsoft.directory/multiTenantOrganization/tenants/standard/read`
+- `microsoft.directory/organization/basicProfile/read`
+- `microsoft.directory/servicePrincipals/appRoleAssignedTo/limitedRead`
+- `microsoft.directory/servicePrincipals/appRoleAssignments/limitedRead`
+- `microsoft.directory/servicePrincipals/memberOf/limitedRead`
+- `microsoft.directory/servicePrincipals/oAuth2PermissionGrants/limitedRead`
+- `microsoft.directory/servicePrincipals/ownedObjects/limitedRead`
+- `microsoft.directory/servicePrincipals/owners/limitedRead`
+- `microsoft.directory/servicePrincipals/policies/limitedRead`
+- `microsoft.directory/servicePrincipals/standard/limitedRead`
+- `microsoft.directory/users/guestBasicProfile/limitedRead`
+

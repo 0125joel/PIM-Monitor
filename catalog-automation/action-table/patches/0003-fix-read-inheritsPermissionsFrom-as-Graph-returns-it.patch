@@ -1,0 +1,63 @@
+From fccfe4830dc5fd32b7692ed39ed8340c79d32a32 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 16 Nov 2026 12:19:44 +0000
+Subject: [PATCH 3/5] fix: read inheritsPermissionsFrom as Graph returns it
+ ([{id}]), so inheriting roles are listed
+
+The comparison read each entry as a string, so on real data a change to Directory Readers listed
+none of the 128 roles that inherit from it. The tests used plain strings and missed it; they now
+use the shape Graph returns.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JQVkCwrr6JcCnvT3VV2czd
+---
+ catalog-automation/Compare-RoleSnapshots.ps1 | 6 +++++-
+ tests/RoleSnapshot.Tests.ps1                 | 8 ++++----
+ 2 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/catalog-automation/Compare-RoleSnapshots.ps1 b/catalog-automation/Compare-RoleSnapshots.ps1
+index 98ce69b..fe8e1d0 100644
+--- a/catalog-automation/Compare-RoleSnapshots.ps1
++++ b/catalog-automation/Compare-RoleSnapshots.ps1
+@@ -169,7 +169,11 @@ function Get-IsPrivileged {
+ 
+ function Get-InheritsFrom {
+     param($Role)
+-    @($Role.PSObject.Properties['inheritsPermissionsFrom']?.Value | Where-Object { $_ } | ForEach-Object { ([string]$_).ToLowerInvariant() })
++    # Graph returns [{ "id": "<templateId>" }]; accept a plain id string too.
++    @($Role.PSObject.Properties['inheritsPermissionsFrom']?.Value | Where-Object { $_ } | ForEach-Object {
++            $ref = if ($_ -is [string]) { $_ } else { [string]($_.PSObject.Properties['id']?.Value ?? $_.PSObject.Properties['templateId']?.Value) }
++            if ($ref) { $ref.ToLowerInvariant() }
++        })
+ }
+ 
+ $base = Read-Snapshot $BaseDir
+diff --git a/tests/RoleSnapshot.Tests.ps1 b/tests/RoleSnapshot.Tests.ps1
+index 96e1c64..d7ea96f 100644
+--- a/tests/RoleSnapshot.Tests.ps1
++++ b/tests/RoleSnapshot.Tests.ps1
+@@ -355,8 +355,8 @@ Describe 'Compare-RoleSnapshots' {
+     It 'lists a role that inherits from a changed role, with inheritedChanges' {
+         $a1 = New-RoleDef $script:idA 'Alpha' -Actions @('x/read')
+         $a2 = New-RoleDef $script:idA 'Alpha' -Actions @('x/read', 'x/allProperties/update')
+-        $b1 = New-RoleDef $script:idB 'Beta'; $b1 | Add-Member -NotePropertyName inheritsPermissionsFrom -NotePropertyValue @($script:idA)
+-        $b2 = New-RoleDef $script:idB 'Beta'; $b2 | Add-Member -NotePropertyName inheritsPermissionsFrom -NotePropertyValue @($script:idA)
++        $b1 = New-RoleDef $script:idB 'Beta'; $b1 | Add-Member -NotePropertyName inheritsPermissionsFrom -NotePropertyValue @([pscustomobject]@{ id = $script:idA })
++        $b2 = New-RoleDef $script:idB 'Beta'; $b2 | Add-Member -NotePropertyName inheritsPermissionsFrom -NotePropertyValue @([pscustomobject]@{ id = $script:idA })
+         $r = Invoke-Compare -Base @($a1, $b1) -Head @($a2, $b2) -Name 'inherit'
+         $r.summary.changedRoles | Should -Be 2
+         @($r.changedRoles.templateId) | Should -Contain $script:idA
+@@ -371,8 +371,8 @@ Describe 'Compare-RoleSnapshots' {
+     It 'gives identical output on two runs' {
+         $a1 = New-RoleDef $script:idA 'Alpha' -Actions @('x/read', 'z/allProperties/update') -Condition '$SubjectIsOwner'
+         $a2 = New-RoleDef $script:idA 'Alpha' -Actions @('x/read', 'x/allProperties/update'); $a2.description = 'changed'
+-        $b1 = New-RoleDef $script:idB 'Beta'; $b1 | Add-Member -NotePropertyName inheritsPermissionsFrom -NotePropertyValue @($script:idA)
+-        $b2 = New-RoleDef $script:idB 'Beta'; $b2 | Add-Member -NotePropertyName inheritsPermissionsFrom -NotePropertyValue @($script:idA)
++        $b1 = New-RoleDef $script:idB 'Beta'; $b1 | Add-Member -NotePropertyName inheritsPermissionsFrom -NotePropertyValue @([pscustomobject]@{ id = $script:idA })
++        $b2 = New-RoleDef $script:idB 'Beta'; $b2 | Add-Member -NotePropertyName inheritsPermissionsFrom -NotePropertyValue @([pscustomobject]@{ id = $script:idA })
+         $bd = Join-Path $TestDrive 'det-base'; $hd = Join-Path $TestDrive 'det-head'
+         Write-Snapshot $bd @($a1, $b1); Write-Snapshot $hd @($a2, $b2)
+         foreach ($run in 1, 2) {
+-- 
+2.43.0
+
