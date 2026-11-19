@@ -1,20 +1,31 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-11-18T04:09:11Z",
+  "generatedAt": "2026-11-19T04:09:02Z",
   "base": {
     "sha": "936d394223b733c94e0aa88db04778e2434c8970"
   },
   "head": {
-    "sha": "9cb800a67b2291ebb739ba174157052a251457eb"
+    "sha": "176ac3546b6889de55161e470eb414c90e05d44e"
   },
   "summary": {
-    "newRoles": 1,
+    "newRoles": 2,
     "removedRoles": 0,
     "changedRoles": 0,
     "readOnlyChanges": 0,
     "needsReview": true
   },
   "newRoles": [
+    {
+      "templateId": "749877fd-c267-4b82-94fd-cc50a0e4bff4",
+      "displayName": "Organizational Data Source Reader",
+      "description": "Read organizational data source configurations, data quality reports, and metadata in Microsoft 365 without configuring data ingestion, connections, or settings.",
+      "isPrivileged": false,
+      "floorLevel": null,
+      "allowedResourceActions": [
+        "microsoft.microsoft365.organizationalData/allEntities/allProperties/read",
+        "microsoft.office365.webPortal/allEntities/standard/read"
+      ]
+    },
     {
       "templateId": "ddc7372f-4ece-4e8d-8010-1b36d9992d23",
       "displayName": "B2B Policy Administrator",
