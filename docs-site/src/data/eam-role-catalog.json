@@ -1,6 +1,6 @@
 {
   "_comment": "Hand-maintained EAM Role Catalog. Reconciled permission-by-permission against docs/Research/eam-classification-agent-grounding.md (see docs/Research/eam-catalog-reconciliation.md). This file is the maintained source until the classification agent lands; the PowerShell generator is retired. Policy fields use the expectedConfig vocabulary of the AccessModel/ files; maxActivationLabel, pimRequired and severity are presentation and sit beside expectedConfig.",
-  "roleCount": 148,
+  "roleCount": 150,
   "roles": [
     {
       "description": "Manage profile photos of users and people settings for all users in the organization.",
@@ -3959,6 +3959,59 @@
         "plane": "curated"
       },
       "templateId": "1dae4b79-8aea-40ab-9ad0-30d3ab1fa9c1"
+    },
+    {
+      "description": "Read organizational data source configurations, data quality reports, and metadata in Microsoft 365 without configuring data ingestion, connections, or settings.",
+      "displayName": "Organizational Data Source Reader",
+      "expectedConfig": {
+        "maxActivationDuration": "PT8H",
+        "requireMFA": true,
+        "requireJustification": true,
+        "requireApproval": false
+      },
+      "isPrivileged": false,
+      "levelBasis": "plane-mapping",
+      "maxActivationLabel": "8 hours",
+      "note": null,
+      "pimRequired": true,
+      "plane": "Data",
+      "reviewNeeded": true,
+      "securityLevel": "Enterprise",
+      "severity": "Low",
+      "sourceAuthority": {
+        "isPrivileged": "authoritative",
+        "securityLevel": "derived",
+        "expectedConfig": "derived",
+        "plane": "heuristic"
+      },
+      "templateId": "749877fd-c267-4b82-94fd-cc50a0e4bff4"
+    },
+    {
+      "description": "Create, read, update, and delete B2B management policies, and set the tenant-default policy.",
+      "displayName": "B2B Policy Administrator",
+      "expectedConfig": {
+        "maxActivationDuration": "PT4H",
+        "requireMFA": true,
+        "requireJustification": true,
+        "requireApproval": true,
+        "authContext": "phish-resistant-no-sif"
+      },
+      "isPrivileged": false,
+      "levelBasis": "plane-mapping",
+      "maxActivationLabel": "4 hours",
+      "note": "No actions exposed yet. Classified by function: writes B2B (cross-tenant) management policies, which shape external access, so Control and Specialized. Needs review.",
+      "pimRequired": true,
+      "plane": "Control",
+      "reviewNeeded": true,
+      "securityLevel": "Specialized",
+      "severity": "Medium",
+      "sourceAuthority": {
+        "isPrivileged": "authoritative",
+        "securityLevel": "derived",
+        "expectedConfig": "derived",
+        "plane": "heuristic"
+      },
+      "templateId": "ddc7372f-4ece-4e8d-8010-1b36d9992d23"
     }
   ]
 }
