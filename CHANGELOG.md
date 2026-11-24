@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.7.0](https://github.com/0125joel/PIM-Monitor/compare/v0.6.2...v0.7.0) (2026-11-24)
+
+
+### Features
+
+* export every role property and Microsoft's per-action information ([fd0cd2b](https://github.com/0125joel/PIM-Monitor/commit/fd0cd2ba6b3a24ef765540135b690538f0bd0de6))
+* export every role property and Microsoft's per-action information ([9542afe](https://github.com/0125joel/PIM-Monitor/commit/9542afe59a9ded107876c98d066349e9f77742ce))
+* measure the routine on the whole pool, twice, with criteria fixed in advance ([7cd85a0](https://github.com/0125joel/PIM-Monitor/commit/7cd85a047f84c985040e8bc38e0d1451577bf231))
+
+
+### Bug Fixes
+
+* authenticate private sync pushes explicitly ([f8c2e02](https://github.com/0125joel/PIM-Monitor/commit/f8c2e02de6355de4df1b91c52ea8d9ee083b4c96))
+* authenticate private sync pushes explicitly ([591bdea](https://github.com/0125joel/PIM-Monitor/commit/591bdea2d60f4b1fd43923aaf10dc606f026579e))
+* authenticate private sync pushes explicitly ([368943d](https://github.com/0125joel/PIM-Monitor/commit/368943d21732b3cdfe9968fde950502a4df58e5c))
+* describe what B2B Policy Administrator really controls in the role catalog ([d6c65b1](https://github.com/0125joel/PIM-Monitor/commit/d6c65b1c7e34aa2fc0afc844b14ce786dc2437c9))
+* do not count the tail of a longer role name as a named role in the backtest ([6ec84e9](https://github.com/0125joel/PIM-Monitor/commit/6ec84e99a00a99b4421a651c30866a31dd029036))
+* make the catalog review flow blind, reproducible and measured on the whole pool ([164dd3e](https://github.com/0125joel/PIM-Monitor/commit/164dd3efbba199858409ffd308b4775f6a9e7252))
+* make the catalog review flow blind, reproducible and self-checking ([1e0ec9b](https://github.com/0125joel/PIM-Monitor/commit/1e0ec9bde897b208337fd4c343e3cb6b75059741))
+* settle the four rubric and catalog conflicts round 5 found (maintainer decisions) ([d6db04a](https://github.com/0125joel/PIM-Monitor/commit/d6db04a0eec782b9448b652d6df9fd5c4d9aedd9))
+* settle the two conflicts round 6 found (maintainer decisions) ([3cc32ab](https://github.com/0125joel/PIM-Monitor/commit/3cc32abb4f8319a4432a6ab68179cc157a4440e5))
+* the role export failed on its live path (Get-AllGraphItems not found) ([cae0c88](https://github.com/0125joel/PIM-Monitor/commit/cae0c88da696097d86507e7f7e1c8a6c525c8658))
+
 ## [0.6.2](https://github.com/0125joel/PIM-Monitor/compare/v0.6.1...v0.6.2) (2026-11-16)
 
 
