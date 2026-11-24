@@ -3999,7 +3999,7 @@
       "isPrivileged": false,
       "levelBasis": "plane-mapping",
       "maxActivationLabel": "4 hours",
-      "note": "No actions exposed yet. Classified by function: writes B2B (cross-tenant) management policies, which shape external access, so Control and Specialized. Needs review.",
+      "note": "No actions exposed yet. By function: writes B2B management policies (invitation domain restrictions, automatic redemption), which decide who gets into the tenant, so Control and Specialized. Not cross-tenant access policies.",
       "pimRequired": true,
       "plane": "Control",
       "reviewNeeded": true,
