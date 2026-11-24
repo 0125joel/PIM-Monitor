@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "catalogVersion": "2026-11-16.5",
-  "publishedAt": "2026-11-16T06:13:31Z",
+  "catalogVersion": "2026-11-23.1",
+  "publishedAt": "2026-11-23T05:30:00Z",
   "source": {
     "repository": "https://github.com/0125joel/PIM-Monitor",
     "path": "docs-site/src/data/eam-role-catalog.json"
@@ -386,6 +386,22 @@
       },
       "note": null,
       "reviewNeeded": false
+    },
+    {
+      "templateId": "ddc7372f-4ece-4e8d-8010-1b36d9992d23",
+      "displayName": "B2B Policy Administrator",
+      "plane": "Control",
+      "securityLevel": "Specialized",
+      "isPrivileged": false,
+      "expectedConfig": {
+        "maxActivationDuration": "PT4H",
+        "requireMFA": true,
+        "authContext": "phish-resistant-no-sif",
+        "requireJustification": true,
+        "requireApproval": true
+      },
+      "note": "No actions exposed yet. Classified by function: writes B2B (cross-tenant) management policies, which shape external access, so Control and Specialized. Needs review.",
+      "reviewNeeded": true
     },
     {
       "templateId": "aaf43236-0c0d-4d5f-883a-6955382ac081",
@@ -1442,6 +1458,21 @@
       },
       "note": null,
       "reviewNeeded": false
+    },
+    {
+      "templateId": "749877fd-c267-4b82-94fd-cc50a0e4bff4",
+      "displayName": "Organizational Data Source Reader",
+      "plane": "Data",
+      "securityLevel": "Enterprise",
+      "isPrivileged": false,
+      "expectedConfig": {
+        "maxActivationDuration": "PT8H",
+        "requireMFA": true,
+        "requireJustification": true,
+        "requireApproval": false
+      },
+      "note": null,
+      "reviewNeeded": true
     },
     {
       "templateId": "e48398e2-f4bb-4074-8f31-4586725e205b",

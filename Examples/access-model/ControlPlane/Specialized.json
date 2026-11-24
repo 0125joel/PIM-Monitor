@@ -9,6 +9,7 @@
     { "id": "58a13ea3-c632-46ae-9ee0-9c0d43cd7f3d", "displayName": "Attribute Assignment Administrator" },
     { "id": "8424c6f0-a189-499e-bbd0-26c1753c96d4", "displayName": "Attribute Definition Administrator" },
     { "id": "0526716b-113d-4c15-b2c8-68e3c22b9f80", "displayName": "Authentication Policy Administrator" },
+    { "id": "ddc7372f-4ece-4e8d-8010-1b36d9992d23", "displayName": "B2B Policy Administrator" },
     { "id": "3edaf663-341e-4475-9f94-5c398ef6c070", "displayName": "B2C IEF Policy Administrator" },
     { "id": "892c5842-a9a6-463a-8041-72aa08ca3cf6", "displayName": "Cloud App Security Administrator" },
     { "id": "e6d1a23a-da11-4be4-9570-befc86d067a7", "displayName": "Compliance Data Administrator" },
