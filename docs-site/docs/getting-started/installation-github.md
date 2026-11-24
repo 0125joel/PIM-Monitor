@@ -27,7 +27,11 @@ In Azure Entra ID:
 | `RoleEligibilitySchedule.Read.Directory` | Read PIM eligible schedules |
 | `RoleManagementPolicy.Read.Directory` | Read PIM policies |
 | `PrivilegedAccess.Read.AzureADGroup` | Read PIM Groups |
+| `PrivilegedEligibilitySchedule.Read.AzureADGroup` | Read eligible PIM Group schedule instances |
+| `PrivilegedAssignmentSchedule.Read.AzureADGroup` | Read active PIM Group schedule instances |
+| `RoleManagementPolicy.Read.AzureADGroup` | Read PIM Group policy rules |
 | `Policy.Read.ConditionalAccess` | Read authentication contexts |
+| `Policy.Read.All` _(optional)_ | Read Conditional Access policies for auth context compliance checks |
 | `User.Read.All` | Resolve principal names |
 | `Group.Read.All` | Read group details |
 | `AdministrativeUnit.Read.All` | Read AU metadata |
@@ -37,8 +41,10 @@ In Azure Entra ID:
 3. **Federated credentials**: Add a GitHub federation
    - Scenario: `GitHub Actions deploying Azure resources`
    - Organization / Repository: your GitHub repo (`OWNER/REPO`)
-   - Entity type: `Branch`
-   - Branch: `main` (or your default branch)
+   - Entity type: `Environment`
+   - Environment name: `production`
+
+   The provided workflow references the `production` environment. If you remove `environment: production` from the workflow, create a matching branch credential instead.
 
 Record your **Client ID**, **Tenant ID**, and **Subscription ID** from the app registration overview.
 
@@ -114,9 +120,8 @@ The federated credential subject must match exactly what GitHub sends during the
 
 | Scenario | Subject |
 |---|---|
-| Specific branch (recommended) | `repo:OWNER/REPO:ref:refs/heads/main` |
-| GitHub environment | `repo:OWNER/REPO:environment:production` |
-| Any branch (less secure) | `repo:OWNER/REPO:ref:*` |
+| Specific branch | `repo:OWNER/REPO:ref:refs/heads/main` |
+| GitHub environment (provided workflow) | `repo:OWNER/REPO:environment:production` |
 
 Replace `OWNER/REPO` with your repository path and `main` with your default branch.
 

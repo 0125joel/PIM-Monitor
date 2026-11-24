@@ -9,7 +9,7 @@ description: Answers to common questions about PIM Monitor setup, authentication
 
 ### Do I need to manually enter the issuer and subject identifier, or does ADO generate them?
 
-ADO generates both the **Issuer** and **Subject identifier** automatically when you create the service connection with "Workload Identity Federation (automatic)". You copy these exact values from ADO's form and paste them into Entra ID. Do not manually construct them.
+ADO generates both the **Issuer** and **Subject identifier** automatically when you create the service connection with "Workload Identity Federation (manual)". You copy these exact values from ADO's form and paste them into Entra ID. Do not manually construct them.
 
 ---
 

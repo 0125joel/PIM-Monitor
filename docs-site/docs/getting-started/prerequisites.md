@@ -35,17 +35,22 @@ You'll need the following before deploying PIM Monitor.
 | `RoleEligibilitySchedule.Read.Directory`            | Read PIM eligible schedules                                                                                       |
 | `RoleManagementPolicy.Read.Directory`               | Read PIM policies for directory roles                                                                             |
 | `Policy.Read.ConditionalAccess`                     | Read authentication contexts                                                                                      |
+| `Policy.Read.All` (optional)                        | Read Conditional Access policies for auth context compliance checks                                               |
 | `User.Read.All`                                     | Resolve principal names                                                                                           |
 | `Group.Read.All`                                    | Read group details                                                                                                |
 | `AdministrativeUnit.Read.All`                       | Read AU metadata                                                                                                  |
 | `AuditLog.Read.All`                                 | Read activation events from audit log                                                                             |
 | `PrivilegedAccess.Read.AzureADGroup`                | Read PIM Groups                                                                                                   |
+| `PrivilegedEligibilitySchedule.Read.AzureADGroup`   | Read eligible PIM Group schedule instances                                                                         |
+| `PrivilegedAssignmentSchedule.Read.AzureADGroup`    | Read active PIM Group schedule instances                                                                           |
 | `Mail.Send` (optional)                              | Send emails via Graph                                                                                             |
-| `RoleManagementPolicy.Read.AzureADGroup` (optional) | Read PIM Group policy rules; required for access model compliance checks, not needed for basic PIM Group scanning |
+| `RoleManagementPolicy.Read.AzureADGroup` | Read PIM Group policy rules. PIM Monitor fetches group policy during group scanning; without access, processing a group can fail. |
 
 **3. Configure Workload Identity Federation**
 
 Workload Identity Federation (WIF) lets Azure DevOps authenticate to Microsoft Graph without storing secrets.
+
+Microsoft will retire the Azure DevOps WIF issuer on July 1, 2027 for eligible public-cloud service connections using single-tenant Microsoft Entra applications or managed identities. Service connections already using the Microsoft Entra issuer are not affected. Check Microsoft's [conversion guidance](https://learn.microsoft.com/en-us/azure/devops/pipelines/release/convert-service-connections?view=azure-devops) if your existing connection uses the Azure DevOps issuer.
 
 **Important:** Complete the Azure DevOps service connection setup FIRST (step 5 below), then return here with the Issuer and Subject identifier that ADO generates for you. ADO creates these automatically, and you must use ADO's exact values (not manually constructed ones).
 
@@ -53,7 +58,7 @@ Workload Identity Federation (WIF) lets Azure DevOps authenticate to Microsoft G
 
 1. In your Azure DevOps project, go to **Project settings** > **Service connections**
 2. Click **New service connection** and select **Azure Resource Manager**
-3. Select authentication method: **Workload Identity Federation (automatic)**
+3. Select authentication method: **Workload Identity Federation (manual)**
 4. Fill in subscription details (Subscription ID, Subscription name, Tenant ID, Client ID from step 4 above, Service connection name)
 5. Click **Next** (do not click Verify and save yet)
 

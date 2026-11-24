@@ -45,15 +45,15 @@ Directory Roles and PIM Groups use per-resource granularity because they are the
 
 ## When Scan Errors Occur
 
-Scan errors are triggered by non-fatal failures. All Graph API calls use exponential backoff with up to 6 attempts before giving up (see Retry Behavior below), so transient throttling and network errors resolve automatically without triggering a scan error.
+Scan errors are triggered by non-fatal failures. See Retry Behavior below.
 
 | Component | Reason it might produce an error |
 |---|---|
 | **Authentication Contexts** | Graph API timeout, permission denied |
 | **Administrative Units** | Graph API error, malformed response |
 | **Activation Events** | AuditLog.Read.All permission missing (graceful), API error (error notification) |
-| **Directory Roles** | Persistent API failure for a specific role after 6 retry attempts |
-| **PIM Groups** | Group definition or assignment fetch fails after 6 retry attempts |
+| **Directory Roles** | Persistent API failure for a specific role |
+| **PIM Groups** | Group definition or assignment fetch fails |
 | **Expiring Assignments** | Malformed assignment date, missing required fields |
 
 **NOT scan errors** (still cause pipeline failure):
@@ -273,7 +273,7 @@ Full error messages are always available in:
 
 ### Retry Behavior
 
-All Graph API calls use exponential backoff with jitter (up to 6 attempts, capped at 32 seconds per wait, respecting `Retry-After` headers). A scan error is only triggered when all retries are exhausted.
+For HTTP 429 and 5xx responses, the retry helper makes up to 10 attempts by default. It uses exponential backoff with jitter and waits at most 60 seconds between attempts. A `Retry-After` value is used as the basis for the wait, but jitter and the 60-second cap can make the wait shorter than requested.
 
 Scan error notifications do NOT trigger automatic retries beyond that. If a resource still fails:
 - The notification alerts you to the issue

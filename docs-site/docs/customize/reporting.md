@@ -259,13 +259,13 @@ if ($change.severity -eq "Informational") {
 
 **Azure DevOps**:
 - Stored in Build Artifacts storage
-- Retention policy: Default is 30 days, configurable per project
-- Accessible to anyone with project access
+- Retention policy: Configured in project settings. Deleting a run also deletes its artifacts.
+- Review project and pipeline permissions to control access to reports
 
 **GitHub Actions**:
 - Stored in Actions artifacts storage
-- Retention policy: Default is 90 days, configurable per repository
-- Accessible to anyone with repository access
+- Retention policy: The provided workflow sets report artifact retention to 7 days.
+- Review repository and Actions permissions to control access to reports
 
 ### Security Considerations
 
@@ -285,7 +285,7 @@ The report includes:
 To keep historical reports:
 
 **Option 1**: Configure extended retention
-- Azure DevOps: **Project Settings** → **Pipelines** → **Artifact retention**
+- Azure DevOps: **Project settings** → **Pipelines** → **Settings**
 - GitHub Actions: **Settings** → **Actions** → **Artifacts and logs** → **Retention policy**
 
 **Option 2**: Manually download and store

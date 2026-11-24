@@ -69,7 +69,7 @@ export const faqSchema = {
       name: 'How do I silence a deviation I know about?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Add an entry to expected-changes.json in the repository root with workload, entity, fileType access-model-compliance, the ruleId that deviated, a reason, and an expiresUtc deadline. The suppression lapses automatically after that date.',
+        text: 'Add an entry to expected-changes.json in the repository root with workload, entity, fileType access-model-compliance, ruleId compliance, a reason, and an expiresUtc deadline. The suppression lapses automatically after that date.',
       },
     },
   ],
@@ -190,6 +190,8 @@ These map to the catalog's recommendation columns as follows:
 
 The full field list:
 
+Known limitation: The current role compliance extractor looks for some Graph policy values under `setting`, while Microsoft documents them directly on the rule. This can cause incorrect results for `maxActivationDuration`, `requireMFA`, `requireJustification` and `requireTicketing`. Verify these findings against the actual PIM policy.
+
 | Field | Graph rule | Description |
 |---|---|---|
 | `maxActivationDuration` | `Expiration_EndUser_Assignment.maximumDuration` | Max activation duration (ISO 8601, e.g. `PT1H`) |
@@ -217,7 +219,7 @@ If a deviation is intentional and temporary, silence it until a deadline instead
       "workload": "directory-roles",
       "entity": "global-administrator",
       "fileType": "access-model-compliance",
-      "ruleId": "requireApproval",
+      "ruleId": "compliance",
       "reason": "Approval requirement being phased out by 2026-06-15",
       "expiresUtc": "2026-06-15T23:59:59Z"
     }
@@ -227,10 +229,10 @@ If a deviation is intentional and temporary, silence it until a deadline instead
 
 - The top-level key must be `expected` (a bare array is ignored).
 - `fileType` is `access-model-compliance` for directory-role compliance violations.
-- `ruleId` is the `expectedConfig` field that deviated.
+- Directory-role compliance deviations for a role are grouped under the `ruleId` `compliance`. This suppression covers that grouped compliance finding, not only `requireApproval`.
 - `expiresUtc` is when the suppression lapses.
 
-After each scan, PIM Monitor rewrites `expected-changes.json`: entries that matched a change and entries past their `expiresUtc` are removed; future-dated entries that have not matched yet are kept. See [Expected Changes](../customize/expected-changes.md) for the full mechanism.
+After each scan, PIM Monitor rewrites `expected-changes.json`: expired entries are removed. A matching entry remains active until its `expiresUtc`, so it can suppress matching findings on later scans too. See [Expected Changes](../customize/expected-changes.md) for the full mechanism.
 
 ## Frequently asked questions
 
@@ -244,4 +246,4 @@ No. `expectedConfig` is sparse: only the fields you include are checked, and mis
 
 ### How do I silence a deviation I know about?
 
-Add an entry to `expected-changes.json` in the repository root with `workload`, `entity`, `fileType` set to `access-model-compliance`, the `ruleId` that deviated, a `reason`, and an `expiresUtc` deadline. The suppression lapses automatically after that date.
+Add an entry to `expected-changes.json` in the repository root with `workload`, `entity`, `fileType` set to `access-model-compliance`, `ruleId` set to `compliance`, a `reason`, and an `expiresUtc` deadline. The suppression lapses automatically after that date.

@@ -52,7 +52,7 @@ Omit a field to skip that check.
 
 ## Seed configs included
 
-PIM Monitor ships four ready-made `config.json` files in `inventory/authentication-contexts/` (the test fixtures carry all four). All four require auth strength `00000000-0000-0000-0000-000000000003` (phishing-resistant MFA) and state `"enabled"`:
+The test fixtures contain four example `config.json` files under `tests/fixtures/inventory/authentication-contexts/`. Create the configurations you want to use in your own `inventory/authentication-contexts/` folders. All four examples require auth strength `00000000-0000-0000-0000-000000000003` (phishing-resistant MFA) and state `"enabled"`:
 
 | Auth context | Sign-in frequency every time | Compliant device |
 |---|---|---|

@@ -17,7 +17,7 @@ Configure email notifications for PIM Monitor scan results.
 
 2. **Set environment variables** (in your pipeline):
    - `NOTIFICATION_EMAIL` = recipient email address
-   - `NOTIFICATION_MAIL_FROM` = service principal UPN (sender mailbox)
+   - `NOTIFICATION_MAIL_FROM` = email address of the sender mailbox
 
 3. **Test**: Run the pipeline. Verify an email arrives in the inbox.
 
@@ -166,9 +166,7 @@ $subject = "[SECURITY] $($changesBySeverity.Total) PIM changes detected"
 
 ### Service Principal Setup
 
-The service principal sending email needs:
-- **Mail.Send** permission on Microsoft Graph
-- **Exchange Online** mailbox (if using shared mailbox, grant Send As permission)
+The app needs the Microsoft Graph `Mail.Send` application permission with admin consent. Set `NOTIFICATION_MAIL_FROM` to an existing sender mailbox in your tenant. The app sends as that mailbox; it does not need its own mailbox or delegated Send As access.
 
 **Grant Mail.Send permission:**
 
@@ -183,21 +181,7 @@ The service principal sending email needs:
 
 ### Sender Mailbox Considerations
 
-The `NOTIFICATION_MAIL_FROM` must be:
-- A real mailbox in your tenant
-- Able to send mail (not a resource mailbox)
-- Have the service principal as an owner or delegate (if using shared mailbox)
-
-**Options:**
-1. **Service principal's own mailbox** (if assigned Office 365 license)
-2. **Shared mailbox**: Grant service principal Send As permission
-
-**Grant Send As permission to shared mailbox:**
-```powershell
-Add-MailboxPermission -Identity "shared-mailbox@contoso.com" `
-    -User "pim-monitor-app@contoso.onmicrosoft.com" `
-    -AccessRights SendAs
-```
+Set `NOTIFICATION_MAIL_FROM` to an existing mailbox that can send mail in your tenant.
 
 ### Multiple Recipients
 
@@ -240,7 +224,6 @@ Send-EmailNotification: "Authorization_RequestDenied"
 **Solutions**:
 1. Verify `Mail.Send` permission is granted (see Service Principal Setup)
 2. Verify permission has admin consent (not user consent)
-3. Verify service principal is owner/delegate of shared mailbox (if applicable)
 4. Wait 5-10 minutes after granting permission for sync
 
 ### Email sent but not received

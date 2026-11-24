@@ -127,13 +127,15 @@ Compliance is operational (something is wrong now). Coverage is governance backl
 
 The hardest part of EAM is that a role carries three related-but-distinct labels. This table reconciles them:
 
+Examples, not fixed plane-to-level mappings:
+
 | EAM plane | SPA level | Severity |
 |---|---|---|
 | **Control** (identity and auth infrastructure) | Privileged | High |
 | **Management** (workload admin: Exchange, Intune, SharePoint, ...) | Specialized | Medium |
 | **Data** (mostly read-only, limited blast radius) | Enterprise | Low |
 
-The catalog derives the SPA level from the plane, and the level sets both the severity and the recommended PIM policy:
+The catalog assigns a plane and a security level separately. The level determines the recommended severity and PIM policy:
 
 - **Privileged** (severity High): 1h activation, MFA, approval, justification, phishing-resistant + sign-in frequency
 - **Specialized** (severity Medium): 4h activation, MFA, approval, justification, phishing-resistant
@@ -157,7 +159,7 @@ The catalog gives you both per role; you do not have to derive them yourself.
 <details>
 <summary>If you are migrating from the legacy Tier 0/1/2 model</summary>
 
-The legacy AD tier model was designed to *prevent* privilege escalation between on-prem asset tiers: identity systems (Tier 0), workloads and member servers (Tier 1), and end-user devices (Tier 2). EAM keeps that goal but reframes it around access planes: what a role *controls*, on-prem and cloud alike. PIM Monitor's scope is privileged access, so the variable you classify per role is the plane. The plane sets the recommended SPA level, and the level sets the severity.
+The legacy AD tier model was designed to *prevent* privilege escalation between on-prem asset tiers: identity systems (Tier 0), workloads and member servers (Tier 1), and end-user devices (Tier 2). EAM keeps that goal but reframes it around access planes: what a role *controls*, on-prem and cloud alike. PIM Monitor's scope is privileged access. The catalog assigns the plane and security level separately; the level sets the severity.
 
 | Legacy tier | EAM plane | SPA level | Severity |
 |---|---|---|---|

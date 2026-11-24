@@ -11,14 +11,14 @@ Which Microsoft Graph endpoints PIM Monitor uses and why each one uses v1.0 or b
 
 | Workload | Resource | Endpoint | Version | Why beta? |
 |---|---|---|---|---|
-| Directory Roles | Definition | `/roleManagement/directory/roleDefinitions` | Beta | `isPrivileged`, `allowedPrincipalTypes` fields |
+| Directory Roles | Definition | `/roleManagement/directory/roleDefinitions` | Beta | `allowedPrincipalTypes` field |
 | Directory Roles | Policy | `/policies/roleManagementPolicyAssignments` | v1.0 | Stable |
 | Directory Roles | Permanent assignments | `/roleManagement/directory/roleAssignments` | v1.0 | Stable |
 | Directory Roles | Eligible schedules | `/roleManagement/directory/roleEligibilitySchedules` | v1.0 | Stable |
 | Directory Roles | Active schedules | `/roleManagement/directory/roleAssignmentSchedules` | v1.0 | Stable |
 | PIM Groups | Eligible instances | `/identityGovernance/privilegedAccess/group/eligibilityScheduleInstances` | v1.0 | Stable |
 | PIM Groups | Active instances | `/identityGovernance/privilegedAccess/group/assignmentScheduleInstances` | v1.0 | Stable |
-| PIM Groups | Policy | `/policies/roleManagementPolicyAssignments?$filter=...scopeType eq 'Group'` | Beta | `scopeType eq 'Group'` filter |
+| PIM Groups | Policy | `/policies/roleManagementPolicyAssignments?$filter=...scopeType eq 'Group'` | Beta | Current scanner implementation |
 | Lookups | Auth contexts | `/identity/conditionalAccess/authenticationContextClassReferences` | v1.0 | Stable |
 | Lookups | Admin units | `/directory/administrativeUnits` | v1.0 | Stable |
 
@@ -28,7 +28,7 @@ Which Microsoft Graph endpoints PIM Monitor uses and why each one uses v1.0 or b
 
 **Endpoint:** `https://graph.microsoft.com/beta/roleManagement/directory/roleDefinitions`
 
-**Why beta:** The `isPrivileged` and `allowedPrincipalTypes` fields are not available in v1.0.
+**Why beta:** PIM Monitor uses beta for `allowedPrincipalTypes`. Microsoft also documents `isPrivileged` in v1.0.
 
 **Example response:**
 ```json
@@ -59,15 +59,7 @@ Which Microsoft Graph endpoints PIM Monitor uses and why each one uses v1.0 or b
   &$expand=policy($expand=rules)
 ```
 
-**Why beta for groups:** The `scopeType eq 'Group'` filter only works in beta. v1.0 does not support group-scoped policy queries.
-
-:::warning Upgrade Path
-As of April 2026, the `scopeType eq 'Group'` filter remains beta-only. When/if Microsoft migrates this to v1.0 GA, this line must be updated:
-- Change base URL from `$script:GraphBeta` to `$script:GraphV1`
-- Update the comment above `Get-GroupPolicyUri` in `src/graphEndpoints.ps1`
-
-Monitor Microsoft Graph [changelog](https://learn.microsoft.com/en-us/graph/changelog) for availability announcement.
-:::
+PIM Monitor currently uses beta for group-scoped policy queries. Microsoft also documents group-scoped queries in v1.0. A migration requires validation before changing the scanner.
 
 ### Role assignments
 
@@ -97,17 +89,15 @@ Non-PIM direct assignments. Deprecated but still relevant for legacy permanent a
 
 **Eligible instances (v1.0):**
 ```
-/v1.0/identityGovernance/privilegedAccess/group/eligibilityScheduleInstances?$expand=principal
+/v1.0/identityGovernance/privilegedAccess/group/eligibilityScheduleInstances?$filter=groupId eq '{groupId}'&$expand=principal
 ```
 
 **Active instances (v1.0):**
 ```
-/v1.0/identityGovernance/privilegedAccess/group/assignmentScheduleInstances?$expand=principal
+/v1.0/identityGovernance/privilegedAccess/group/assignmentScheduleInstances?$filter=groupId eq '{groupId}'&$expand=principal
 ```
 
-These return all instances across all groups. PIM Monitor discovers which groups are onboarded by grouping results by `groupId`.
-
-Each instance includes `groupId`, `principalId`, `accessId` (`member` or `owner`), `principal` (expanded), and `scheduleInfo.expiration`.
+PIM Monitor discovers PIM-onboarded groups through the beta `/identityGovernance/privilegedAccess/group/resources` endpoint. For each discovered group, it queries eligible and active instances using a `groupId` filter and expands `principal`.
 
 ### Lookups
 

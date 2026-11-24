@@ -56,12 +56,16 @@ For each PIM assignment (Directory Roles and PIM Groups):
 ### Types of Assignments Checked
 
 - **Directory Roles**:
-  - Eligible role assignments (expiration date = activation timeout + current policy duration)
-  - Active role assignments (expiration date = next review date)
+  - Eligible role assignments
+  - Active role assignments
   
 - **PIM Groups**:
   - Eligible member/owner assignments
   - Active member/owner assignments
+
+For directory role assignments, the expiry check reads `scheduleInfo.expiration.endDateTime` when present.
+
+Known limitation: PIM group schedule instances can contain `endDateTime` at the top level, but the current expiry check reads only `scheduleInfo.expiration.endDateTime`. These assignments can therefore be missed.
 
 ### What Gets Reported
 
@@ -115,15 +119,19 @@ If you intentionally expire assignments and don't want notifications:
 1. Create `expected-changes.json` entry:
    ```json
    {
-     "workload": "directory-roles",
-     "entity": "global-administrator",
-     "fileType": "assignments",
-     "reason": "Planned rotation per security review",
-     "expiresUtc": "2026-05-10T17:00:00Z"
+     "expected": [
+       {
+         "workload": "directory-roles",
+         "entity": "global-administrator",
+         "fileType": "assignments",
+         "reason": "Planned rotation per security review",
+         "expiresUtc": "2030-05-10T17:00:00Z"
+       }
+     ]
    }
    ```
 
-2. Set window to `14` days (normal)
+2. Set `expiresUtc` to the end of your planned window and set the detection window to `14` days (normal)
 3. Matching expiring assignments won't trigger notifications
 4. Entry auto-deletes after expiration
 
