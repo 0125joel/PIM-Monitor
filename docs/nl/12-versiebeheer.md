@@ -26,31 +26,22 @@ Alle commits moeten het volgende format gebruiken:
 
 ### Wat triggert een Release
 
-Een release wordt geactiveerd **alleen** wanneer een `feat:` of `fix:` commit aanraakt:
-- `src/**` (PowerShell-scripts)
-- `monitor-pipeline.yml` (Azure DevOps-pipeline)
-- `scan.yml` (GitHub Actions workflow)
+Release Please controleert conventionele commits op public `main`. Een `feat:`- of `fix:`-commit kan tot een release-PR leiden; een `docs:`-commit op zichzelf niet.
 
-Wijzigingen in documentatie, inventory-bestanden, README, of `.github/` configuratie triggeren **geen** releases.
+De configuratie sluit `docs/**` en `inventory/**` uit. Een mirrorcommit kan ook het synchronisatiebestand wijzigen. Beoordeel daarom de release-PR en vertrouw niet alleen op de bestandspaden.
 
 ## Release-proces
 
-### 1. Commit & Push
+### 1. Beoordeel de wijziging
 
-Push een `feat:` of `fix:` commit dat core-bestanden aanraakt:
-
-```bash
-git add src/
-git commit -m "feat: nieuw notificatiekanaal toevoegen"
-git push origin main
-```
+Beoordeel de wijziging en de commitboodschap voordat ze public `main` bereiken.
 
 ### 2. Release Please Opent PR
 
-Release Please GitHub Action opent automatisch een Release PR die:
+Als een release nodig is, opent de Release Please GitHub Action een release-PR of werkt die bij. De PR:
 - Het `VERSION` bestand bumpt (patch, minor of major)
 - `CHANGELOG.md` genereert/bijwerkt met release notes
-- Alle commits sinds de vorige release vermeldt
+- Relevante wijzigingen sinds de vorige release vermeldt
 
 ### 3. Review & Merge
 

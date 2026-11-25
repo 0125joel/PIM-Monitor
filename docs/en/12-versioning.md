@@ -26,31 +26,22 @@ All commits should use the format:
 
 ### What Triggers a Release
 
-A release is triggered **only** when a `feat:` or `fix:` commit touches:
-- `src/**` (PowerShell scripts)
-- `monitor-pipeline.yml` (Azure DevOps pipeline)
-- `scan.yml` (GitHub Actions workflow)
+Release Please checks conventional commits on public `main`. A `feat:` or `fix:` commit can lead to a release PR; a `docs:` commit alone does not.
 
-Changes to documentation, inventory files, README, or `.github/` configuration do **not** trigger releases.
+The configuration lists `docs/**` and `inventory/**` as excluded paths. A mirror commit can also change its synchronization marker, so review the release PR rather than relying on paths alone.
 
 ## Release Process
 
-### 1. Commit & Push
+### 1. Review the change
 
-Push a `feat:` or `fix:` commit touching core files:
-
-```bash
-git add src/
-git commit -m "feat: add new notification channel"
-git push origin main
-```
+Review the change and its commit message before it reaches public `main`.
 
 ### 2. Release Please Opens a PR
 
-Release Please GitHub Action automatically opens a Release PR that:
+When a release is needed, the Release Please GitHub Action opens or updates a release PR that:
 - Bumps the `VERSION` file (patch, minor, or major)
 - Generates/updates `CHANGELOG.md` with release notes
-- Lists all commits since the last release
+- Lists the relevant changes since the last release
 
 ### 3. Review & Merge
 
