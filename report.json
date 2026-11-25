@@ -1,40 +1,20 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-11-24T04:09:54Z",
+  "generatedAt": "2026-11-25T04:10:07Z",
   "base": {
-    "sha": "936d394223b733c94e0aa88db04778e2434c8970"
+    "sha": "176ac3546b6889de55161e470eb414c90e05d44e"
   },
   "head": {
     "sha": "176ac3546b6889de55161e470eb414c90e05d44e"
   },
   "summary": {
-    "newRoles": 2,
+    "newRoles": 0,
     "removedRoles": 0,
     "changedRoles": 0,
     "readOnlyChanges": 0,
-    "needsReview": true
+    "needsReview": false
   },
-  "newRoles": [
-    {
-      "templateId": "749877fd-c267-4b82-94fd-cc50a0e4bff4",
-      "displayName": "Organizational Data Source Reader",
-      "description": "Read organizational data source configurations, data quality reports, and metadata in Microsoft 365 without configuring data ingestion, connections, or settings.",
-      "isPrivileged": false,
-      "floorLevel": null,
-      "allowedResourceActions": [
-        "microsoft.microsoft365.organizationalData/allEntities/allProperties/read",
-        "microsoft.office365.webPortal/allEntities/standard/read"
-      ]
-    },
-    {
-      "templateId": "ddc7372f-4ece-4e8d-8010-1b36d9992d23",
-      "displayName": "B2B Policy Administrator",
-      "description": "Create, read, update, and delete B2B management policies, and set the tenant-default policy.",
-      "isPrivileged": false,
-      "floorLevel": null,
-      "allowedResourceActions": []
-    }
-  ],
+  "newRoles": [],
   "removedRoles": [],
   "changedRoles": []
 }
